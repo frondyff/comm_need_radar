@@ -16,6 +16,7 @@ team can monitor work through owners, outputs, blockers, and handoffs.
 | 2026-06-11 | Frondy | Geospatial / analytics lead | Enhanced maps with click-selected areas, click-selected services, radius filters, and category-level access tables | `src/comm_need_radar/dashboard/app.py` | Role activity log kept in docs/data instead of dashboard | Validate clicks with user testing |
 | 2026-06-11 | Mariam | AI / insight / presentation lead | Added local policymaker assistant for priority, gap, borough, and funding questions | `src/comm_need_radar/dashboard/app.py` | External RAG/LLM not required for MVP | Validate answers with policy users |
 | 2026-06-11 | Frondy | GitHub / collaboration lead | Added GitHub branch, issue, PR, label, and CI workflow structure | `.github/`, `docs/github-workflow.md` | GitHub CLI is not installed locally yet | Install/authenticate GitHub CLI and push private repo |
+| 2026-06-11 | Frondy | Repository setup lead | Created tracked repository skeleton on `dev` | `data/`, `notebooks/`, `scripts/`, `src/`, `tests/` | Implementation files still deferred | Continue with issue #2 implementation work |
 
 ## Monitoring Rule
 

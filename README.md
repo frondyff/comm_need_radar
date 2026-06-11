@@ -64,9 +64,9 @@ comm_need_radar/
     pull_request_template.md
 ```
 
-Only the documentation and GitHub templates are created in the initial planning
-session. Code, data, notebooks, tests, deployment files, and CI are deferred to
-implementation tasks.
+The repository skeleton is created with tracked placeholders for data,
+notebooks, scripts, source, and tests. Implementation code, generated data,
+deployment files, and full validation are deferred to issue-driven work.
 
 ## Team Ownership
 
