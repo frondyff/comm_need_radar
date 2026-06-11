@@ -1,0 +1,31 @@
+# Source of truth for repository labels.
+# Apply these labels after repository creation with:
+# gh label create "work-item" --color "0E8A16" --description "Self-contained implementation or documentation task"
+
+- name: work-item
+  color: "0E8A16"
+  description: Self-contained implementation or documentation task
+- name: interface-change
+  color: "B60205"
+  description: Shared data, dashboard, or contract change
+- name: documentation
+  color: "0075CA"
+  description: Documentation-only update
+- name: data
+  color: "5319E7"
+  description: Data acquisition, processing, or validation
+- name: dashboard
+  color: "FBCA04"
+  description: Streamlit dashboard or user experience work
+- name: scoring
+  color: "D93F0B"
+  description: Vulnerability, accessibility, or gap scoring
+- name: monitoring
+  color: "1D76DB"
+  description: Monitoring, checks, or project tracking
+- name: blocked
+  color: "000000"
+  description: Blocked by a dependency or decision
+- name: ready-for-review
+  color: "C5DEF5"
+  description: Ready for teammate review

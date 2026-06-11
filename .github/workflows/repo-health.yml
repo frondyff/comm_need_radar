@@ -1,0 +1,81 @@
+name: Repo Health
+
+on:
+  pull_request:
+    branches:
+      - dev
+      - main
+  push:
+    branches:
+      - dev
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  docs-and-templates:
+    name: Docs and templates
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Verify required docs
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          required_files=(
+            "README.md"
+            "docs/project-definition.md"
+            "docs/project-task-breakdown.md"
+            "docs/architecture.md"
+            "docs/interfaces.md"
+            "docs/decisions.md"
+            "docs/task-progress.md"
+            "docs/data-requirements.md"
+            "docs/submission-checklist.md"
+            "docs/github-workflow.md"
+            ".github/ISSUE_TEMPLATE/work-item.md"
+            ".github/ISSUE_TEMPLATE/interface-change.md"
+            ".github/pull_request_template.md"
+            ".github/initial-issues.md"
+            ".github/labels.yml"
+          )
+
+          for path in "${required_files[@]}"; do
+            test -f "$path" || {
+              echo "Missing required file: $path"
+              exit 1
+            }
+          done
+
+      - name: Verify private-data guardrails
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if find . -path ./.git -prune -o -name ".env" -print | grep -q .; then
+            echo "Forbidden private-data file found: .env"
+            exit 1
+          fi
+
+          if find . -path ./.git -prune -o -name "id_rsa" -print | grep -q .; then
+            echo "Forbidden private key file found: id_rsa"
+            exit 1
+          fi
+
+          if grep -RIn --exclude-dir=.git --exclude="repo-health.yml" \
+            -e "BEGIN OPENSSH PRIVATE KEY" \
+            -e "BEGIN RSA PRIVATE KEY" .; then
+            echo "Forbidden private key material found"
+            exit 1
+          fi
+
+      - name: Validate PR template issue link reminder
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -q "Closes #" .github/pull_request_template.md
+          grep -q "Target branch is" .github/pull_request_template.md

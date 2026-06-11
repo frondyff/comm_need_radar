@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Project workflow
+    url: https://github.com/
+    about: Use the repository docs for branch, issue, and pull request rules.

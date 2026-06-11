@@ -1,0 +1,31 @@
+name: PR Issue Link
+
+on:
+  pull_request:
+    branches:
+      - dev
+      - main
+    types:
+      - opened
+      - edited
+      - synchronize
+      - reopened
+      - ready_for_review
+
+permissions:
+  pull-requests: read
+
+jobs:
+  require-linked-issue:
+    name: Require linked issue
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate PR body
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const body = context.payload.pull_request.body || "";
+            const hasClosingKeyword = /\b(close[sd]?|fix(e[sd])?|resolve[sd]?)\s+#\d+/i.test(body);
+            if (!hasClosingKeyword) {
+              core.setFailed("PR body must include a GitHub closing keyword such as `Closes #12`.");
+            }
