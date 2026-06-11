@@ -8,6 +8,7 @@
 - [x] GitHub issue and pull request templates exist.
 - [x] GitHub Actions workflow files exist.
 - [x] GitHub collaboration workflow is documented.
+- [x] Repository structure exists for data, notebooks, scripts, source, and tests.
 
 ## MVP Implementation Still Required
 
