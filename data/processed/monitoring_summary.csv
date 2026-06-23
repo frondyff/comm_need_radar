@@ -1,0 +1,11 @@
+check_name,status,value,details
+raw_area_rows,pass,12,Synthetic area profiles loaded
+raw_service_rows,pass,14,Synthetic service records loaded
+area_unique_ids,pass,12,Unique area IDs
+service_unique_ids,pass,14,Unique service IDs
+missing_area_coordinates,pass,0,No missing synthetic area coordinates
+missing_service_coordinates,pass,0,No missing synthetic service coordinates
+accessibility_rows,pass,108,One row per area and service category
+gap_score_rows,pass,12,One row per area
+priority_area_count,pass,5,Synthetic high-priority areas
+open_blockers,watch,2,Real public data source and cloud target remain pending

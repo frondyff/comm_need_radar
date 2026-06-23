@@ -1,0 +1,240 @@
+# MVP System ERD
+
+Date: 2026-06-23
+
+This ERD shows the current Community Needs Radar MVP data model and the planned
+real-index extension for immigrant and Indigenous focus scoring.
+
+## Current MVP ERD
+
+```mermaid
+erDiagram
+    AREA_PROFILE ||--|| GAP_SCORE : "scores into"
+    AREA_PROFILE ||--o{ ACCESSIBILITY : "has category access rows"
+    AREA_PROFILE ||--o{ FLYER_EXAMPLE : "selected for"
+    AREA_PROFILE ||--o| AREA_VULNERABILITY_INDEX_REAL : "real census index for"
+    SERVICE ||--o{ FLYER_EXAMPLE : "listed on"
+    SERVICE ||--o{ ACCESSIBILITY : "summarized by category"
+    MONITORING_SUMMARY ||--o{ ROLE_ACTIVITY_LOG : "documents pipeline context"
+
+    AREA_PROFILE {
+        string area_id PK
+        string area_name
+        string borough_name
+        float latitude
+        float longitude
+        int population
+        float income_indicator
+        float age_indicator
+        float language_indicator
+        float immigration_indicator
+        float housing_indicator
+        float vulnerability_score
+        int vulnerability_rank
+        string top_vulnerability_drivers
+    }
+
+    GAP_SCORE {
+        string area_id PK, FK
+        string area_name
+        string borough_name
+        float latitude
+        float longitude
+        float vulnerability_score
+        float overall_accessibility_score
+        float gap_score
+        int gap_rank
+        string priority_flag
+        string gap_drivers
+        string summary_en
+        string summary_fr
+    }
+
+    ACCESSIBILITY {
+        string area_id FK
+        string service_category
+        float nearest_service_distance_km
+        int service_count_within_threshold
+        float accessibility_score
+        string accessibility_method
+    }
+
+    SERVICE {
+        string service_id PK
+        string service_name
+        string service_category
+        string address
+        float latitude
+        float longitude
+        string phone
+        string website
+        string language
+        string source_name
+        string source_url
+        date last_checked_date
+    }
+
+    FLYER_EXAMPLE {
+        string selected_area_id FK
+        string area_label
+        string selected_service_category
+        string service_name
+        string address
+        string phone
+        string website
+        string language
+        float distance_km
+        date generated_date
+        string disclaimer
+    }
+
+    AREA_VULNERABILITY_INDEX_REAL {
+        string area_id PK, FK
+        string area_name
+        string borough_name
+        float low_income_pct
+        float seniors_65plus_pct
+        float recent_immigrant_pct
+        float no_official_language_pct
+        float shelter_cost_burden_pct
+        float population_2021
+        float vulnerability_index
+        string top_drivers
+        float immigrant_census_concern_score
+        float indigenous_census_concern_score
+        float mvp_focus_census_index
+        string mvp_focus_data_basis
+        string mvp_focus_top_concern
+        int vulnerability_rank
+    }
+
+    MONITORING_SUMMARY {
+        string check_name PK
+        string status
+        int value
+        string details
+    }
+
+    ROLE_ACTIVITY_LOG {
+        date date
+        string owner
+        string role
+        string activity
+        string output
+        string decision_or_blocker
+        string next_step
+    }
+```
+
+## Planned Real-Index Extension
+
+```mermaid
+erDiagram
+    CENSUS_TRACT ||--o{ CT_TO_AREA_LOOKUP : "spatially assigned to"
+    AREA_BOUNDARY ||--o{ CT_TO_AREA_LOOKUP : "contains tract centroid"
+    AREA_BOUNDARY ||--o{ CENTER_AREA_LOOKUP : "contains center point"
+    DATABASE_CENTER ||--|| CENTER_AREA_LOOKUP : "mapped through"
+    DATABASE_CENTER ||--o{ DATABASE_VISITOR_TAG : "receives aggregate visits"
+    DATABASE_VISITOR_TAG }o--|| OBSERVED_NEED_INDEX : "aggregates into"
+    AREA_VULNERABILITY_INDEX_REAL ||--o| VULNERABILITY_INDEX_V2 : "structural layer"
+    OBSERVED_NEED_INDEX ||--o| VULNERABILITY_INDEX_V2 : "observed layer"
+    VULNERABILITY_INDEX_V2 ||--o| GAP_SCORE : "future vulnerability input"
+
+    CENSUS_TRACT {
+        string ct_code PK
+        string dguid
+        string geo_name
+        int population_2021
+        float low_income_pct
+        float seniors_65plus_pct
+        float recent_immigrant_pct
+        float no_official_language_pct
+        float shelter_cost_burden_pct
+        float indigenous_identity_pct
+    }
+
+    AREA_BOUNDARY {
+        string area_id PK
+        string area_name
+        string borough_name
+        geometry polygon
+    }
+
+    CT_TO_AREA_LOOKUP {
+        string ct_code FK
+        string area_id FK
+        string join_method
+    }
+
+    DATABASE_CENTER {
+        string center_id PK
+        string center_name
+        float latitude
+        float longitude
+        string address
+        string service_categories
+        string languages
+        boolean indigenous_led_or_specific
+    }
+
+    CENTER_AREA_LOOKUP {
+        string center_id PK, FK
+        string area_id FK
+        string join_method
+    }
+
+    DATABASE_VISITOR_TAG {
+        string visit_group_id PK
+        string center_id FK
+        date period_start
+        date period_end
+        string key_need
+        int k_anon_count
+        string severity
+        string population_group
+        boolean language_need_flag
+        boolean settlement_need_flag
+        boolean indigenous_specific_need_flag
+    }
+
+    OBSERVED_NEED_INDEX {
+        string area_id PK, FK
+        int rolling_visit_count
+        float visit_volume_per_1000
+        float need_severity_score
+        float recency_weighted_score
+        float observed_need_index
+        boolean insufficient_visit_data
+        string top_key_needs
+        int observed_need_rank
+    }
+
+    VULNERABILITY_INDEX_V2 {
+        string area_id PK, FK
+        float structural_vulnerability_index
+        float observed_need_index
+        float vulnerability_index_v2
+        float structural_weight
+        float observed_weight
+        boolean insufficient_visit_data
+        string data_basis
+    }
+```
+
+## Relationship Notes
+
+- `AREA_PROFILE.area_id` is the main MVP area key.
+- `GAP_SCORE.area_id`, `ACCESSIBILITY.area_id`, and
+  `AREA_VULNERABILITY_INDEX_REAL.area_id` join back to `AREA_PROFILE.area_id`.
+- `ACCESSIBILITY` is category-level, so its practical composite key is
+  `area_id + service_category`.
+- Current `FLYER_EXAMPLE` stores service details denormalized for printable
+  output; it does not currently store `service_id`.
+- Current service-to-accessibility linkage is by `service_category`, not direct
+  service ID.
+- The planned real-index extension introduces explicit spatial lookup tables so
+  census tracts and service centers can be assigned to MVP areas.
+- `DATABASE_VISITOR_TAG` must remain k-anonymized. Rows below `k=5` should be
+  suppressed or rolled up before they reach the observed index.
+- `VULNERABILITY_INDEX_V2` will eventually replace the current synthetic
+  `vulnerability_score` as the input to `GAP_SCORE`.

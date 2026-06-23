@@ -23,6 +23,9 @@ flowchart LR
 
 No bronze, silver, or gold layers are used.
 
+See `docs/mvp-system-erd.md` for the current MVP entity relationship diagram and
+the planned real-index extension.
+
 ## Processing Layer
 
 Processing is handled by `scripts/build_processed_data.py`, which calls package
@@ -41,7 +44,9 @@ The pipeline:
 
 ## Application Layer
 
-The Streamlit app reads only `data/processed/` files.
+The Streamlit app reads only `data/processed/` files. The Cloud-ready
+entrypoint is `streamlit_app.py`, which loads the dashboard package from
+`src/comm_need_radar/dashboard/app.py`.
 
 Views:
 
@@ -56,5 +61,7 @@ flyer from nearby services.
 
 ## Deployment Position
 
-Local execution is the default and required fallback. Cloud deployment can use
-the same processed CSV files and app entrypoint if selected later.
+Local execution is the default and required fallback. Streamlit Community Cloud
+can deploy the repository from `main` with `streamlit_app.py` as the main file.
+The root `requirements.txt` supplies Python dependencies and
+`.streamlit/config.toml` supplies app configuration.

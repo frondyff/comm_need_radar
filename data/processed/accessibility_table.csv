@@ -1,0 +1,109 @@
+area_id,service_category,nearest_service_distance_km,service_count_within_threshold,accessibility_score,accessibility_method
+A001,Employment,9.33,0,0.0,haversine distance; threshold 2.5 km
+A001,Family Services,4.18,0,0.0,haversine distance; threshold 2.5 km
+A001,Food Support,0.27,1,98.4,haversine distance; threshold 2.5 km
+A001,General Support,10.93,0,0.0,haversine distance; threshold 2.5 km
+A001,Housing,3.85,0,0.0,haversine distance; threshold 2.5 km
+A001,Legal Aid,5.87,0,0.0,haversine distance; threshold 2.5 km
+A001,Mental Health,4.59,0,0.0,haversine distance; threshold 2.5 km
+A001,Newcomer Support,3.14,0,12.14,haversine distance; threshold 2.5 km
+A001,Senior Support,3.63,0,0.0,haversine distance; threshold 2.5 km
+A004,Employment,16.21,0,0.0,haversine distance; threshold 2.5 km
+A004,Family Services,0.27,1,98.4,haversine distance; threshold 2.5 km
+A004,Food Support,6.33,0,0.0,haversine distance; threshold 2.5 km
+A004,General Support,18.73,0,0.0,haversine distance; threshold 2.5 km
+A004,Housing,4.8,0,0.0,haversine distance; threshold 2.5 km
+A004,Legal Aid,11.78,0,0.0,haversine distance; threshold 2.5 km
+A004,Mental Health,10.91,0,0.0,haversine distance; threshold 2.5 km
+A004,Newcomer Support,9.54,0,0.0,haversine distance; threshold 2.5 km
+A004,Senior Support,5.58,0,0.0,haversine distance; threshold 2.5 km
+A003,Employment,6.7,0,0.0,haversine distance; threshold 2.5 km
+A003,Family Services,4.66,0,0.0,haversine distance; threshold 2.5 km
+A003,Food Support,3.47,0,2.87,haversine distance; threshold 2.5 km
+A003,General Support,8.16,0,0.0,haversine distance; threshold 2.5 km
+A003,Housing,5.75,0,0.0,haversine distance; threshold 2.5 km
+A003,Legal Aid,4.68,0,0.0,haversine distance; threshold 2.5 km
+A003,Mental Health,3.55,0,0.58,haversine distance; threshold 2.5 km
+A003,Newcomer Support,0.19,1,100.0,haversine distance; threshold 2.5 km
+A003,Senior Support,6.68,0,0.0,haversine distance; threshold 2.5 km
+A002,Employment,11.72,0,0.0,haversine distance; threshold 2.5 km
+A002,Family Services,4.73,0,0.0,haversine distance; threshold 2.5 km
+A002,Food Support,3.77,0,0.0,haversine distance; threshold 2.5 km
+A002,General Support,14.8,0,0.0,haversine distance; threshold 2.5 km
+A002,Housing,0.38,1,95.29,haversine distance; threshold 2.5 km
+A002,Legal Aid,7.36,0,0.0,haversine distance; threshold 2.5 km
+A002,Mental Health,6.42,0,0.0,haversine distance; threshold 2.5 km
+A002,Newcomer Support,6.71,0,0.0,haversine distance; threshold 2.5 km
+A002,Senior Support,3.67,0,0.0,haversine distance; threshold 2.5 km
+A012,Employment,20.68,0,0.0,haversine distance; threshold 2.5 km
+A012,Family Services,6.26,0,0.0,haversine distance; threshold 2.5 km
+A012,Food Support,0.51,1,91.66,haversine distance; threshold 2.5 km
+A012,General Support,24.73,0,0.0,haversine distance; threshold 2.5 km
+A012,Housing,10.07,0,0.0,haversine distance; threshold 2.5 km
+A012,Legal Aid,16.12,0,0.0,haversine distance; threshold 2.5 km
+A012,Mental Health,15.61,0,0.0,haversine distance; threshold 2.5 km
+A012,Newcomer Support,15.87,0,0.0,haversine distance; threshold 2.5 km
+A012,Senior Support,11.9,0,0.0,haversine distance; threshold 2.5 km
+A005,Employment,9.72,0,0.0,haversine distance; threshold 2.5 km
+A005,Family Services,3.66,0,0.0,haversine distance; threshold 2.5 km
+A005,Food Support,0.41,1,94.6,haversine distance; threshold 2.5 km
+A005,General Support,16.2,0,0.0,haversine distance; threshold 2.5 km
+A005,Housing,4.96,0,0.0,haversine distance; threshold 2.5 km
+A005,Legal Aid,5.37,0,0.0,haversine distance; threshold 2.5 km
+A005,Mental Health,5.43,0,0.0,haversine distance; threshold 2.5 km
+A005,Newcomer Support,8.11,0,0.0,haversine distance; threshold 2.5 km
+A005,Senior Support,8.82,0,0.0,haversine distance; threshold 2.5 km
+A007,Employment,12.9,0,0.0,haversine distance; threshold 2.5 km
+A007,Family Services,6.0,0,0.0,haversine distance; threshold 2.5 km
+A007,Food Support,3.3,0,7.5,haversine distance; threshold 2.5 km
+A007,General Support,13.17,0,0.0,haversine distance; threshold 2.5 km
+A007,Housing,4.22,0,0.0,haversine distance; threshold 2.5 km
+A007,Legal Aid,9.3,0,0.0,haversine distance; threshold 2.5 km
+A007,Mental Health,8.06,0,0.0,haversine distance; threshold 2.5 km
+A007,Newcomer Support,3.83,0,0.0,haversine distance; threshold 2.5 km
+A007,Senior Support,0.32,1,96.97,haversine distance; threshold 2.5 km
+A011,Employment,2.18,1,44.9,haversine distance; threshold 2.5 km
+A011,Family Services,5.24,0,0.0,haversine distance; threshold 2.5 km
+A011,Food Support,7.84,0,0.0,haversine distance; threshold 2.5 km
+A011,General Support,10.79,0,0.0,haversine distance; threshold 2.5 km
+A011,Housing,0.27,1,98.39,haversine distance; threshold 2.5 km
+A011,Legal Aid,2.57,0,28.11,haversine distance; threshold 2.5 km
+A011,Mental Health,3.58,0,0.0,haversine distance; threshold 2.5 km
+A011,Newcomer Support,5.89,0,0.0,haversine distance; threshold 2.5 km
+A011,Senior Support,11.59,0,0.0,haversine distance; threshold 2.5 km
+A008,Employment,9.96,0,0.0,haversine distance; threshold 2.5 km
+A008,Family Services,13.01,0,0.0,haversine distance; threshold 2.5 km
+A008,Food Support,11.5,0,0.0,haversine distance; threshold 2.5 km
+A008,General Support,0.46,1,93.21,haversine distance; threshold 2.5 km
+A008,Housing,11.17,0,0.0,haversine distance; threshold 2.5 km
+A008,Legal Aid,11.82,0,0.0,haversine distance; threshold 2.5 km
+A008,Mental Health,11.3,0,0.0,haversine distance; threshold 2.5 km
+A008,Newcomer Support,8.79,0,0.0,haversine distance; threshold 2.5 km
+A008,Senior Support,13.81,0,0.0,haversine distance; threshold 2.5 km
+A006,Employment,0.26,1,98.75,haversine distance; threshold 2.5 km
+A006,Family Services,7.27,0,0.0,haversine distance; threshold 2.5 km
+A006,Food Support,9.57,0,0.0,haversine distance; threshold 2.5 km
+A006,General Support,9.32,0,0.0,haversine distance; threshold 2.5 km
+A006,Housing,2.52,0,29.31,haversine distance; threshold 2.5 km
+A006,Legal Aid,4.67,0,0.0,haversine distance; threshold 2.5 km
+A006,Mental Health,5.36,0,0.0,haversine distance; threshold 2.5 km
+A006,Newcomer Support,6.58,0,0.0,haversine distance; threshold 2.5 km
+A006,Senior Support,12.93,0,0.0,haversine distance; threshold 2.5 km
+A010,Employment,7.37,0,0.0,haversine distance; threshold 2.5 km
+A010,Family Services,0.45,1,93.44,haversine distance; threshold 2.5 km
+A010,Food Support,3.31,0,7.29,haversine distance; threshold 2.5 km
+A010,General Support,12.98,0,0.0,haversine distance; threshold 2.5 km
+A010,Housing,4.39,0,0.0,haversine distance; threshold 2.5 km
+A010,Legal Aid,2.81,0,21.4,haversine distance; threshold 2.5 km
+A010,Mental Health,2.36,1,40.02,haversine distance; threshold 2.5 km
+A010,Newcomer Support,4.92,0,0.0,haversine distance; threshold 2.5 km
+A010,Senior Support,7.31,0,0.0,haversine distance; threshold 2.5 km
+A009,Employment,3.67,0,0.0,haversine distance; threshold 2.5 km
+A009,Family Services,4.41,0,0.0,haversine distance; threshold 2.5 km
+A009,Food Support,5.95,0,0.0,haversine distance; threshold 2.5 km
+A009,General Support,8.75,0,0.0,haversine distance; threshold 2.5 km
+A009,Housing,2.71,0,24.17,haversine distance; threshold 2.5 km
+A009,Legal Aid,2.62,0,26.51,haversine distance; threshold 2.5 km
+A009,Mental Health,2.38,1,39.26,haversine distance; threshold 2.5 km
+A009,Newcomer Support,3.06,0,14.21,haversine distance; threshold 2.5 km
+A009,Senior Support,9.31,0,0.0,haversine distance; threshold 2.5 km

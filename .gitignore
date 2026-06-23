@@ -1,19 +1,22 @@
-.DS_Store
-.env
-.env.*
-!.env.example
+# Python
 __pycache__/
 *.py[cod]
 .pytest_cache/
 .ruff_cache/
 .mypy_cache/
+
+# Environments
 .venv/
-venv/
+.env
+node_modules/
+.next/
+dist/
 .git-local/
-data/raw/*
-!data/raw/.gitkeep
-data/processed/*
-!data/processed/.gitkeep
-*.parquet
-*.sqlite
-*.db
+
+# OS/editor
+.DS_Store
+.vscode/
+.idea/
+
+# Streamlit local state
+.streamlit/secrets.toml

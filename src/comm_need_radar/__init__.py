@@ -1,2 +1,4 @@
-"""Community Needs Radar package."""
+"""Community Needs Radar synthetic MVP package."""
 
+__all__ = ["__version__"]
+__version__ = "0.1.0"

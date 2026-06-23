@@ -30,6 +30,10 @@ Replace synthetic sources with:
 - 211 Quebec or Montreal Open Data service locations.
 - Optional transit or routing data if feasible.
 
+For the immigrant/Indigenous MVP vulnerability index, see
+`docs/laura-data-request-real-index.md` for Laura's concrete source-field
+checklist.
+
 ## Quality Checks
 
 - Required columns exist.

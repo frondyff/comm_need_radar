@@ -1,0 +1,15 @@
+service_id,service_name,service_category,address,latitude,longitude,phone,website,language,source_name,source_url,last_checked_date
+S001,Parc Extension Food Hub,Food Support,Synthetic 101 Bloomfield Ave,45.531,-73.635,514-555-0101,https://example.org/food-hub,EN;FR;Other,Synthetic 211-like directory,https://example.org,2026-06-11
+S002,Saint-Michel Housing Clinic,Housing,Synthetic 22 Jarry East,45.558,-73.606,514-555-0102,https://example.org/housing-clinic,FR;EN,Synthetic 211-like directory,https://example.org,2026-06-11
+S003,Cote-des-Neiges Newcomer Centre,Newcomer Support,Synthetic 303 Victoria Ave,45.501,-73.628,514-555-0103,https://example.org/newcomer,EN;FR;Other,Synthetic 211-like directory,https://example.org,2026-06-11
+S004,Montreal-Nord Family Resource Centre,Family Services,Synthetic 88 Rolland Blvd,45.602,-73.622,514-555-0104,https://example.org/family,FR;EN,Synthetic 211-like directory,https://example.org,2026-06-11
+S005,Hochelaga Community Meals,Food Support,Synthetic 44 Ontario East,45.548,-73.548,514-555-0105,https://example.org/meals,FR,Synthetic municipal open data,https://example.org,2026-06-11
+S006,Verdun Employment Desk,Employment,Synthetic 19 Wellington,45.459,-73.567,514-555-0106,https://example.org/jobs,FR;EN,Synthetic municipal open data,https://example.org,2026-06-11
+S007,Ahuntsic Senior Support,Senior Support,Synthetic 710 Fleury,45.557,-73.657,514-555-0107,https://example.org/seniors,FR;EN,Synthetic municipal open data,https://example.org,2026-06-11
+S008,Lachine Community Access Point,General Support,Synthetic 12 Notre-Dame,45.438,-73.686,514-555-0108,https://example.org/access,FR;EN,Synthetic municipal open data,https://example.org,2026-06-11
+S009,Downtown Legal Aid Satellite,Legal Aid,Synthetic 900 Rene-Levesque,45.5,-73.57,514-555-0109,https://example.org/legal,FR;EN,Synthetic 211-like directory,https://example.org,2026-06-11
+S010,Sud-Ouest Housing Desk,Housing,Synthetic 61 Centre St,45.48,-73.562,514-555-0110,https://example.org/sudhousing,FR;EN,Synthetic municipal open data,https://example.org,2026-06-11
+S011,East Island Food Pantry,Food Support,Synthetic 17 Perras Blvd,45.642,-73.565,514-555-0111,https://example.org/eastfood,FR,Synthetic municipal open data,https://example.org,2026-06-11
+S012,Plateau Youth And Family Centre,Family Services,Synthetic 25 Mont-Royal,45.523,-73.58,514-555-0112,https://example.org/youth,FR;EN,Synthetic 211-like directory,https://example.org,2026-06-11
+S013,Cartierville Newcomer Desk,Newcomer Support,Synthetic 400 Gouin West,45.535,-73.7,514-555-0113,https://example.org/cartier,FR;EN;Other,Synthetic 211-like directory,https://example.org,2026-06-11
+S014,West End Mental Health Drop-in,Mental Health,Synthetic 222 Sherbrooke West,45.505,-73.585,514-555-0114,https://example.org/mental-health,FR;EN,Synthetic 211-like directory,https://example.org,2026-06-11

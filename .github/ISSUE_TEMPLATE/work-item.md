@@ -2,7 +2,7 @@
 name: Work item
 about: Self-contained implementation or documentation task for a teammate
 title: ""
-labels: "work-item"
+labels: ""
 assignees: ""
 ---
 
@@ -32,9 +32,5 @@ assignees: ""
 ## Acceptance Criteria
 
 - [ ]
-
-## Pull Request Link
-
-- PR:
 
 ## Handoff Notes

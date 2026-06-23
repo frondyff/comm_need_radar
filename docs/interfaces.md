@@ -91,6 +91,33 @@ Required fields:
 | `priority_flag` | High priority, watch, or lower priority |
 | `gap_drivers` | Plain-language gap explanation |
 
+## Census Vulnerability Index Tables
+
+Files:
+
+- `data/processed/census_vulnerability_index.csv`
+- `data/processed/statcan_census_vulnerability_index.csv`
+- `data/processed/area_vulnerability_index_real.csv`
+
+Grain:
+
+- `census_vulnerability_index.csv`: one row per MVP area using illustrative sample values.
+- `statcan_census_vulnerability_index.csv`: one row per complete census tract.
+- `area_vulnerability_index_real.csv`: one row per MVP area after borough-level aggregation.
+
+Required focus fields:
+
+| Field | Meaning |
+| --- | --- |
+| `vulnerability_index` | General structural CISV-style census index |
+| `top_drivers` | Top general structural drivers |
+| `immigrant_census_concern_score` | Average of recent-immigrant and no-official-language scaled scores |
+| `indigenous_census_concern_score` | Scaled Indigenous identity concern when source data exists; blank otherwise |
+| `mvp_focus_census_index` | Focus-group census score from available immigrant/Indigenous inputs |
+| `mvp_focus_data_basis` | Data availability flag for focus score |
+| `mvp_focus_top_concern` | Plain-language top focus concern |
+| `vulnerability_rank` | Rank by general structural vulnerability index |
+
 ## Flyer Examples
 
 File: `data/processed/flyer_examples.csv`

@@ -1,0 +1,150 @@
+{
+  "type": "FeatureCollection",
+  "name": "synthetic_community_area_polygons",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "area_id": "A001",
+        "area_name": "Parc Extension",
+        "boundary_type": "synthetic_envelope"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[-73.647, 45.518], [-73.619, 45.518], [-73.619, 45.540], [-73.647, 45.540], [-73.647, 45.518]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "area_id": "A002",
+        "area_name": "Saint-Michel",
+        "boundary_type": "synthetic_envelope"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[-73.628, 45.548], [-73.592, 45.548], [-73.592, 45.572], [-73.628, 45.572], [-73.628, 45.548]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "area_id": "A003",
+        "area_name": "Cote-des-Neiges",
+        "boundary_type": "synthetic_envelope"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[-73.652, 45.486], [-73.608, 45.486], [-73.608, 45.514], [-73.652, 45.514], [-73.652, 45.486]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "area_id": "A004",
+        "area_name": "Montreal-Nord",
+        "boundary_type": "synthetic_envelope"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[-73.646, 45.586], [-73.594, 45.586], [-73.594, 45.614], [-73.646, 45.614], [-73.646, 45.586]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "area_id": "A005",
+        "area_name": "Hochelaga",
+        "boundary_type": "synthetic_envelope"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[-73.566, 45.532], [-73.524, 45.532], [-73.524, 45.558], [-73.566, 45.558], [-73.566, 45.532]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "area_id": "A006",
+        "area_name": "Verdun",
+        "boundary_type": "synthetic_envelope"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[-73.594, 45.444], [-73.546, 45.444], [-73.546, 45.472], [-73.594, 45.472], [-73.594, 45.444]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "area_id": "A007",
+        "area_name": "Ahuntsic",
+        "boundary_type": "synthetic_envelope"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[-73.686, 45.542], [-73.634, 45.542], [-73.634, 45.568], [-73.686, 45.568], [-73.686, 45.542]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "area_id": "A008",
+        "area_name": "Lachine",
+        "boundary_type": "synthetic_envelope"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[-73.722, 45.420], [-73.658, 45.420], [-73.658, 45.450], [-73.722, 45.450], [-73.722, 45.420]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "area_id": "A009",
+        "area_name": "Westmount",
+        "boundary_type": "synthetic_envelope"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[-73.610, 45.476], [-73.582, 45.476], [-73.582, 45.494], [-73.610, 45.494], [-73.610, 45.476]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "area_id": "A010",
+        "area_name": "Plateau Mont-Royal",
+        "boundary_type": "synthetic_envelope"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[-73.594, 45.512], [-73.556, 45.512], [-73.556, 45.538], [-73.594, 45.538], [-73.594, 45.512]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "area_id": "A011",
+        "area_name": "Pointe-Saint-Charles",
+        "boundary_type": "synthetic_envelope"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[-73.582, 45.464], [-73.538, 45.464], [-73.538, 45.492], [-73.582, 45.492], [-73.582, 45.464]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "area_id": "A012",
+        "area_name": "Riviere-des-Prairies",
+        "boundary_type": "synthetic_envelope"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[-73.598, 45.628], [-73.542, 45.628], [-73.542, 45.662], [-73.598, 45.662], [-73.598, 45.628]]]
+      }
+    }
+  ]
+}

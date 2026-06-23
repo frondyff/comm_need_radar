@@ -29,7 +29,8 @@ and monitoring before connecting public datasets.
 - Distance-based service accessibility.
 - Transparent scoring formulas.
 - Local Streamlit app.
-- Optional cloud-readiness through simple file-based inputs.
+- Streamlit Community Cloud readiness through a root entrypoint and root
+  dependency/config files.
 - Role-based simulated activity log as a documentation and data artifact.
 
 ## Out Of Scope
@@ -44,6 +45,8 @@ and monitoring before connecting public datasets.
 
 - Processed outputs match `docs/interfaces.md`.
 - Dashboard starts locally when dependencies are installed.
+- Dashboard is deployable on Streamlit Community Cloud with
+  `streamlit_app.py` as the main file.
 - Planner users can identify top priority areas and score drivers.
 - Planner users can click priority areas on the map and inspect category-level
   service access.

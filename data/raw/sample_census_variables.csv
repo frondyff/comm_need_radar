@@ -1,0 +1,13 @@
+area_id,area_name,borough_name,low_income_pct,seniors_65plus_pct,recent_immigrant_pct,no_official_language_pct,shelter_cost_burden_pct
+A001,Parc Extension,Villeray-Saint-Michel-Parc-Extension,34.2,12.8,18.6,9.4,29.8
+A002,Saint-Michel,Villeray-Saint-Michel-Parc-Extension,29.7,15.1,15.2,7.1,26.5
+A003,Cote-des-Neiges,Cote-des-Neiges-Notre-Dame-de-Grace,27.4,13.9,16.8,8.0,27.9
+A004,Montreal-Nord,Montreal-Nord,31.5,16.4,13.1,5.9,28.6
+A005,Hochelaga,Mercier-Hochelaga-Maisonneuve,22.8,17.0,4.2,1.6,21.4
+A006,Verdun,Verdun,16.9,15.8,4.9,1.2,18.7
+A007,Ahuntsic,Ahuntsic-Cartierville,15.1,21.3,6.0,1.8,16.2
+A008,Lachine,Lachine,18.0,18.6,4.6,1.4,19.0
+A009,Westmount,Westmount,6.2,18.9,3.8,1.0,9.8
+A010,Plateau Mont-Royal,Le Plateau-Mont-Royal,19.4,11.2,5.1,1.1,22.6
+A011,Pointe-Saint-Charles,Le Sud-Ouest,24.6,16.7,4.4,1.3,23.1
+A012,Riviere-des-Prairies,Riviere-des-Prairies-Pointe-aux-Trembles,21.3,19.8,8.7,3.5,20.5
