@@ -1,0 +1,13 @@
+area_id,rolling_window_days,rolling_visit_count,visit_volume_per_1000,observed_visit_volume_score,observed_immigrant_need_score,observed_indigenous_need_score,observed_severity_breadth_score,observed_recency_score,observed_focus_need_score,observed_data_basis,insufficient_visit_data,top_key_needs,observed_need_rank
+A001,,0,,,,,,,,no_visit_data,True,,
+A002,,0,,,,,,,,no_visit_data,True,,
+A003,,0,,,,,,,,no_visit_data,True,,
+A004,,0,,,,,,,,no_visit_data,True,,
+A005,,0,,,,,,,,no_visit_data,True,,
+A006,,0,,,,,,,,no_visit_data,True,,
+A007,,0,,,,,,,,no_visit_data,True,,
+A008,,0,,,,,,,,no_visit_data,True,,
+A009,,0,,,,,,,,no_visit_data,True,,
+A010,,0,,,,,,,,no_visit_data,True,,
+A011,,0,,,,,,,,no_visit_data,True,,
+A012,,0,,,,,,,,no_visit_data,True,,

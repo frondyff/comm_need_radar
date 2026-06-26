@@ -9,6 +9,7 @@ from comm_need_radar.config.paths import (
     ACCESSIBILITY_TABLE_PATH,
     AREA_PROFILE_PATH,
     AREA_RAW_PATH,
+    AREA_VULNERABILITY_INDEX_REAL_PATH,
     FLYER_EXAMPLES_PATH,
     GAP_SCORE_PATH,
     MONITORING_SUMMARY_PATH,
@@ -99,13 +100,32 @@ def build_accessibility(area_profile: pd.DataFrame, services: pd.DataFrame) -> p
     return pd.DataFrame(rows)
 
 
-def build_gap_scores(area_profile: pd.DataFrame, accessibility: pd.DataFrame) -> pd.DataFrame:
+def _load_real_vulnerability() -> pd.DataFrame | None:
+    """Load area_vulnerability_index_real.csv if it exists and has the required columns."""
+    if not AREA_VULNERABILITY_INDEX_REAL_PATH.exists():
+        return None
+    df = pd.read_csv(AREA_VULNERABILITY_INDEX_REAL_PATH)
+    required = {"area_id", "vulnerability_index", "mvp_focus_census_index", "mvp_focus_data_basis"}
+    if not required.issubset(df.columns):
+        return None
+    return df[list(required)].copy()
+
+
+def build_gap_scores(
+    area_profile: pd.DataFrame,
+    accessibility: pd.DataFrame,
+    real_index: pd.DataFrame | None = None,
+) -> pd.DataFrame:
     access_avg = (
         accessibility.groupby("area_id", as_index=False)["accessibility_score"]
         .mean()
         .rename(columns={"accessibility_score": "overall_accessibility_score"})
     )
     gap = area_profile.merge(access_avg, on="area_id", how="left")
+    if real_index is not None:
+        gap = gap.merge(real_index[["area_id", "vulnerability_index"]], on="area_id", how="left")
+        gap["vulnerability_score"] = gap["vulnerability_index"].combine_first(gap["vulnerability_score"])
+        gap = gap.drop(columns=["vulnerability_index"])
     gap["overall_accessibility_score"] = gap["overall_accessibility_score"].round(2)
     gap["gap_score"] = gap.apply(
         lambda row: gap_score(float(row.vulnerability_score), float(row.overall_accessibility_score)), axis=1
@@ -172,7 +192,20 @@ def write_role_activity_log(path: Path) -> None:
         writer.writerows(rows)
 
 
-def build_monitoring(areas: pd.DataFrame, services: pd.DataFrame, accessibility: pd.DataFrame, gap: pd.DataFrame) -> list[dict[str, object]]:
+def build_monitoring(
+    areas: pd.DataFrame,
+    services: pd.DataFrame,
+    accessibility: pd.DataFrame,
+    gap: pd.DataFrame,
+    real_index: pd.DataFrame | None = None,
+) -> list[dict[str, object]]:
+    real_matched = 0
+    real_status = "watch"
+    real_detail = "area_vulnerability_index_real.csv not found; gap scores use synthetic vulnerability"
+    if real_index is not None:
+        real_matched = int(gap["area_id"].isin(real_index["area_id"]).sum())
+        real_status = "pass" if real_matched == len(gap) else "watch"
+        real_detail = f"{real_matched}/{len(gap)} areas matched to real census vulnerability index"
     return [
         {"check_name": "raw_area_rows", "status": "pass", "value": len(areas), "details": "Synthetic area profiles loaded"},
         {"check_name": "raw_service_rows", "status": "pass", "value": len(services), "details": "Synthetic service records loaded"},
@@ -182,8 +215,9 @@ def build_monitoring(areas: pd.DataFrame, services: pd.DataFrame, accessibility:
         {"check_name": "missing_service_coordinates", "status": "pass", "value": int(services[["latitude", "longitude"]].isna().sum().sum()), "details": "No missing synthetic service coordinates"},
         {"check_name": "accessibility_rows", "status": "pass", "value": len(accessibility), "details": "One row per area and service category"},
         {"check_name": "gap_score_rows", "status": "pass", "value": len(gap), "details": "One row per area"},
-        {"check_name": "priority_area_count", "status": "pass", "value": int((gap["priority_flag"] == "High priority").sum()), "details": "Synthetic high-priority areas"},
-        {"check_name": "open_blockers", "status": "watch", "value": 2, "details": "Real public data source and cloud target remain pending"},
+        {"check_name": "priority_area_count", "status": "pass", "value": int((gap["priority_flag"] == "High priority").sum()), "details": "High-priority areas by gap score"},
+        {"check_name": "real_census_vulnerability_merged", "status": real_status, "value": real_matched, "details": real_detail},
+        {"check_name": "open_blockers", "status": "watch", "value": 1, "details": "Indigenous census variable and observed visitor data pending from Laura"},
     ]
 
 
@@ -192,7 +226,8 @@ def run_pipeline() -> None:
     areas, services = load_raw()
     area_profile = build_area_profile(areas)
     accessibility = build_accessibility(area_profile, services)
-    gap = build_gap_scores(area_profile, accessibility)
+    real_index = _load_real_vulnerability()
+    gap = build_gap_scores(area_profile, accessibility, real_index=real_index)
     flyer = build_flyer_examples(gap, services)
 
     area_profile.to_csv(AREA_PROFILE_PATH, index=False)
@@ -200,5 +235,5 @@ def run_pipeline() -> None:
     accessibility.to_csv(ACCESSIBILITY_TABLE_PATH, index=False)
     gap.to_csv(GAP_SCORE_PATH, index=False)
     flyer.to_csv(FLYER_EXAMPLES_PATH, index=False)
-    write_monitoring_summary(MONITORING_SUMMARY_PATH, build_monitoring(areas, services, accessibility, gap))
+    write_monitoring_summary(MONITORING_SUMMARY_PATH, build_monitoring(areas, services, accessibility, gap, real_index=real_index))
     write_role_activity_log(ROLE_ACTIVITY_LOG_PATH)
