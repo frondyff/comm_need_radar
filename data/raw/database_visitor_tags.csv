@@ -1,0 +1,30 @@
+visit_group_id,center_id,period_start,period_end,key_need,k_anon_count,severity,population_group,language_need_flag,settlement_need_flag,indigenous_specific_need_flag
+VG001,C001,2026-04-01,2026-06-20,Settlement Navigation,200,High,immigrant_newcomer,1,1,0
+VG002,C001,2026-04-01,2026-06-20,Language Access,160,Medium,immigrant_newcomer,1,0,0
+VG003,C001,2026-04-01,2026-06-20,Housing & Shelter,120,High,general,0,0,0
+VG004,C001,2026-04-01,2026-06-20,Legal Aid,85,High,immigrant_newcomer,1,1,0
+VG005,C001,2026-04-01,2026-04-20,Mental Health,70,High,immigrant_newcomer,1,0,0
+VG006,C002,2026-04-01,2026-06-20,Settlement Navigation,160,High,immigrant_newcomer,1,1,0
+VG007,C002,2026-04-01,2026-06-20,Housing & Shelter,120,High,general,0,0,0
+VG008,C002,2026-04-01,2026-06-20,Language Access,140,Medium,immigrant_newcomer,1,0,0
+VG009,C002,2026-04-01,2026-06-20,Mental Health,60,High,general,0,0,0
+VG010,C002,2026-04-01,2026-06-20,Indigenous Cultural Support,45,High,indigenous,0,0,1
+VG011,C002,2026-04-01,2026-06-20,Indigenous-Led Referral,28,Medium,indigenous,0,0,1
+VG012,C003,2026-04-01,2026-06-20,Newcomer Support,300,High,immigrant_newcomer,1,1,0
+VG013,C003,2026-04-01,2026-06-20,Language Access,250,High,immigrant_newcomer,1,0,0
+VG014,C003,2026-04-01,2026-06-20,Legal Aid,100,High,immigrant_newcomer,1,1,0
+VG015,C003,2026-04-01,2026-06-20,Mental Health,80,High,general,0,0,0
+VG016,C003,2026-04-01,2026-04-20,Family Services,120,Medium,immigrant_newcomer,0,0,0
+VG017,C004,2026-04-01,2026-06-20,Housing & Shelter,150,High,general,0,0,0
+VG018,C004,2026-04-01,2026-06-20,Employment,100,Medium,immigrant_newcomer,1,1,0
+VG019,C004,2026-04-01,2026-06-20,Mental Health,75,High,general,0,0,0
+VG020,C004,2026-04-01,2026-04-20,Food Support,120,Medium,general,0,0,0
+VG021,C005,2026-04-01,2026-06-20,Mental Health,90,High,general,0,0,0
+VG022,C005,2026-04-01,2026-06-20,General Support,110,Low,general,0,0,0
+VG023,C005,2026-04-01,2026-06-20,Health & Wellness,70,Medium,general,0,0,0
+VG024,C006,2026-04-01,2026-06-20,Senior Support,160,Medium,general,0,0,0
+VG025,C006,2026-04-01,2026-06-20,Settlement Navigation,65,Medium,immigrant_newcomer,1,1,0
+VG026,C006,2026-04-01,2026-06-20,Health & Wellness,85,Medium,general,0,0,0
+VG027,C007,2026-04-01,2026-06-20,Housing & Shelter,55,High,general,0,0,0
+VG028,C007,2026-04-01,2026-06-20,General Support,80,Low,general,0,0,0
+VG029,C008,2026-04-01,2026-06-20,General Support,12,Low,general,0,0,0

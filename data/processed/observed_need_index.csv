@@ -1,13 +1,13 @@
 area_id,rolling_window_days,rolling_visit_count,visit_volume_per_1000,observed_visit_volume_score,observed_immigrant_need_score,observed_indigenous_need_score,observed_severity_breadth_score,observed_recency_score,observed_focus_need_score,observed_data_basis,insufficient_visit_data,top_key_needs,observed_need_rank
-A001,,0,,,,,,,,no_visit_data,True,,
-A002,,0,,,,,,,,no_visit_data,True,,
-A003,,0,,,,,,,,no_visit_data,True,,
-A004,,0,,,,,,,,no_visit_data,True,,
+A001,90,635,20.35,20.35,81.1,,45.31,79.8,68.74,immigrant_need_severity_breadth_recency,False,Settlement Navigation; Language Access; Housing & Shelter; Legal Aid; Mental Health,1
+A002,90,553,11.38,11.38,54.25,13.2,40.78,87.06,48.82,immigrant_need_severity_breadth_recency_indigenous_need,False,Settlement Navigation; Language Access; Housing & Shelter; Mental Health; Indigenous Cultural Support,3
+A003,90,850,16.22,16.22,76.47,,29.82,77.77,61.35,immigrant_need_severity_breadth_recency,False,Newcomer Support; Language Access; Family Services; Legal Aid; Mental Health,2
+A004,90,445,10.21,10.21,22.47,,47.39,69.31,46.39,immigrant_need_severity_breadth_recency,False,Housing & Shelter; Food Support; Employment; Mental Health,4
 A005,,0,,,,,,,,no_visit_data,True,,
-A006,,0,,,,,,,,no_visit_data,True,,
-A007,,0,,,,,,,,no_visit_data,True,,
-A008,,0,,,,,,,,no_visit_data,True,,
+A006,90,270,3.84,3.84,0.0,,50.48,87.06,45.85,immigrant_need_severity_breadth_recency,False,General Support; Mental Health; Health & Wellness,5
+A007,90,310,7.83,7.83,20.97,,28.19,87.06,45.41,immigrant_need_severity_breadth_recency,False,Senior Support; Health & Wellness; Settlement Navigation,6
+A008,90,135,4.86,4.86,0.0,,34.52,87.06,40.53,immigrant_need_severity_breadth_recency,False,General Support; Housing & Shelter,7
 A009,,0,,,,,,,,no_visit_data,True,,
 A010,,0,,,,,,,,no_visit_data,True,,
 A011,,0,,,,,,,,no_visit_data,True,,
-A012,,0,,,,,,,,no_visit_data,True,,
+A012,90,12,0.37,0.37,0.0,,3.0,87.06,30.02,immigrant_need_severity_breadth_recency,False,General Support,8

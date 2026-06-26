@@ -1,0 +1,9 @@
+center_id,center_name,latitude,longitude,address,service_categories,hours,languages,indigenous_led_or_specific
+C001,Parc Extension Settlement Hub,45.531,-73.632,Synthetic 45 Ogilvy Ave,"Settlement Navigation;Language Access;Legal Aid;Mental Health",Mon-Fri 9am-5pm,"EN;FR;AR;ES;BN;GU",false
+C002,Saint-Michel Community Centre,45.562,-73.608,Synthetic 7600 Pie-IX Blvd,"Settlement Navigation;Housing;Language Access;Mental Health;Indigenous Support",Mon-Sat 8am-6pm,"FR;EN;HT;SO;Indigenous languages",false
+C003,Cote-des-Neiges Newcomer Hub,45.502,-73.628,Synthetic 5150 Cote-des-Neiges Rd,"Newcomer Support;Language Access;Legal Aid;Mental Health;Family Services",Mon-Fri 9am-7pm,"EN;FR;ZH;AM;TA;HI;RO",false
+C004,Montreal-Nord Family Resource,45.602,-73.618,Synthetic 5555 Rolland Blvd,"Housing;Employment;Mental Health;Food Support;Family Services",Mon-Fri 8am-5pm,"FR;EN;ES;HT",false
+C005,Verdun Wellness Drop-in,45.460,-73.568,Synthetic 19 Wellington St,"Mental Health;Health & Wellness;General Support",Mon-Thu 10am-4pm,"FR;EN",false
+C006,Ahuntsic Senior and Newcomer Hub,45.557,-73.658,Synthetic 710 Fleury St W,"Senior Support;Settlement Navigation;Health & Wellness;General Support",Tue-Sat 9am-5pm,"FR;EN;ES",false
+C007,Lachine Welcome Centre,45.437,-73.688,Synthetic 12 Notre-Dame St,"Housing;General Support;Employment",Mon-Fri 9am-4pm,"FR;EN",false
+C008,Riviere-des-Prairies Access Point,45.647,-73.568,Synthetic 17 Perras Blvd,"General Support;Family Services",Mon-Wed 10am-3pm,"FR",false
