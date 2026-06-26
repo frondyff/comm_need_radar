@@ -6,6 +6,20 @@ Date: 2026-06-23
 Purpose: let Frondy build the real immigrant/Indigenous MVP vulnerability index
 and the v2 observed-needs index.
 
+## Delivery Status — 2026-06-23 (Laura)
+
+| Priority | Item | Status |
+| --- | --- | --- |
+| P1 | `indigenous_identity_pct` (+ `indigenous_identity_count`, `total_indigenous_identity_universe`) added to the census file | ✅ Delivered — 986/1004 CTs populated, 18 blank where suppressed; existing columns byte-for-byte unchanged |
+| P2 | `ct_centroids_montreal.csv`, `montreal_boroughs.geojson` | ✅ Already present and used by `aggregate_ct_to_areas.py` |
+| P3 | `database_centers.csv` | ✅ Delivered — 3,699 real service points; 24 flagged `indigenous_led_or_specific` |
+| P4 | `database_visitor_tags.csv` | ⚠️ Header-only template — no public source; needs a k-anonymized partner export |
+| P5 | `source_metadata.csv` | ✅ Delivered — provenance for every dataset above |
+
+Verified end-to-end: `build_statcan_vulnerability_index.py` + `aggregate_ct_to_areas.py`
+now produce `mvp_focus_data_basis = immigrant_and_indigenous_census` across all 12 MVP
+areas, and `python -m pytest tests/` passes (8/8).
+
 ## Immediate Need
 
 The census layer now supports immigrant and Indigenous focus columns, but the
