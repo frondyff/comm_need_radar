@@ -201,18 +201,30 @@ erDiagram
         string area_id PK, FK
         int rolling_visit_count
         float visit_volume_per_1000
-        float need_severity_score
-        float recency_weighted_score
-        float observed_need_index
+        string top_need_category
+        int top_need_count
+        float top_need_share_pct
+        float v1_demand_score
+        date data_through_date
+        float v2_observed_score
         boolean insufficient_visit_data
         string top_key_needs
         int observed_need_rank
     }
 
+    OBSERVED_NEED_CATEGORY_SUMMARY {
+        string area_id PK, FK
+        string key_need PK
+        int encounter_count
+        float encounter_share_pct
+        int category_rank
+    }
+
     VULNERABILITY_INDEX_V2 {
         string area_id PK, FK
         float structural_vulnerability_index
-        float observed_need_index
+        float v1_demand_score
+        float v2_observed_score
         float vulnerability_index_v2
         float structural_weight
         float observed_weight

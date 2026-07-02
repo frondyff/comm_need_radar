@@ -124,6 +124,48 @@ File: `data/processed/flyer_examples.csv`
 
 Grain: one row per selected area and selected service row.
 
+## Frontline V1 Demand Tables
+
+Files:
+
+- `data/processed/observed_need_index.csv`
+- `data/processed/observed_need_category_summary.csv`
+
+`observed_need_index.csv` has one row per `area_id`. V1 describes service
+encounters in the trailing 90-day window; it does not claim to count unique
+people.
+
+| Field | Meaning |
+| --- | --- |
+| `rolling_visit_count` | K-anonymized service encounters in the reporting window |
+| `visit_volume_per_1000` | Encounters per 1,000 area residents |
+| `observed_visit_volume_score` | Visit rate capped to 0-100 |
+| `top_need_category` | Most selected `key_need` category |
+| `top_need_count` | Encounters in the top category |
+| `top_need_share_pct` | Top-category share, for explanation only |
+| `top_category_pressure_score` | Top-category encounters per 1,000 residents, capped to 0-100 |
+| `v1_demand_score` | 70% visit volume plus 30% top-category pressure |
+| `data_through_date` | Most recent included source period end |
+| `v2_observed_score` | Fixed-component observed score used only by V2 |
+| `insufficient_visit_data` | True when the area does not meet the privacy/data floor |
+
+`observed_need_category_summary.csv` has one row per `area_id` and `key_need`.
+It exposes `encounter_count`, `encounter_share_pct`, and `category_rank` so
+frontline users can inspect the complete category mix.
+
+## Vulnerability Index V2
+
+File: `data/processed/vulnerability_index_v2.csv`
+
+Grain: one row per `area_id`. V2 is an experimental planning score, not a
+person-level risk score or a frontline eligibility decision.
+
+The output carries `v1_demand_score`, `visit_volume_score`,
+`top_category_pressure_score`, `focus_category_share_score`,
+`severity_breadth_score`, `recency_score`, and `v2_observed_score` to make the
+composite auditable. Only the selected V1 volume and category-pressure
+components affect V2; the complete V1 score is not inserted as a single input.
+
 ## Monitoring Summary
 
 File: `data/processed/monitoring_summary.csv`

@@ -1,0 +1,30 @@
+area_id,key_need,encounter_count,encounter_share_pct,category_rank
+A001,Settlement Navigation,200,31.5,1
+A001,Language Access,160,25.2,2
+A001,Housing & Shelter,120,18.9,3
+A001,Legal Aid,85,13.39,4
+A001,Mental Health,70,11.02,5
+A002,Settlement Navigation,160,28.93,1
+A002,Language Access,140,25.32,2
+A002,Housing & Shelter,120,21.7,3
+A002,Mental Health,60,10.85,4
+A002,Indigenous Cultural Support,45,8.14,5
+A002,Indigenous-Led Referral,28,5.06,6
+A003,Newcomer Support,300,35.29,1
+A003,Language Access,250,29.41,2
+A003,Family Services,120,14.12,3
+A003,Legal Aid,100,11.76,4
+A003,Mental Health,80,9.41,5
+A004,Housing & Shelter,150,33.71,1
+A004,Food Support,120,26.97,2
+A004,Employment,100,22.47,3
+A004,Mental Health,75,16.85,4
+A006,General Support,110,40.74,1
+A006,Mental Health,90,33.33,2
+A006,Health & Wellness,70,25.93,3
+A007,Senior Support,160,51.61,1
+A007,Health & Wellness,85,27.42,2
+A007,Settlement Navigation,65,20.97,3
+A008,General Support,80,59.26,1
+A008,Housing & Shelter,55,40.74,2
+A012,General Support,12,100.0,1

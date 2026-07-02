@@ -4,6 +4,9 @@ from comm_need_radar.scoring.metrics import (
     K_ANON_FLOOR,
     OBSERVED_WEIGHT,
     STRUCTURAL_WEIGHT,
+    V1_TOP_CATEGORY_WEIGHT,
+    V1_VOLUME_WEIGHT,
+    V2_OBSERVED_WEIGHTS,
     accessibility_score,
     composite_vulnerability_index,
     gap_score,
@@ -11,6 +14,8 @@ from comm_need_radar.scoring.metrics import (
     haversine_km,
     observed_focus_need_score,
     priority_flag,
+    v1_demand_score,
+    v2_observed_need_score,
 )
 
 
@@ -95,6 +100,36 @@ class CompositeVulnerabilityIndexTests(unittest.TestCase):
     def test_custom_weights_respected(self):
         score, _ = composite_vulnerability_index(100.0, 0.0, structural_weight=1.0, observed_weight=0.0)
         self.assertEqual(score, 100.0)
+
+
+class FrontlineDemandScoreTests(unittest.TestCase):
+    def test_v1_uses_volume_and_top_category_weights(self):
+        score = v1_demand_score(80.0, 40.0)
+        expected = round(V1_VOLUME_WEIGHT * 80.0 + V1_TOP_CATEGORY_WEIGHT * 40.0, 2)
+        self.assertEqual(score, expected)
+
+    def test_v1_score_is_bounded(self):
+        self.assertEqual(v1_demand_score(200.0, 200.0), 100.0)
+        self.assertEqual(v1_demand_score(-10.0, -20.0), 0.0)
+
+
+class V2ObservedScoreTests(unittest.TestCase):
+    def test_component_weights_sum_to_one(self):
+        self.assertAlmostEqual(sum(V2_OBSERVED_WEIGHTS.values()), 1.0)
+
+    def test_v2_observed_uses_fixed_component_weights(self):
+        score = v2_observed_need_score(80.0, 60.0, 50.0, 40.0, 20.0)
+        expected = round(0.3 * 80.0 + 0.2 * 60.0 + 0.2 * 50.0 + 0.2 * 40.0 + 0.1 * 20.0, 2)
+        self.assertEqual(score, expected)
+
+    def test_recency_alone_has_limited_effect(self):
+        self.assertEqual(v2_observed_need_score(0.0, 0.0, 0.0, 0.0, 100.0), 10.0)
+
+    def test_effective_v2_weights_sum_to_one(self):
+        effective_observed = sum(
+            OBSERVED_WEIGHT * weight for weight in V2_OBSERVED_WEIGHTS.values()
+        )
+        self.assertAlmostEqual(STRUCTURAL_WEIGHT + effective_observed, 1.0)
 
 
 if __name__ == "__main__":

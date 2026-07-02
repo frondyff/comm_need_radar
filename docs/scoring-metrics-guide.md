@@ -1,11 +1,11 @@
 # Scoring And Metrics Guide
 
-Owner: Frondy (geospatial / analytics lead)  
-Last updated: 2026-06-26  
+Owner: Frondy (geospatial / analytics lead)
+Last updated: 2026-07-02
 Source of truth: `src/comm_need_radar/scoring/metrics.py`
 
 Example area used throughout: **Parc Extension (A001)** — the top-ranked priority
-area. All example values come from the synthetic pipeline run on 2026-06-26.
+area. All example values come from the synthetic pipeline run on 2026-07-02.
 
 All scores are in the range **0–100** unless noted.
 
@@ -54,13 +54,14 @@ flowchart TD
 
     subgraph S6["⑥ Observed needs index  ·  build_observed_need_index.py"]
         KFLOOR["k-anonymity floor  (k ≥ 5)\ndrop rows below threshold"]
-        OBS["observed_focus_need_score()\navg(immigrant_need, severity_breadth, recency\n     [+ indigenous_need if k ≥ 5])\nA001 → 68.74  ·  A002 includes indigenous = 13.2"]
-        OI["observed_need_index.csv\n8 areas sufficient · 4 fallback"]
+        V1["v1_demand_score()\n70% visit volume + 30% top-category pressure\nA001 → 16.17"]
+        OBS["v2_observed_need_score()\nfixed volume · category · focus · severity · recency weights\nA001 → 39.62"]
+        OI["observed_need_index.csv + category summary\n8 areas sufficient · 4 fallback"]
     end
 
     subgraph S7["⑦ V2 composite index  ·  build_vulnerability_index_v2.py"]
-        COMP["composite_vulnerability_index()\n0.6 × structural + 0.4 × observed\nA001 → 0.6×78.84 + 0.4×68.74 = 74.80  (rank 1)"]
-        FALL["fallback: v2 = structural only\nwhen observed insufficient\nA009 Westmount → 21.34  (drops from gap rank 5 → v2 rank 10)"]
+        COMP["composite_vulnerability_index()\n0.6 × structural + 0.4 × V2 observed\nA001 → 0.6×78.84 + 0.4×39.62 = 63.15  (rank 1)"]
+        FALL["fallback: v2 = structural only\nwhen observed insufficient\nA009 Westmount → 21.34  (drops from gap rank 5 → v2 rank 9)"]
         V2["vulnerability_index_v2.csv"]
     end
 
@@ -316,13 +317,17 @@ flowchart TD
     KFLOOR -->|"No — suppress"| DROP["row dropped\n(no rows dropped in\nthis synthetic run)"]
     KFLOOR -->|"Yes — all 29 rows pass"| JOIN["join to area_id\nvia center_area_lookup"]
 
-    JOIN --> SUB1["observed_immigrant_need_score\nA001 = 81.10\nimmigrant-tagged visits / total × 100\n515 / 635 × 100"]
-    JOIN --> SUB2["observed_indigenous_need_score\nA001 = NaN (none)\nA002 = 13.2 (73 records ≥ k=5)"]
+    JOIN --> VOL["visit volume\nA001 = 635 encounters = 20.35 per 1,000"]
+    JOIN --> TOP["top category\nSettlement Navigation = 200\n31.5% share · pressure score 6.41"]
+    VOL --> V1["V1 demand score\n0.7×20.35 + 0.3×6.41 = 16.17"]
+    TOP --> V1
+    JOIN --> SUB1["focus category share\nA001 = 81.10"]
     JOIN --> SUB3["observed_severity_breadth_score\nA001 = 45.31\nhigh_sev_count/total×70 + unique_needs×3\n275/635×70 + 5×3"]
-    JOIN --> SUB4["observed_recency_score\nA001 = 79.80\nrecency-weighted sum / total × 100\nhalf-life = 30 days"]
+    JOIN --> SUB4["observed_recency_score\nA001 = 69.47\nrecency-weighted sum / total × 100\nhalf-life = 30 days"]
 
-    SUB1 --> OFS["observed_focus_need_score()\nA001 = (81.10+45.31+79.80)/3\n= 68.74"]
-    SUB2 -.->|"included only when\ngroup count ≥ k=5\n(A002 only)"| OFS
+    VOL --> OFS["V2 observed score\n30% volume + 20% top-category pressure\n+ 20% focus + 20% severity + 10% recency\nA001 = 39.62"]
+    TOP --> OFS
+    SUB1 --> OFS
     SUB3 --> OFS
     SUB4 --> OFS
 
@@ -331,7 +336,18 @@ flowchart TD
     INSUF -->|"8 areas pass"| IDX["observed_need_index.csv"]
 ```
 
-**Tags that drive each sub-score:**
+**V1 and V2 separation:**
+
+| Metric | Audience | Inputs | Purpose |
+|---|---|---|---|
+| `v1_demand_score` | Frontline workers | 70% visit volume + 30% top-category pressure | Summarize current operational demand |
+| `v2_observed_score` | Planners/research | Volume, top-category pressure, focus share, severity/breadth, recency | Add current observed evidence to structural vulnerability |
+| `vulnerability_index_v2` | Planners/research | 60% structural + 40% V2 observed | Experimental area-level planning rank |
+
+`top_need_share_pct` is displayed but does not enter either score. Counts mean
+service encounters, not deduplicated people.
+
+**Tags that drive V2 components:**
 
 | Sub-score | Counted when |
 |---|---|
@@ -340,26 +356,26 @@ flowchart TD
 | `severity_breadth` | `key_need` in {Housing & Shelter, Mental Health, Health & Wellness, Legal Aid} (high-severity share × 70) + distinct need category count × 3 |
 | `recency` | Exponential decay: weight = 0.5^(days_since_period_end / 30) |
 
-**Recency decay examples (today = 2026-06-26):**
+**Recency decay examples (today = 2026-07-02):**
 
 | period_end | days ago | decay weight |
 |---|---:|---:|
-| 2026-06-20 | 6 | **0.871** |
-| 2026-04-20 | 67 | **0.213** |
-| 2026-03-28 | 90 | **0.125** |
+| 2026-06-20 | 12 | **0.758** |
+| 2026-04-20 | 73 | **0.185** |
+| 2026-03-28 | 96 | **0.109** |
 
-**Example — all areas, observed index:**
+**Example — all areas, observed demand:**
 
-| Area | visit_count | immigrant_score | indigenous_score | severity_score | recency_score | observed_score | sufficient |
-|---|---:|---:|---:|---:|---:|---:|---|
-| Parc Extension (A001) | 635 | **81.10** | — | 45.31 | 79.80 | **68.74** | yes |
-| Saint-Michel (A002) | 553 | 54.25 | **13.2** | 40.78 | 87.06 | **48.82** | yes |
-| Cote-des-Neiges (A003) | 850 | **76.47** | — | 29.82 | 77.77 | **61.35** | yes |
-| Montreal-Nord (A004) | 445 | 22.47 | — | 47.39 | 69.31 | **46.39** | yes |
-| Verdun (A006) | 270 | 0.00 | — | 50.48 | 87.06 | **45.85** | yes |
-| Ahuntsic (A007) | 310 | 20.97 | — | 28.19 | 87.06 | **45.41** | yes |
-| Lachine (A008) | 135 | 0.00 | — | 34.52 | 87.06 | **40.53** | yes |
-| Riviere-des-Prairies (A012) | 12 | 0.00 | — | 3.00 | 87.06 | **30.02** | yes |
+| Area | encounters | top category | V1 demand | V2 observed | sufficient |
+|---|---:|---|---:|---:|---|
+| Parc Extension (A001) | 635 | Settlement Navigation | **16.17** | **39.62** | yes |
+| Saint-Michel (A002) | 553 | Settlement Navigation | 8.95 | 33.30 | yes |
+| Cote-des-Neiges (A003) | 850 | Newcomer Support | 13.07 | 34.04 | yes |
+| Montreal-Nord (A004) | 445 | Housing & Shelter | 8.18 | 23.76 | yes |
+| Verdun (A006) | 270 | General Support | 3.16 | 19.14 | yes |
+| Ahuntsic (A007) | 310 | Senior Support | 6.69 | 20.57 | yes |
+| Lachine (A008) | 135 | General Support | 4.27 | 16.52 | yes |
+| Riviere-des-Prairies (A012) | 12 | General Support | 0.37 | 8.36 | yes |
 | Hochelaga (A005) | 0 | — | — | — | — | — | **no** |
 | Westmount (A009) | 0 | — | — | — | — | — | **no** |
 | Plateau (A010) | 0 | — | — | — | — | — | **no** |
@@ -374,13 +390,13 @@ Built by `build_vulnerability_index_v2.py`.
 ```mermaid
 flowchart TD
     STRUCT["mvp_focus_census_index\n(structural layer)\nA001 = 78.84\nA002 = 78.84\nA003 = 61.39"]
-    OBS["observed_focus_need_score\n(observed layer)\nA001 = 68.74\nA002 = 48.82\nA003 = 61.35"]
+    OBS["v2_observed_score\n(fixed observed layer)\nA001 = 39.62\nA002 = 33.30\nA003 = 34.04"]
 
     INSUF{"observed data\nsufficient?\nA001/A002/A003: yes\nA005/A009/A010/A011: no"}
     OBS --> INSUF
     STRUCT --> INSUF
 
-    INSUF -->|"Yes"| COMP["composite_vulnerability_index()\nweights: 0.6 structural + 0.4 observed\nA001: 0.6×78.84 + 0.4×68.74 = 74.80\nA002: 0.6×78.84 + 0.4×48.82 = 66.83\nA003: 0.6×61.39 + 0.4×61.35 = 61.37"]
+    INSUF -->|"Yes"| COMP["composite_vulnerability_index()\nweights: 0.6 structural + 0.4 observed\nA001: 0.6×78.84 + 0.4×39.62 = 63.15\nA002: 0.6×78.84 + 0.4×33.30 = 60.62\nA003: 0.6×61.39 + 0.4×34.04 = 50.45"]
     INSUF -->|"No"| FALL["v2 = structural score\nA005 = 17.36\nA009 = 21.34\nA010 = 28.57\nA011 = 24.48"]
 
     COMP --> V2["vulnerability_index_v2 · ranked"]
@@ -394,8 +410,12 @@ flowchart TD
 
 ```
 vulnerability_index_v2 = 0.6 × mvp_focus_census_index
-                       + 0.4 × observed_focus_need_score
+                       + 0.4 × v2_observed_score
 ```
+
+The V1-derived inputs contribute 12% visit volume and 8% top-category pressure
+to the final V2 score. Focus-category share and severity/breadth contribute 8%
+each, and recency contributes 4%.
 
 **Fallback decision logic:**
 
@@ -417,24 +437,23 @@ else (both census layers complete):
 
 | v2 rank | Area | structural | observed | v2_score | gap rank | Δ rank | data_basis |
 |---:|---|---:|---:|---:|---:|---:|---|
-| 1 | Parc Extension | 78.84 | 68.74 | **74.80** | 3 | +2 | census+observed |
-| 2 | Saint-Michel | 78.84 | 48.82 | **66.83** | 2 | 0 | census+observed |
-| 3 | Cote-des-Neiges | 61.39 | 61.35 | **61.37** | 1 | −2 | census+observed |
-| 4 | Ahuntsic | 55.77 | 45.41 | **51.63** | 6 | +2 | census+observed |
-| 5 | Montreal-Nord | 43.00 | 46.39 | **44.36** | 4 | −1 | census+observed |
-| 6 | Verdun | 26.54 | 45.85 | **34.26** | 8 | +2 | census+observed |
-| 7 | Plateau | 28.57 | — | **28.57** | 7 | 0 | structural only |
-| 8 | Lachine | 17.99 | 40.53 | **27.01** | 10 | +2 | census+observed |
-| 9 | Pointe-Saint-Charles | 24.48 | — | **24.48** | 9 | 0 | structural only |
-| 10 | Westmount | 21.34 | — | **21.34** | 5 | **−5** | structural only |
+| 1 | Parc Extension | 78.84 | 39.62 | **63.15** | 3 | +2 | census+observed |
+| 2 | Saint-Michel | 78.84 | 33.30 | **60.62** | 2 | 0 | census+observed |
+| 3 | Cote-des-Neiges | 61.39 | 34.04 | **50.45** | 1 | −2 | census+observed |
+| 4 | Ahuntsic | 55.77 | 20.57 | **41.69** | 6 | +2 | census+observed |
+| 5 | Montreal-Nord | 43.00 | 23.76 | **35.30** | 4 | −1 | census+observed |
+| 6 | Plateau | 28.57 | — | **28.57** | 7 | +1 | structural only |
+| 7 | Pointe-Saint-Charles | 24.48 | — | **24.48** | 9 | +2 | structural only |
+| 8 | Verdun | 26.54 | 19.14 | **23.58** | 8 | 0 | census+observed |
+| 9 | Westmount | 21.34 | — | **21.34** | 5 | **−4** | structural only |
+| 10 | Lachine | 17.99 | 16.52 | **17.40** | 10 | 0 | census+observed |
 | 11 | Hochelaga | 17.36 | — | **17.36** | 11 | 0 | structural only |
-| 12 | Riviere-des-Prairies | 4.33 | 30.02 | **14.61** | 12 | 0 | census+observed |
+| 12 | Riviere-des-Prairies | 4.33 | 8.36 | **5.94** | 12 | 0 | census+observed |
 
-Key shifts: **Westmount drops 5 places** because it had high structural
-vulnerability but zero observed frontline visits — the observed layer reveals it
-is not a high-demand service area. **Parc Extension rises 2 places** because
-its observed immigrant need (81.10) is strong even when the census alone scores
-it the same as Saint-Michel.
+Key shifts: **Westmount drops 4 places**, but its structural-only fallback means
+the system lacks observed coverage there; it is not evidence of low demand.
+**Parc Extension rises 2 places** because its observed focus-category share and
+encounter volume are stronger than Saint-Michel's.
 
 ---
 
@@ -468,12 +487,12 @@ flowchart TD
     end
 
     subgraph STAGE5["Stage 5 — Observed layer"]
-        OB1["visit_count = 635\nimmigrant_need = 515/635×100 = 81.10\nseverity_breadth = 275/635×70 + 5×3 = 45.31\nrecency = decay-weighted = 79.80"]
-        OB2["observed_focus_need_score\n= (81.10+45.31+79.80)/3 = 68.74"]
+        OB1["visit_count = 635 · volume score = 20.35\ntop category = 200 · pressure score = 6.41\nV1 demand = 16.17"]
+        OB2["focus=81.10 · severity=45.31 · recency=69.47\nV2 observed score = 39.62"]
     end
 
     subgraph STAGE6["Stage 6 — V2 composite"]
-        V21["vulnerability_index_v2\n= 0.6×78.84 + 0.4×68.74\n= 47.30 + 27.50 = 74.80\n→ rank 1 of 12"]
+        V21["vulnerability_index_v2\n= 0.6×78.84 + 0.4×39.62\n= 47.30 + 15.85 = 63.15\n→ rank 1 of 12"]
     end
 
     IND --> STAGE1
@@ -499,11 +518,14 @@ flowchart TD
 | Real census index | 5 scaled variables | equal-weight average | **62.87** |
 | Immigrant concern | recent_immigrant + no_lang scaled | avg(57.67, 100.0) | **78.84** |
 | Gap score | vuln=62.87, access=12.28 | 62.87 × (100−12.28) / 100 | **55.15** |
+| Visit volume | 635 encounters / 31,200 population | encounters per 1,000 | **20.35** |
+| Top category pressure | 200 Settlement Navigation encounters / population | encounters per 1,000 | **6.41** |
+| V1 demand | volume=20.35, top pressure=6.41 | 0.7×20.35 + 0.3×6.41 | **16.17** |
 | Immigrant need | 515 immigrant-tagged visits / 635 total | 515/635×100 | **81.10** |
 | Severity breadth | 275 high-sev / 635 total, 5 unique needs | 275/635×70 + 5×3 | **45.31** |
-| Recency score | recent visits × 0.871, older × 0.213 | decay-weighted total / total × 100 | **79.80** |
-| Observed score | immigrant=81.10, severity=45.31, recency=79.80 | avg of 3 components | **68.74** |
-| V2 composite | structural=78.84, observed=68.74 | 0.6×78.84 + 0.4×68.74 | **74.80** |
+| Recency score | recent visits × 0.758, older × 0.185 | decay-weighted total / total × 100 | **69.47** |
+| V2 observed | volume, top pressure, focus, severity, recency | fixed 30/20/20/20/10 weights | **39.62** |
+| V2 composite | structural=78.84, observed=39.62 | 0.6×78.84 + 0.4×39.62 | **63.15** |
 
 ---
 
@@ -522,7 +544,9 @@ flowchart TD
 | `observed_indigenous_need_score` | 0–100 | All visits are Indigenous-specific | None |
 | `observed_severity_breadth_score` | 0–100 | All visits are high-severity, 10+ distinct need categories | Zero |
 | `observed_recency_score` | 0–100 | All visits happened today | All visits > 5 months old |
-| `observed_focus_need_score` | 0–100 | Max across all available components | All at zero |
+| `v1_demand_score` | 0–100 | Maximum visit volume and top-category pressure | No observed demand |
+| `v2_observed_score` | 0–100 | Maximum across all five fixed observed components | All components at zero |
+| `observed_focus_need_score` | 0–100 | Compatibility alias for `v2_observed_score` | All components at zero |
 | `vulnerability_index_v2` | 0–100 | Worst structural + observed concern | Lowest across both |
 
 ---
@@ -557,3 +581,6 @@ python3 -m unittest discover -s tests
 | `K_ANON_FLOOR` | 5 | `has_sufficient_observed_data`, `build_observed_need_index` |
 | `STRUCTURAL_WEIGHT` | 0.6 | `composite_vulnerability_index` |
 | `OBSERVED_WEIGHT` | 0.4 | `composite_vulnerability_index` |
+| `V1_VOLUME_WEIGHT` | 0.7 | `v1_demand_score` |
+| `V1_TOP_CATEGORY_WEIGHT` | 0.3 | `v1_demand_score` |
+| `V2_OBSERVED_WEIGHTS` | 0.3 / 0.2 / 0.2 / 0.2 / 0.1 | `v2_observed_need_score` |
