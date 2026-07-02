@@ -1,6 +1,6 @@
 # Shared Interfaces
 
-Status: implemented for synthetic MVP.
+Status: implemented for the synthetic/demonstration MVP as of 2026-07-02.
 
 ## Area Profile Table
 
@@ -165,6 +165,20 @@ The output carries `v1_demand_score`, `visit_volume_score`,
 `severity_breadth_score`, `recency_score`, and `v2_observed_score` to make the
 composite auditable. Only the selected V1 volume and category-pressure
 components affect V2; the complete V1 score is not inserted as a single input.
+
+| Field | Meaning |
+| --- | --- |
+| `mvp_focus_census_index` | Structural focus input |
+| `v1_demand_score` | Frontline summary carried for comparison, not inserted directly |
+| `visit_volume_score` | 30% of V2 observed; 12% of final V2 |
+| `top_category_pressure_score` | 20% of V2 observed; 8% of final V2 |
+| `focus_category_share_score` | 20% of V2 observed; 8% of final V2 |
+| `severity_breadth_score` | 20% of V2 observed; 8% of final V2 |
+| `recency_score` | 10% of V2 observed; 4% of final V2 |
+| `v2_observed_score` | Fixed-component observed score |
+| `vulnerability_index_v2` | 60% structural plus 40% V2 observed |
+| `insufficient_visit_data` | Triggers structural-only fallback when true |
+| `v2_data_basis` | Identifies structural-only or structural-plus-observed calculation |
 
 ## Monitoring Summary
 

@@ -4,8 +4,8 @@ Owner: Frondy (geospatial / analytics lead)
 Last updated: 2026-07-02
 Source of truth: `src/comm_need_radar/scoring/metrics.py`
 
-Example area used throughout: **Parc Extension (A001)** — the top-ranked priority
-area. All example values come from the synthetic pipeline run on 2026-07-02.
+Example area used throughout: **Parc Extension (A001)** — V2 rank 1 and gap rank
+3. All example values come from the demonstration pipeline run on 2026-07-02.
 
 All scores are in the range **0–100** unless noted.
 

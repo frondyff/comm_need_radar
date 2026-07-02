@@ -47,9 +47,11 @@ Current real census extract status: `recent_immigrant_pct` and
 current raw StatCan extract, so `indigenous_census_concern_score` is blank and
 `mvp_focus_data_basis` is `immigrant_census_only_indigenous_missing`.
 
-Observed/frontline data should carry Indigenous-specific service needs later via
-k-anonymized `Database_Visitor` tags. Do not infer or report person-level
-Indigenous vulnerability from the census focus score.
+The implemented observed layer can carry Indigenous-specific service needs via
+k-anonymized `Database_Visitor` tags when the subgroup count meets `k >= 5`.
+Missing or suppressed observed values remain blank rather than zero. Do not
+infer or report person-level Indigenous vulnerability from either area-level
+score.
 
 ## Status
 

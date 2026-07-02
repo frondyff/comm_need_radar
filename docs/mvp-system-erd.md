@@ -1,11 +1,16 @@
-# MVP System ERD
+# MVP Data Models
 
-Date: 2026-06-23
+Date updated: 2026-07-02
 
-This ERD shows the current Community Needs Radar MVP data model and the planned
-real-index extension for immigrant and Indigenous focus scoring.
+This document separates two related models:
 
-## Current MVP ERD
+1. The application-facing model contains the processed tables currently used by
+   the dashboard and frontend.
+2. The scoring pipeline model shows how census, geography, center, and
+   k-anonymized encounter data produce V1 frontline demand and V2 planning
+   scores.
+
+## Application-Facing Data Model
 
 ```mermaid
 erDiagram
@@ -126,7 +131,7 @@ erDiagram
     }
 ```
 
-## Planned Real-Index Extension
+## Scoring And Source Data Model
 
 ```mermaid
 erDiagram
@@ -136,9 +141,11 @@ erDiagram
     DATABASE_CENTER ||--|| CENTER_AREA_LOOKUP : "mapped through"
     DATABASE_CENTER ||--o{ DATABASE_VISITOR_TAG : "receives aggregate visits"
     DATABASE_VISITOR_TAG }o--|| OBSERVED_NEED_INDEX : "aggregates into"
+    AREA_BOUNDARY ||--o| OBSERVED_NEED_INDEX : "has demand summary"
+    OBSERVED_NEED_INDEX ||--o{ OBSERVED_NEED_CATEGORY_SUMMARY : "breaks down into"
     AREA_VULNERABILITY_INDEX_REAL ||--o| VULNERABILITY_INDEX_V2 : "structural layer"
     OBSERVED_NEED_INDEX ||--o| VULNERABILITY_INDEX_V2 : "observed layer"
-    VULNERABILITY_INDEX_V2 ||--o| GAP_SCORE : "future vulnerability input"
+    VULNERABILITY_INDEX_V2 ||--o| GAP_SCORE : "candidate future input"
 
     CENSUS_TRACT {
         string ct_code PK
@@ -199,14 +206,25 @@ erDiagram
 
     OBSERVED_NEED_INDEX {
         string area_id PK, FK
+        int rolling_window_days
         int rolling_visit_count
         float visit_volume_per_1000
+        float observed_visit_volume_score
         string top_need_category
         int top_need_count
         float top_need_share_pct
+        float top_category_rate_per_1000
+        float top_category_pressure_score
         float v1_demand_score
         date data_through_date
+        float observed_immigrant_need_score
+        float observed_indigenous_need_score
+        float focus_category_share_score
+        float observed_severity_breadth_score
+        float observed_recency_score
         float v2_observed_score
+        float observed_focus_need_score
+        string observed_data_basis
         boolean insufficient_visit_data
         string top_key_needs
         int observed_need_rank
@@ -222,14 +240,27 @@ erDiagram
 
     VULNERABILITY_INDEX_V2 {
         string area_id PK, FK
+        string area_name
+        string borough_name
         float structural_vulnerability_index
+        float immigrant_census_concern_score
+        float indigenous_census_concern_score
+        float mvp_focus_census_index
         float v1_demand_score
+        float visit_volume_score
+        float top_category_pressure_score
+        float focus_category_share_score
+        float severity_breadth_score
+        float recency_score
         float v2_observed_score
+        float observed_focus_need_score
         float vulnerability_index_v2
         float structural_weight
         float observed_weight
         boolean insufficient_visit_data
-        string data_basis
+        string v2_data_basis
+        string v2_top_concern
+        int vulnerability_rank_v2
     }
 ```
 
@@ -244,9 +275,11 @@ erDiagram
   output; it does not currently store `service_id`.
 - Current service-to-accessibility linkage is by `service_category`, not direct
   service ID.
-- The planned real-index extension introduces explicit spatial lookup tables so
-  census tracts and service centers can be assigned to MVP areas.
+- The scoring pipeline uses explicit spatial lookup tables to assign census
+  tracts and service centers to MVP areas.
 - `DATABASE_VISITOR_TAG` must remain k-anonymized. Rows below `k=5` should be
   suppressed or rolled up before they reach the observed index.
-- `VULNERABILITY_INDEX_V2` will eventually replace the current synthetic
-  `vulnerability_score` as the input to `GAP_SCORE`.
+- `OBSERVED_NEED_CATEGORY_SUMMARY` contains the full need-category distribution;
+  `OBSERVED_NEED_INDEX` contains the area-level V1 and V2 observed summaries.
+- `VULNERABILITY_INDEX_V2` is implemented as an experimental planning score but
+  is not yet wired into `GAP_SCORE` or the application-facing views.
