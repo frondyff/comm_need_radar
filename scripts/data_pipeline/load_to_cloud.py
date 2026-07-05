@@ -81,6 +81,14 @@ def main() -> None:
                     conn.execute(text(f'ALTER TABLE {t} ADD PRIMARY KEY ("{pk}")'))
                 except Exception as e:  # noqa: BLE001
                     print(f"  (PK on {t}.{pk} skipped: {str(e)[:60]})")
+        # recreate the SQLite views on the cloud side (standard SQL, portable)
+        for name, sql in src.execute(
+                "SELECT name, sql FROM sqlite_master WHERE type='view'").fetchall():
+            try:
+                conn.execute(text(sql.replace("CREATE VIEW", "CREATE OR REPLACE VIEW", 1)))
+                print(f"  ✓ view {name}")
+            except Exception as e:  # noqa: BLE001
+                print(f"  (view {name} skipped: {str(e)[:60]})")
     src.close()
     print("\nDone. Teammates can now query the shared database:")
     print("  • Supabase dashboard -> Table editor / SQL editor (browser, no install)")
