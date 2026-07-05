@@ -22,14 +22,14 @@ public source exists yet); it is clearly labelled and swappable for real data.
 |---|---|---|---|
 | Census vulnerability (1,004 CTs) | Statistics Canada 2021 Census Profile (98-401-X2021007) | OGL–Canada | `census_tract` |
 | CT centroids (1,004) | StatCan 2021 CT boundary file | OGL–Canada | `ct_centroid` |
-| Boroughs (11) | Ville de Montréal Open Data | CC BY 4.0 | `montreal_boroughs.geojson` |
-| **Services — 4,255** | **7 sources (below)** | mixed | `database_center` |
-| · Cultural venues (100) | Ville de Montréal — Lieux culturels | CC BY 4.0 | |
-| · Recreation/sport (3,476) | Ville de Montréal — Installations récréatives | CC BY 4.0 | |
-| · Health/social facilities (215) | MSSS M02 (Données Québec) | OGL–Québec | |
-| · Social facilities (412) | OpenStreetMap (Overpass) | ODbL | |
-| · Indigenous orgs (24) | INDex / Réseau Montréal (scraped + geocoded) | research use | |
-| · Shelters + food banks (48) | Curated public directories | public | |
+| Boroughs (11) | Ville de Montréal Open Data | CC BY 4.0 | `montreal_boroughs.geojson` *(file — used for spatial joins, not a DB table)* |
+| **Services — 4,255** | **7 sources (below, all merged into one table)** | mixed | `database_center` |
+| · Cultural venues (100) | Ville de Montréal — Lieux culturels | CC BY 4.0 | → `database_center` |
+| · Recreation/sport (3,476) | Ville de Montréal — Installations récréatives | CC BY 4.0 | → `database_center` |
+| · Health/social facilities (215) | MSSS M02 (Données Québec) | OGL–Québec | → `database_center` |
+| · Social facilities (412) | OpenStreetMap (Overpass) | ODbL | → `database_center` |
+| · Indigenous orgs (24) | INDex / Réseau Montréal (scraped + geocoded) | research use | → `database_center` |
+| · Shelters + food banks (48) | Curated public directories | public | → `database_center` |
 | CISV validation (5,555 DAs) | StatCan Canadian Index of Social Vulnerability 2021 | OGL–Canada | `cisv_reference` |
 | Transit stops (9,188) | STM GTFS | open | `stm_stop` |
 | Visitor / observed needs (1,408) | **Synthetic** (no public source) | model-generated | `database_visitor_tag` |
