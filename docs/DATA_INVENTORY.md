@@ -155,3 +155,49 @@ Grouped by theme, with relevance and obtainability.
 
 > Highest leverage next steps: (1) the 211 request, (2) childcare + housing + 311 as
 > open-data social layers, (3) the GTFS reachability engine.
+
+---
+
+## 8. The database
+
+All of the above is loaded into a single database so the team queries one shared,
+consistent source instead of passing CSVs around. It is **regenerable from the
+committed CSVs** (the CSVs remain the source of truth).
+
+- **Local:** `data/community_radar.sqlite` — built by `scripts/data_pipeline/build_database.py`
+  (free, file-based, no server). 18 tables with primary keys, foreign keys, indexes,
+  and views; **0 foreign-key violations**.
+- **Shared (cloud):** a free **Supabase** Postgres instance loaded by
+  `scripts/data_pipeline/load_to_cloud.py`. The whole team queries it in the browser
+  (Table editor / SQL editor) or via any Postgres client. Setup: `docs/shared-database-setup.md`.
+
+### What's in it — 18 tables
+
+**Inputs (raw material):**
+
+| Table | Rows | Holds |
+|-------|-----:|-------|
+| `census_tract` | 1,004 | Vulnerability indicators per CT (income, age, immigration, language, housing, Indigenous) |
+| `ct_centroid` | 1,004 | CT locations for mapping / area joins |
+| `database_center` | 4,255 | Every service location |
+| `database_visitor_tag` | 1,408 | Observed needs per centre — **synthetic** (no real source yet) |
+| `cisv_reference` | 5,555 | External vulnerability index (validation) |
+| `stm_stop` | 9,188 | Transit stops (future reachability) |
+
+**Results (analysis outputs):**
+
+| Table | Answers |
+|-------|---------|
+| `area_vulnerability_index_real`, `area_profile` | How vulnerable is each MVP area? |
+| `accessibility`, `service_table` | How well-served is each area? |
+| `gap_score` | Which areas are top priority (high need + low access)? |
+| `observed_need_index`, `observed_need_category_summary` | What are people actually asking for? |
+| `vulnerability_index_v2` | Combined structural + observed picture |
+| `center_area_lookup`, `flyer_examples`, `monitoring_summary`, `role_activity_log` | Joins, handout rows, project tracking |
+
+### Views
+- `v_visit_needs_by_center` — observed needs joined to their service centre.
+- `v_ct_vulnerability` — census tracts joined to their centroids.
+
+The database is the **data layer**: the scoring scripts and the Streamlit dashboard
+read from it; it stores every input and every computed result the project needs.
