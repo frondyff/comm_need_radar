@@ -1,0 +1,413 @@
+name,lat,lon,service_category,address,type,source
+Table des regroupements provinciaux d'organismes communautaires et bénévoles,45.512774,-73.569663,community_service_211,,community_centre,openstreetmap
+Centre communautaire Saint-Antoine 50+,45.487705,-73.577674,community_service_211,850 Rue Dominion,community_centre,openstreetmap
+Comité logement de la Petite-Patrie,45.536135,-73.61177,community_service_211,6839 A Rue Drolet,outreach,openstreetmap
+Société Générale des Étudiants et Étudiantes du Collège de Maisonneuve,45.550533,-73.55333,community_service_211,3800 D-2617 Sherbrooke Est,social_centre,openstreetmap
+Spectre de Rue,45.521857,-73.561795,community_service_211,1280 Rue Ontario Est,outreach,openstreetmap
+Centre de soir Denise-Massé,45.519189,-73.560623,community_service_211,1713 Rue Atateken,community_centre,openstreetmap
+L'asterisk,45.518474,-73.559065,community_service_211,1575 Rue Atateken,community_centre,openstreetmap
+Dîners Saint-Louis,45.534611,-73.577759,community_service_211,1818 Rue Gilford,social_facility,openstreetmap
+Comité de base pour l’action et l’information sur le logement social d’Hochelaga-Maisonneuve,45.553696,-73.533234,community_service_211,1455 Avenue Bennett,outreach,openstreetmap
+Dopamine,45.553567,-73.53351,community_service_211,1473 Avenue Bennett,outreach,openstreetmap
+La Caserne 18-30,45.547397,-73.550793,community_service_211,3622 Rue Hochelaga,social_centre,openstreetmap
+Badminton Québec,45.561288,-73.542281,community_service_211,4930 Rue Hochelaga,social_centre,openstreetmap
+Maison des Jeunes Point de Mire,45.465129,-73.566665,community_service_211,3882 Rue Wellington,community_centre,openstreetmap
+Café Sésame,45.600475,-73.520251,community_service_211,8628 Rue Hochelaga Est,community_centre,openstreetmap
+Centre d'Hébergement Judith-Jasmin,45.60646,-73.529842,community_service_211,8850 Rue Bisaillon,nursing_home,openstreetmap
+Centre d'Hébergement Biermans,45.596241,-73.536538,community_service_211,7905 Rue Sherbrooke Est,nursing_home,openstreetmap
+Centre d'Hébergement Pierre-Joseph-Triest,45.600508,-73.53551,community_service_211,4900 Boulevard Lapointe,nursing_home,openstreetmap
+Centre de services communautaires du Monastère,45.525348,-73.581007,community_service_211,4450 Rue Saint-Hubert,community_centre,openstreetmap
+Centre d'Hébergement François-Séguenot,45.666908,-73.493499,community_service_211,13950 Rue Notre-Dame Est,nursing_home,openstreetmap
+Compagnons de Montréal,45.550331,-73.589886,community_service_211,2602 Rue Beaubien Est,social_centre,openstreetmap
+Loisirs communautaires Saint-Michel,45.556409,-73.599206,community_service_211,7110 8e Avenue,community_centre,openstreetmap
+Les Petites Mains,45.53683,-73.623496,community_service_211,7595 Boulevard Saint-Laurent,social_centre,openstreetmap
+Centre des Loisirs de Saint-Laurent,45.514159,-73.690889,community_service_211,1375 Rue Grenet,community_centre,openstreetmap
+Cummings Centre for Senoirs,45.489497,-73.636848,community_service_211,5700 Avenue de Westbury,community_centre,openstreetmap
+Café Graffiti,45.546432,-73.536525,community_service_211,3894 Rue Sainte-Catherine Est,social_facility,openstreetmap
+Dopamine,45.55143,-73.540681,community_service_211,4205 Rue Ontario Est,ambulatory_care,openstreetmap
+Cuisines Collectives du Grand Plateau,45.523966,-73.575012,community_service_211,4095 Rue Saint-André,social_facility,openstreetmap
+Midnight's Kitchen,45.503401,-73.578073,food_bank,3480 Rue McTavish,food_bank,openstreetmap
+Union française de Montréal,45.512286,-73.555519,community_service_211,429 Avenue Viger Est,community_centre,openstreetmap
+Dans la Rue,45.525234,-73.559668,community_service_211,1662 Rue Ontario Est,outreach,openstreetmap
+Centre communautaire Elgar,45.456867,-73.547446,community_service_211,262 Rue Elgar,community_centre,openstreetmap
+Chabad of The Town,45.500664,-73.644639,community_service_211,4054 Rue Jean-Talon Ouest,community_centre,openstreetmap
+Centre d'hébergement de Saint-Laurent,45.517184,-73.679669,community_service_211,1275 Boulevard de la Côte-Vertu,nursing_home,openstreetmap
+Centre D'Hébergement Saint-Vincent-Marie,45.517528,-73.679412,community_service_211,,nursing_home,openstreetmap
+Centre Alex Manoogian,45.517219,-73.667156,community_service_211,805 Rue Manoogian,community_centre,openstreetmap
+Centre culturel arménien Tékéyan,45.516656,-73.667434,community_service_211,825 Rue Manoogian,community_centre,openstreetmap
+Maison des Sourds,45.555622,-73.618227,community_service_211,2200 Boulevard Crémazie Est,social_facility,openstreetmap
+Diversité des Sourds du Québec,45.555627,-73.618211,community_service_211,2200 Boulevard Crémazie Est,social_facility,openstreetmap
+Entraide Ahuntsic-Nord,45.552374,-73.671872,community_service_211,10780 Rue Laverdure,social_facility,openstreetmap
+Résidence Saint-Raphaël,45.503944,-73.876216,community_service_211,800 Boulevard Jacques-Bizard,group_home,openstreetmap
+Centre socioculturel,45.488149,-73.881775,community_service_211,,community_centre,openstreetmap
+Eastern Bloc,45.544509,-73.655668,community_service_211,55 Rue de Louvain Ouest,community_centre,openstreetmap
+Centre Communautaire Notre-Dame-de-Grâce,45.477503,-73.616339,community_service_211,,community_centre,openstreetmap
+Domaine Saint Supice,45.557282,-73.634209,community_service_211,8825 Avenue André-Grasset,community_centre,openstreetmap
+Maison Essor (Via Travail Inc),45.550211,-73.650336,community_service_211,,outreach,openstreetmap
+L’œuvre des Samaritains,45.550138,-73.650185,food_bank,,food_bank,openstreetmap
+Centre social d'aide aux immigrants,45.466089,-73.566552,community_service_211,3782 Rue Wellington,outreach,openstreetmap
+OPDS Maison Aline-Gendron,45.542664,-73.546171,community_service_211,3340 Rue Ontario Est,outreach,openstreetmap
+Vers l'équilibre,45.55153,-73.540635,community_service_211,4217 Rue Ontario Est,social_facility,openstreetmap
+Mouvement ATD Quart Monde au Canada,45.535292,-73.609943,community_service_211,6747 Rue Drolet,charity,openstreetmap
+Centre communautaire LGBTQ+ de Montréal,45.524307,-73.561834,community_service_211,2075 Rue Plessis,community_centre,openstreetmap
+La Maison d'Aurore,45.532547,-73.580505,community_service_211,4816 Rue Garnier,outreach,openstreetmap
+Maison des Jeunes de la Côte-des-Neiges,45.505212,-73.631626,community_service_211,,community_centre,openstreetmap
+Montclair,45.464124,-73.63628,community_service_211,,group_home,openstreetmap
+Residence Angelica,45.589921,-73.65134,community_service_211,,group_home,openstreetmap
+Résidence les Cascades,45.590492,-73.651012,community_service_211,,group_home,openstreetmap
+Manoir Fleury,45.571649,-73.651194,community_service_211,,group_home,openstreetmap
+Residence Berthiaume-Du Tremblay,45.566693,-73.661949,community_service_211,,nursing_home,openstreetmap
+Centre d'hébergement Laurendeau,45.568104,-73.662106,community_service_211,1725 Boulevard Gouin Est,nursing_home,openstreetmap
+Habitations Sainte-Germaine-Cousin,45.671351,-73.494568,community_service_211,,group_home,openstreetmap
+Centre de réadaptation en dépendance de Montréal,45.553834,-73.648764,community_service_211,950 Rue de Louvain Est,group_home,openstreetmap
+Château Pierrefonds,45.480088,-73.869823,community_service_211,,group_home,openstreetmap
+Toujours Ensemble,45.456609,-73.571773,community_service_211,4926 Rue de Verdun,social_facility,openstreetmap
+Bâtir son Quartier,45.481217,-73.561452,community_service_211,1945 Rue Mullins,social_centre,openstreetmap
+Le Centre communautaire du Faubourg Saint-Laurent,45.512418,-73.56662,community_service_211,105 Rue Ontario Est,community_centre,openstreetmap
+Centre Culturel Calixa Lavallée,45.527068,-73.569396,community_service_211,3819 Avenue Calixa-Lavallée,community_centre,openstreetmap
+Centre Communautaire Roussin,45.640666,-73.490512,community_service_211,12125 Rue Notre-Dame Est,community_centre,openstreetmap
+Centre Le Cardinal,45.652484,-73.488432,community_service_211,,nursing_home,openstreetmap
+Résidence des Trembles,45.653707,-73.489529,community_service_211,,group_home,openstreetmap
+CHSLD Saint-Joseph-de-la-Providence,45.540826,-73.690305,community_service_211,,nursing_home,openstreetmap
+Centre culturel canadien japonais (CCCJ),45.551455,-73.621929,community_service_211,8155 Rue Rousselot,community_centre,openstreetmap
+Bâtiment 7,45.481021,-73.552323,community_service_211,1900 Rue Le Ber,community_centre,openstreetmap
+Résidence l'Amitié,45.516387,-73.747899,community_service_211,9167 Boulevard Gouin Ouest,group_home,openstreetmap
+Comité d'éducation aux adultes de la Petite-Bourgogne et St-Henri (CÉDA),45.483948,-73.576653,community_service_211,,social_facility,openstreetmap
+Comité social centre-sud,45.520192,-73.55952,community_service_211,1710 Beaudry,community_centre,openstreetmap
+Centre Communautaire Notre-Dame-de-Grâce,45.476145,-73.613761,community_service_211,,community_centre,openstreetmap
+Société Saint-Vincent-de-Paul Saint-André-Apôtre,45.547351,-73.670132,community_service_211,10534 Rue Waverly,charity,openstreetmap
+Manoir Pierrefonds,45.462993,-73.898759,community_service_211,,group_home,openstreetmap
+Centre D'Encadrement Pour Jeunes Femmes Immigrantes,45.521948,-73.692259,community_service_211,,community_centre,openstreetmap
+Centre des Femmes de Saint-Laurent,45.510375,-73.676207,community_service_211,,community_centre,openstreetmap
+Le Châteaubriand,45.631384,-73.590337,community_service_211,7985,community_centre,openstreetmap
+Forêt Dorée,45.52844,-73.547134,community_service_211,,community_centre,openstreetmap
+Maison de la famille de Saint-Léonard,45.585452,-73.593464,community_service_211,8180 Rue Collerette,social_centre,openstreetmap
+Seena Cultural Centre,45.46151,-73.62335,community_service_211,,community_centre,openstreetmap
+Résidence pour personnes âgées,45.538831,-73.614427,community_service_211,,group_home,openstreetmap
+Le Phare,45.61706,-73.614067,food_bank,11835 Boulevard Langelier,food_bank,openstreetmap
+CSHLD du Château-sur-le-Lac,45.477913,-73.874403,community_service_211,16289 Boulevard Gouin Ouest,nursing_home,openstreetmap
+Centre d'hébergement Les Cèdres,45.516779,-73.680274,community_service_211,1275 Boulevard de la Côte-Vertu,nursing_home,openstreetmap
+Excelsoins Ste-Geneviève,45.47644,-73.874807,community_service_211,16375 Boulevard Gouin Ouest,group_home,openstreetmap
+"Unité d'hébergement, Hôpital Lasalle",45.421396,-73.622893,community_service_211,,nursing_home,openstreetmap
+Bingo,45.43958,-73.6829,community_service_211,2005 Saint-Antoine,social_centre,openstreetmap
+Centre d'hébergement Saint-Andrew,45.463111,-73.628904,community_service_211,3350 Boulevard Cavendish,nursing_home,openstreetmap
+Maison l'Étincelle,45.469041,-73.56781,community_service_211,,nursing_home,openstreetmap
+Banque Alimentaire FDOI,45.508708,-73.805728,community_service_211,,social_facility,openstreetmap
+Fonds d'Aide de l'Ouest-de-l'Île,45.509799,-73.806356,community_service_211,,social_facility,openstreetmap
+Royal Canadian Legion Hall,45.51054,-73.810097,community_service_211,,social_centre,openstreetmap
+Résidence Lacordaire Iléana,45.583586,-73.578792,community_service_211,,group_home,openstreetmap
+Résidence Les Jardins Gordon,45.46122,-73.577741,community_service_211,,group_home,openstreetmap
+CHSLD Éloria-Lepage,45.576972,-73.541908,community_service_211,3090 Avenue de la Pépinière,nursing_home,openstreetmap
+Centre de protection de l'enfance et de la jeunesse Henri-Bourassa Est,45.560676,-73.666047,community_service_211,,healthcare,openstreetmap
+Résidence J.A. De Sève,45.513575,-73.555861,community_service_211,,group_home,openstreetmap
+CHSLD Jeanne-Le Ber,45.589597,-73.527693,community_service_211,,nursing_home,openstreetmap
+Service des Loisirs et du Développement communautaire,45.544152,-73.697967,community_service_211,,community_centre,openstreetmap
+Centre Communautaire Arménien,45.532658,-73.697327,community_service_211,3401 Rue Olivar Asselin,community_centre,openstreetmap
+CHSLD Robert-Cliche,45.557576,-73.578945,community_service_211,,nursing_home,openstreetmap
+CHSLD Providence-Saint-Joseph,45.578814,-73.567463,community_service_211,,nursing_home,openstreetmap
+Résidence L'image d'Outremont,45.518626,-73.622237,community_service_211,1040 Avenue Rockland,group_home,openstreetmap
+CHSLD Saint-Georges,45.512005,-73.572582,community_service_211,,nursing_home,openstreetmap
+Manoir Saint-Joseph,45.567461,-73.651145,community_service_211,,group_home,openstreetmap
+CHSLD Vigi Reine-Élizabeth,45.473991,-73.606213,community_service_211,,nursing_home,openstreetmap
+CHSLD Auclair,45.539536,-73.6086,community_service_211,,nursing_home,openstreetmap
+Résidence Parc Jarry,45.538373,-73.628706,community_service_211,,group_home,openstreetmap
+Les Résidences Soleil Manoir Saint-Léonard,45.583211,-73.585436,community_service_211,,group_home,openstreetmap
+Le Château BeauRivage,45.627673,-73.61982,community_service_211,,group_home,openstreetmap
+Centre d’hébergement Henri-Bradet,45.472051,-73.645082,community_service_211,,nursing_home,openstreetmap
+Résidence Le Saint-Michel,45.558054,-73.597031,community_service_211,7070 Boulevard Saint-Michel,group_home,openstreetmap
+Manoir Claudette Barré,45.597304,-73.535481,community_service_211,,group_home,openstreetmap
+Vent de l’Ouest,45.48193,-73.861803,community_service_211,,group_home,openstreetmap
+Centre d'hébergement Floralies de Lachine,45.440959,-73.691977,community_service_211,,nursing_home,openstreetmap
+Résidence Cité Rive,45.630609,-73.617781,community_service_211,,group_home,openstreetmap
+Résidence Anjou,45.604472,-73.547456,community_service_211,,group_home,openstreetmap
+Centre d'hébergement Ernest-Routhier,45.521245,-73.564306,community_service_211,,nursing_home,openstreetmap
+Résidence Bellerive,45.674836,-73.492465,community_service_211,,group_home,openstreetmap
+Les résidences Le Tournesol,45.537308,-73.671165,community_service_211,,group_home,openstreetmap
+Résidence Snowdon,45.493111,-73.625888,community_service_211,4329 Avenue Isabella,group_home,openstreetmap
+Résidence au Fil de l’Eau,45.63004,-73.619547,community_service_211,,group_home,openstreetmap
+CHSLD Marie-Rollet,45.573418,-73.575777,community_service_211,,nursing_home,openstreetmap
+Résidence Anjou sur le Lac,45.606061,-73.588773,community_service_211,,group_home,openstreetmap
+Villa Ukrainienne,45.552574,-73.586606,community_service_211,,group_home,openstreetmap
+Centre d’hébergement de la Marée,45.630119,-73.61913,community_service_211,,nursing_home,openstreetmap
+Manoir de l'Acadie,45.534824,-73.683984,community_service_211,,group_home,openstreetmap
+Résidence Sault-au-Récollet,45.587424,-73.652105,community_service_211,,group_home,openstreetmap
+Résidence Portofino,45.585234,-73.651994,community_service_211,,group_home,openstreetmap
+Résidence L'Alto,45.50568,-73.674381,community_service_211,,group_home,openstreetmap
+"Groupe Maurice, Les Verrières du Golf",45.51387,-73.70944,community_service_211,,group_home,openstreetmap
+Résidence Ville-Marie,45.526615,-73.561724,community_service_211,,group_home,openstreetmap
+Résidence Rosalie-Cadron,45.528498,-73.721818,community_service_211,,group_home,openstreetmap
+Le Sommet de la Rive,45.468738,-73.563407,community_service_211,3501 Boulevard Gaétan-Laberge,group_home,openstreetmap
+Place Lacordaire,45.582996,-73.582629,community_service_211,,group_home,openstreetmap
+Résidence Lepage,45.454917,-73.58677,community_service_211,,group_home,openstreetmap
+Résidence Sheppard et James,45.490277,-73.637719,community_service_211,,group_home,openstreetmap
+Résidence Shepphard et James Victoria,45.492311,-73.633494,community_service_211,5700 Avenue Victoria,group_home,openstreetmap
+Manoir du Soleil Levant,45.587941,-73.635596,community_service_211,,group_home,openstreetmap
+Résidence Saint-Denis d'Ahuntsic,45.553485,-73.667706,community_service_211,,group_home,openstreetmap
+Manoir D'Amour,45.43199,-73.642976,community_service_211,,group_home,openstreetmap
+Résidence Rosemont SEC,45.541965,-73.589858,community_service_211,,group_home,openstreetmap
+Résidences Le 1615 et Le 1625,45.567122,-73.663085,community_service_211,,group_home,openstreetmap
+Manoir Belle Époque,45.569867,-73.659197,community_service_211,,group_home,openstreetmap
+Résidence Outremont,45.519225,-73.609026,community_service_211,,group_home,openstreetmap
+Les Résidences Confort D.Charles - Sainte-Claire,45.605072,-73.522262,community_service_211,,group_home,openstreetmap
+La Résidence Fulford,45.494791,-73.577735,community_service_211,,group_home,openstreetmap
+Les Jardins de Jouvence,45.599504,-73.522143,community_service_211,,group_home,openstreetmap
+Résidence Lachapelle,45.55757,-73.53103,community_service_211,,group_home,openstreetmap
+Résidence du Jardin Botanique,45.560719,-73.574546,community_service_211,,group_home,openstreetmap
+Lux Gouverneur,45.570982,-73.549064,community_service_211,,group_home,openstreetmap
+Résidence Les Tours Gouin,45.62846,-73.620696,community_service_211,,group_home,openstreetmap
+Les Habitations Pelletier,45.598063,-73.638965,community_service_211,,group_home,openstreetmap
+"Chartwell, Bois-de-Boulogne",45.536752,-73.669349,community_service_211,,group_home,openstreetmap
+Résidence LaSalle,45.430093,-73.61309,community_service_211,,group_home,openstreetmap
+Manoir Gouin,45.529243,-73.722988,community_service_211,,group_home,openstreetmap
+Les Résidences Soleil Pointe-aux-Trembles,45.665425,-73.492599,community_service_211,,group_home,openstreetmap
+Résidence Jean-Placide-Desrosiers,45.446587,-73.646317,community_service_211,,group_home,openstreetmap
+"Chartwell, Belvédères de Lachine",45.435365,-73.690831,community_service_211,,group_home,openstreetmap
+CSH-HCN Lessee (Pointe-aux-Trembles),45.658237,-73.51217,community_service_211,,group_home,openstreetmap
+Résidence Cavalier de Lasalle,45.425396,-73.609831,community_service_211,,group_home,openstreetmap
+Le Symbiose,45.591583,-73.533924,community_service_211,,group_home,openstreetmap
+Résidence Lionel-Bourdon,45.644871,-73.574731,community_service_211,,group_home,openstreetmap
+Centre d'hébergement de Saint-Henri,45.469653,-73.594136,community_service_211,,nursing_home,openstreetmap
+Famijeunes,45.478376,-73.58289,community_service_211,3904 Rue Notre-Dame Ouest,community_centre,openstreetmap
+Maison Valeo Pierrefonds,45.489868,-73.845912,community_service_211,,nursing_home,openstreetmap
+Rêvanous,45.548151,-73.65769,community_service_211,,outreach,openstreetmap
+Centre APpleton,45.502471,-73.635375,community_service_211,6585 Chemin de la Côte-des-Neiges,community_centre,openstreetmap
+MultiCaf,45.502557,-73.63478,food_bank,3591 Avenue Appleton,food_bank,openstreetmap
+Grupo Alcoholicos Anonimos Una Luz en Montreal,45.534529,-73.616662,community_service_211,29A Avenue Shamrock,community_centre,openstreetmap
+Le Quartier des Générations,45.567431,-73.661497,community_service_211,1675 Boulevard Gouin Est,group_home,openstreetmap
+Résidence Bonsecours,45.482408,-73.613726,community_service_211,5015 Avenue Notre-Dame-de-Grâce,group_home,openstreetmap
+Syndicat des cols bleus regroupés de Montréal,45.556577,-73.625654,community_service_211,8455 Avenue Papineau,social_centre,openstreetmap
+Centre Communautaire Darlington,45.509989,-73.630139,community_service_211,2876 Rue Goyer,community_centre,openstreetmap
+CCSE Maisonneuve,45.553812,-73.540479,community_service_211,4375 Rue Ontario Est,social_facility,openstreetmap
+Chalet du parc Willibrord,45.459224,-73.574479,community_service_211,,community_centre,openstreetmap
+Centre de Don Renaissance,45.551499,-73.620347,community_service_211,1460 Rue Jarry Est,social_facility,openstreetmap
+Pavillon d'accueil du Parcours Gouin,45.55748,-73.672673,community_service_211,10905 Rue Basile-Routhier,community_centre,openstreetmap
+Maison de la culture Ahuntsic,45.553472,-73.66257,community_service_211,10300 Rue Lajeunesse,community_centre,openstreetmap
+Carrefour Jeunesse Emploi Ahuntsic-Bordeaux-Cartierville,45.555571,-73.669948,community_service_211,10794 Rue Lajeunesse,outreach,openstreetmap
+Maison des jeunes d'Ahuntsic,45.555564,-73.669921,community_service_211,10794 Rue Lajeunesse,outreach,openstreetmap
+Hébergements Péloquin,45.55939,-73.667385,community_service_211,900 Boulevard Gouin Est,day_care,openstreetmap
+Centre communautaire Lasalle,45.425915,-73.657066,community_service_211,15 Avenue Highlands,community_centre,openstreetmap
+Centre récréatif et communautaire de LaSalle,45.433158,-73.635904,community_service_211,8700 Rue Hardy,community_centre,openstreetmap
+Centre communautaire Saint-Raymond,45.469608,-73.608354,community_service_211,,community_centre,openstreetmap
+Centre communautaire et culturel Doux Refuge,45.581069,-73.651857,community_service_211,2825 Boulevard Henri-Bourassa Est,community_centre,openstreetmap
+Cercle des fermières d'Ahuntsic,45.576562,-73.646261,community_service_211,2574 Rue Fleury Est,community_centre,openstreetmap
+Centre communautaire de la Savane,45.498153,-73.653951,community_service_211,5111 Rue Paré,community_centre,openstreetmap
+Centre Communautaire MADA,45.49254,-73.648229,community_service_211,6875 Boulevard Décarie,community_centre,openstreetmap
+Noor Cultural Center,45.49667,-73.64609,community_service_211,4844 Avenue de Courtrai,community_centre,openstreetmap
+Chabad Hope Center,45.495169,-73.64742,community_service_211,5110 Avenue de Courtrai,charity,openstreetmap
+The Living Legacy,45.494973,-73.647591,community_service_211,5120 Avenue de Courtrai,social_centre,openstreetmap
+Chabad Chai Center Jewish Community Center,45.494927,-73.647632,community_service_211,5120 Avenue de Courtrai,community_centre,openstreetmap
+Providence Notre-Dame-de-Grâce,45.481317,-73.621481,community_service_211,5240 Chemin de la Côte-Saint-Luc,group_home,openstreetmap
+Centre communautaire turc,45.566159,-73.599598,community_service_211,3781 Rue Villeray,community_centre,openstreetmap
+Autour du bébé,45.559616,-73.658125,community_service_211,1290 Rue Fleury Est,outreach,openstreetmap
+La Station,45.459943,-73.54444,community_service_211,201 Rue Berlioz,community_centre,openstreetmap
+Bureau de la communauté haïtienne de Montréal,45.545744,-73.604651,community_service_211,6970 Rue Marquette,community_centre,openstreetmap
+CHSLD Manoir de l'Ouest de l'île,45.462888,-73.885635,community_service_211,17725 Boulevard de Pierrefonds,nursing_home,openstreetmap
+Fondaiton kurde du Québec / Komela Kurda li Quebec,45.568429,-73.641407,community_service_211,2170 Avenue Charland,community_centre,openstreetmap
+Centre Masson,45.546583,-73.576022,community_service_211,2705 Rue Masson,community_centre,openstreetmap
+Centre Communautaire Petite-Côte,45.554237,-73.576764,community_service_211,5675 Rue Lafond,community_centre,openstreetmap
+A deux mains,45.46569,-73.62789,community_service_211,,community_centre,openstreetmap
+Petales Québec,45.550938,-73.675444,community_service_211,39A Boulevard Gouin Ouest,outreach,openstreetmap
+Gap-Vies Inc,45.5648,-73.608405,community_service_211,3330 Rue Jarry Est,social_centre,openstreetmap
+Entre-Maisons Ahuntsic - Centre des jeunes Saint-Sulpice,45.556123,-73.646799,community_service_211,9455 Avenue Olivier-Maurault,outreach,openstreetmap
+Centre jeunesse de Montréal - Institut universitaire - Site Dominique-Savio-Mainbourg,45.55298,-73.645992,community_service_211,9335 Rue Saint-Hubert,outreach,openstreetmap
+Teamsters,45.568664,-73.653309,community_service_211,,social_centre,openstreetmap
+Centre social des cols bleus regroupés de Montréal,45.56488,-73.646241,community_service_211,,social_centre,openstreetmap
+Partageons l'espoir,45.478136,-73.559265,community_service_211,625 Rue Fortune,social_facility,openstreetmap
+Salle St-Jean Berchmans,45.541864,-73.591242,community_service_211,5945 Rue Cartier,community_centre,openstreetmap
+Salle Cartier,45.541841,-73.591476,community_service_211,5945 Rue Cartier,community_centre,openstreetmap
+Espace des Possibles Ahuntsic,45.549424,-73.647848,community_service_211,9269 Rue Lajeunesse,community_centre,openstreetmap
+Centre d'hébergement de Louvain,45.548599,-73.654068,community_service_211,9600 Rue Saint-Denis,nursing_home,openstreetmap
+Centre d'hébergement de soins logue durée Légaré,45.55859,-73.634948,community_service_211,Avenue Émile-Journault,nursing_home,openstreetmap
+Les syndicats des employé-e-s d'Hydro-Québec,45.549612,-73.630248,community_service_211,1010 Boulevard Crémazie Est,social_centre,openstreetmap
+Entre mamans et papas,45.5438,-73.549934,community_service_211,3363 Rue de Rouen,charity,openstreetmap
+Centre Saint-Barthélemy,45.550439,-73.603378,community_service_211,7111 Avenue des Érables,community_centre,openstreetmap
+Carrefour Jeunesse-Emploi Côte-des-Neiges - Ville Mont-Royal - Outremont,45.50235,-73.635088,community_service_211,6555 Chemin de la Côte-des-Neiges,outreach,openstreetmap
+Centre culturel et communautaire de Cartierville,45.530019,-73.715757,community_service_211,12225 Rue Grenet,community_centre,openstreetmap
+5150 Gaspé - Bâtiment,45.525024,-73.591223,community_service_211,5105 Avenue De Gaspé,community_centre,openstreetmap
+L’Orangeraie,45.512356,-73.568447,community_service_211,,community_centre,openstreetmap
+Centre communautaire des Phillippines - Centre Famas,45.494902,-73.636865,community_service_211,4725 Avenue Van Horne,community_centre,openstreetmap
+Associacao Dos Pais Montreal,45.53823,-73.618002,community_service_211,333 Rue De Castelnau Est,community_centre,openstreetmap
+Centrami,45.454711,-73.594731,community_service_211,6387 Boulevard Monk,outreach,openstreetmap
+FADOQ,45.543294,-73.6186,community_service_211,7537 Rue Saint-Hubert,community_centre,openstreetmap
+Centre des femmes d'ici et d'ailleurs,45.546109,-73.625326,community_service_211,8043 Rue Saint-Hubert,community_centre,openstreetmap
+Parkinson Québec,45.517665,-73.564221,community_service_211,560 Rue Ontario Est,charity,openstreetmap
+NDG'S homeless shelter,45.467831,-73.638533,community_service_211,6505 Avenue Somerled,shelter,openstreetmap
+Le Dépôt centre communautaire d’alimentation,45.468165,-73.63776,food_bank,6450 Avenue Somerled,food_bank,openstreetmap
+Centre de femmes La Marie Debout,45.547574,-73.536141,community_service_211,4001 Rue Sainte-Catherine Est,social_facility,openstreetmap
+CRCS Saint-Zotique,45.472777,-73.583841,community_service_211,,community_centre,openstreetmap
+Pavillon des aînés,45.478232,-73.565113,community_service_211,,outreach,openstreetmap
+Réseau D'Entreaide de Verdun,45.454979,-73.567561,community_service_211,5132 Rue Wellington,community_centre,openstreetmap
+La Maison Blue,45.456547,-73.571763,community_service_211,4926 Rue de Verdun,outreach,openstreetmap
+Carrefour Parenfants,45.558253,-73.529547,community_service_211,5021 Rue Sainte-Catherine Est,outreach,openstreetmap
+Accueil Bonneau,45.510256,-73.550996,community_service_211,,charity,openstreetmap
+QPIRG,45.495659,-73.579758,community_service_211,,community_centre,openstreetmap
+La Maison Boussonnière,45.526885,-73.598199,community_service_211,65 Rue Saint-Viateur Est,community_centre,openstreetmap
+CHSLD des Seigneurs,45.489352,-73.570973,community_service_211,1800 Rue Saint-Jacques,nursing_home,openstreetmap
+Centre communautaire La Patience,45.573457,-73.630741,community_service_211,9227 Boulevard Saint-Michel,community_centre,openstreetmap
+Maison de la Famille de St-Michel,45.572219,-73.629229,community_service_211,9162 Boulevard Saint-Michel,community_centre,openstreetmap
+Centre de solidarité lesbienne,45.521189,-73.577162,community_service_211,4126 Saint-Denis,community_centre,openstreetmap
+Espace des possibles,45.537556,-73.601496,community_service_211,,community_centre,openstreetmap
+Le Chaînon,45.517711,-73.586046,community_service_211,4373 Avenue de l'Esplanade,social_facility,openstreetmap
+Maison L'Exode - Pavillon André-Dumont,45.555108,-73.548312,community_service_211,2590 Avenue Letourneux,outreach,openstreetmap
+Centre Communautaire Rivière-Des-Prairies,45.650377,-73.577389,community_service_211,9140 Boulevard Perras,community_centre,openstreetmap
+CHSLD de Saint-Michel,45.562113,-73.61066,community_service_211,3130 Rue Jarry Est,nursing_home,openstreetmap
+La Maison d'Haïti,45.570685,-73.623569,community_service_211,,community_centre,openstreetmap
+AIDS Community Care Montreal,45.524299,-73.561812,community_service_211,2075 Rue Plessis,outreach,openstreetmap
+Société Saint-Vincent-de-Paul - Saint-Antoine-Marie-Claret,45.580244,-73.650533,food_bank,10630 Avenue Larose,food_bank,openstreetmap
+Centre communautaire intergénérationnel,45.519944,-73.619301,community_service_211,999 Avenue McEachran,community_centre,openstreetmap
+CACI Salaberry,45.532975,-73.705919,community_service_211,4800 Rue De Salaberry,social_facility,openstreetmap
+Centre des aînés de Villeray,45.543793,-73.620213,community_service_211,7626 Rue Saint-Hubert,community_centre,openstreetmap
+Vers Vous,45.545976,-73.625581,community_service_211,8042 Rue Saint-Hubert,community_centre,openstreetmap
+Montreal Science Centre,45.504647,-73.55133,community_service_211,2 De la Commune St W,community_centre,openstreetmap
+Centre Sanaaq,45.48927,-73.581539,community_service_211,1200 Rue du Sussex,community_centre,openstreetmap
+Centre Action,45.519912,-73.702274,community_service_211,,social_facility,openstreetmap
+Centrevie LifeCenter,45.519764,-73.701743,community_service_211,,community_centre,openstreetmap
+Salle de réception Sofia,45.432782,-73.647949,community_service_211,,community_centre,openstreetmap
+Air-Som/Prisme,45.432604,-73.648013,community_service_211,,social_centre,openstreetmap
+ACEF du Sud Ouest de Montréal,45.451574,-73.593231,community_service_211,6734 Boulevard Monk,outreach,openstreetmap
+CACI - Centre d'appui aux communautés immigrantes,45.526773,-73.716469,community_service_211,12049 Boulevard Laurentien,social_facility,openstreetmap
+Le Sélection Île des Sœurs,45.448836,-73.55611,community_service_211,325 Chemin de la Pointe-Sud,group_home,openstreetmap
+Résidence Ora,45.553889,-73.62601,community_service_211,,group_home,openstreetmap
+Les Jardins Millen,45.556839,-73.668784,community_service_211,10800 Avenue Millen,group_home,openstreetmap
+Habitation L'Annexe,45.459051,-73.595558,community_service_211,,assisted_living,openstreetmap
+Gepisi,45.521483,-73.562317,community_service_211,1223 Rue Ontario Est,outreach,openstreetmap
+Le Ministère,45.520454,-73.586824,community_service_211,4521 Boulevard Saint-Laurent,community_centre,openstreetmap
+Suspicious Fish,45.454811,-73.567961,community_service_211,5161 Wellington,community_centre,openstreetmap
+¡Espace Amalgame?,45.526944,-73.601049,community_service_211,5691 Boulevard Saint-Laurent,community_centre,openstreetmap
+Café Mission Keurig,45.506922,-73.557719,community_service_211,,social_facility,openstreetmap
+Espace culturel des Productions Feux Sacrés,45.498697,-73.554067,community_service_211,43 Rue des Soeurs-Grises,community_centre,openstreetmap
+Le Frigo De L'Est,45.574042,-73.535575,community_service_211,6055 Rue Hochelaga,charity,openstreetmap
+Maison du Brasseur,45.433369,-73.689927,community_service_211,2901 Boulevard Saint Joseph,community_centre,openstreetmap
+Centre d'hébergement Notre-Dame-de-la-Merci,45.547786,-73.687331,community_service_211,555 Boulevard Gouin Ouest,nursing_home,openstreetmap
+CHSLD Paul-Lizotte,45.627376,-73.620237,community_service_211,,nursing_home,openstreetmap
+Centre d'Hébergement Marie-Victorin,45.616084,-73.603904,community_service_211,,nursing_home,openstreetmap
+Pavillon Montfort,45.619684,-73.60513,community_service_211,,social_facility,openstreetmap
+École Saint-Justin Annexe,45.606237,-73.53196,community_service_211,5005 Rue Mousseau,community_centre,openstreetmap
+"Elogia, Groupe Maurice",45.569864,-73.550737,community_service_211,,group_home,openstreetmap
+CHSLD Benjamin-Victor-Rousselot,45.57283,-73.551077,community_service_211,5655 Rue Sherbrooke Est,nursing_home,openstreetmap
+Association culturelle haïtienne La Perle Retrouvée,45.568567,-73.600247,community_service_211,7655 20e Avenue,community_centre,openstreetmap
+Centre de loisirs Saints-Martyrs-Canadiens,45.571765,-73.647471,community_service_211,10125 Rue Parthenais,community_centre,openstreetmap
+Résidence de Salaberry,45.530882,-73.710312,community_service_211,5555 Rue De Salaberry,group_home,openstreetmap
+Armenian Society From Istanbul,45.532701,-73.693164,community_service_211,,community_centre,openstreetmap
+Résidence Les Deux Aires,45.548403,-73.685786,community_service_211,505 Boulevard Gouin Ouest,group_home,openstreetmap
+Centre d'hébergement Armand-Lavergne,45.535701,-73.563475,community_service_211,3500 Rue Chapleau,nursing_home,openstreetmap
+Résidence Piero-Corti,45.543118,-73.558247,community_service_211,3131 Rue Sherbrooke Est,group_home,openstreetmap
+CHSLD J.-Henri Charbonneau,45.542689,-73.559028,community_service_211,3095 Rue Sherbrooke Est,nursing_home,openstreetmap
+Centre d'hébergement Nicolet,45.547564,-73.548442,community_service_211,2300 Rue Nicolet,nursing_home,openstreetmap
+Carrefour d’alimentation et de partage Saint-Barnabé,45.553691,-73.533539,food_bank,1475 Bennett,food_bank,openstreetmap
+CHSLD Providence Notre-Dame de Lourdes,45.549759,-73.540636,community_service_211,1870 Boulevard Pie-IX,nursing_home,openstreetmap
+Centre de soins prolongés Grace Dart,45.559458,-73.528522,community_service_211,5155 Rue Sainte-Catherine Est,nursing_home,openstreetmap
+Centre d'Hébergement Paul-Émile-Léger,45.509333,-73.560028,community_service_211,,nursing_home,openstreetmap
+CHSLD St-Georges,45.512816,-73.575035,community_service_211,,nursing_home,openstreetmap
+Héritage Plateau,45.520814,-73.578517,community_service_211,,group_home,openstreetmap
+Centre de services communautaires du Monastère,45.524963,-73.580336,community_service_211,,community_centre,openstreetmap
+Centre d'hébergement Réal-Morel,45.468621,-73.56493,community_service_211,3500 Rue Wellington,nursing_home,openstreetmap
+Centre d'hébergement Yvon-Brunet,45.453884,-73.603568,community_service_211,6250 Boulevard Newman,nursing_home,openstreetmap
+Centre d'hébergement-de Verdun,45.452296,-73.566088,community_service_211,5500 Boulevard LaSalle,nursing_home,openstreetmap
+Quai 5160 - Maison de la culture de Verdun,45.453563,-73.565082,community_service_211,5160 Boulevard LaSalle,community_centre,openstreetmap
+Centre d'hébergement Champlain,45.439088,-73.586857,community_service_211,,nursing_home,openstreetmap
+"3292, rue Cherrier L’Île -Bizard",45.490686,-73.870003,community_service_211,3292 Rue Cherrier,nursing_home,openstreetmap
+CHSLD Vigi Santé Pierrefonds,45.485453,-73.858715,community_service_211,14775 Boulevard de Pierrefonds,nursing_home,openstreetmap
+Centre communautaire Marcel Morin,45.495365,-73.850797,community_service_211,14068 boul. Gouin Ouest,community_centre,openstreetmap
+Maison Mère des Soeurs de Sainte-Anne,45.443255,-73.681828,community_service_211,,group_home,openstreetmap
+Centre communautaire Monkland,45.467987,-73.632354,community_service_211,,community_centre,openstreetmap
+"CHSLD juif Donald Berman, Pavillon Kastner",45.494184,-73.632624,community_service_211,5750 Rue Lavoie,nursing_home,openstreetmap
+Résidence Pollack,45.491591,-73.635044,community_service_211,5757 Rue Lemieux,nursing_home,openstreetmap
+Pavillon Côte-des-Neiges,45.491161,-73.623888,community_service_211,4565 Chemin Queen Mary,nursing_home,openstreetmap
+Pavillon Alfred-Desrochers,45.490733,-73.627522,community_service_211,5325 Avenue Victoria,nursing_home,openstreetmap
+Chalet François-Perrault,45.562452,-73.600579,community_service_211,7525 Rue François-Perrault,community_centre,openstreetmap
+CHSLD Bourget,45.633814,-73.49285,community_service_211,,nursing_home,openstreetmap
+Résidence Ambiance,45.46738,-73.545244,community_service_211,50 Place du Commerce,group_home,openstreetmap
+Centre d'hébergement Louis-Riel,45.482061,-73.566157,community_service_211,2120 Rue Augustin-Cantin,nursing_home,openstreetmap
+Centre Pierre-Péladeau,45.513502,-73.562228,community_service_211,300 Boulevard De Maisonneuve Est,community_centre,openstreetmap
+Centre de Loisirs communautaires Lajeunesse,45.540366,-73.61739,community_service_211,7378 Rue Lajeunesse,community_centre,openstreetmap
+Maison de Quartier Villeray,45.543262,-73.621487,community_service_211,660 Rue Villeray,community_centre,openstreetmap
+Centre d'hébergement Father-Dowd,45.50708,-73.630679,community_service_211,6565 Chemin Hudson,nursing_home,openstreetmap
+Manoir Anjou,45.614306,-73.546159,community_service_211,,group_home,openstreetmap
+Centre Communautaire de l'Est de Pierrefonds,45.504884,-73.784378,community_service_211,,community_centre,openstreetmap
+Pavillon d'Éducation Communautaire Hochelaga-Maisonneuve,45.549903,-73.538584,community_service_211,1691 Boulevard Pie-IX,outreach,openstreetmap
+Le Garage à Musique,45.555179,-73.54031,community_service_211,2080 Avenue Bennett,social_club,openstreetmap
+The Teapot,45.433286,-73.690088,community_service_211,2901 Boulevard Saint-Joseph,community_centre,openstreetmap
+Maison de la culture Maisonneuve,45.551155,-73.540224,community_service_211,4200 Rue Ontario Est,community_centre,openstreetmap
+Carrefour Jeunesse,45.551596,-73.540085,community_service_211,4240 Rue Ontario Est,community_centre,openstreetmap
+Résidences Edmon Hamelin,45.548206,-73.552046,community_service_211,3550 Rue Nicolet,group_home,openstreetmap
+Ressources Jeunesse St-Laurent,45.523452,-73.683715,community_service_211,1550 Rue Elizabeth,community_centre,openstreetmap
+Westhaven Elmhurst Community Recreation Association,45.454809,-73.638913,community_service_211,7405 Avenue Harley,community_centre,openstreetmap
+Mission Bon Accueil,45.49312,-73.570837,community_service_211,,shelter,openstreetmap
+Résidence Westmount One,45.483602,-73.614927,community_service_211,,group_home,openstreetmap
+Cactus Montréal,45.512586,-73.561098,community_service_211,1300 Rue Sanguinet,outreach,openstreetmap
+Centre Récréatif Riviève-des-Prairies,45.627072,-73.594799,community_service_211,,community_centre,openstreetmap
+Foundation Of Catholic Community Services Inc,45.493821,-73.581658,community_service_211,1857 Boulevard De Maisonneuve Ouest,community_centre,openstreetmap
+Resilience Montreal,45.488937,-73.584533,community_service_211,4000 Rue Sainte-Catherine Ouest,shelter,openstreetmap
+Résidence Mont Carmel,45.515718,-73.555995,community_service_211,955 Boulevard René-Lévesque Est,group_home,openstreetmap
+Habitat Fullum,45.527899,-73.548647,community_service_211,,group_home,openstreetmap
+Centre d'hébergement Émilie-Gamelin,45.52843,-73.54824,community_service_211,1440 Rue Dufresne,nursing_home,openstreetmap
+Résidence Sainte-Catherine,45.52783,-73.547054,community_service_211,,group_home,openstreetmap
+Montréal Autochtone - Native Montreal,45.48348,-73.580614,community_service_211,3183 Rue Saint-Jacques,community_centre,openstreetmap
+Résidence Côte-Saint-Paul,45.466929,-73.593294,community_service_211,,group_home,openstreetmap
+Residence Strath Haven,45.506912,-73.827962,community_service_211,12119 Boulevard Gouin Ouest,assisted_living,openstreetmap
+Centre d'Hébergement Jean De La Lande,45.531274,-73.569904,community_service_211,4255 Avenue Papineau,nursing_home,openstreetmap
+Centre d'hébergement Paul-Bruchési,45.534495,-73.566168,community_service_211,2225 Rue Rachel Est,nursing_home,openstreetmap
+La Maison du Pharillon,45.548057,-73.549991,community_service_211,2410 Rue Nicolet,outreach,openstreetmap
+Centre Social l'Achoppe,45.551796,-73.538152,community_service_211,1800 Letourneau,community_centre,openstreetmap
+Centre d'hébergement Paul-Gouin,45.532223,-73.599827,community_service_211,,nursing_home,openstreetmap
+Édifice Talia Fonfeder,45.513223,-73.620834,community_service_211,Avenue Van Horne,group_home,openstreetmap
+Caldwell Residences,45.490702,-73.635838,community_service_211,5750 Rue Lemieux,group_home,openstreetmap
+"CHSLD juif Donald Berman, Pavillon de l'Espérance",45.49319,-73.633618,community_service_211,5725 Avenue Victoria,nursing_home,openstreetmap
+Hope & Cope Cancer Wellness Centre,45.494003,-73.632132,community_service_211,4635 Chemin de la Côte-Sainte-Catherine,social_facility,openstreetmap
+Résidence Vista,45.480104,-73.622878,community_service_211,5300 Chemin de la Côte-Saint-Luc,group_home,openstreetmap
+Centre Leonardo Da Vinci,45.585478,-73.597093,community_service_211,8370 Boulevard Lacordaire,community_centre,openstreetmap
+Chevaliers de Colomb,45.428827,-73.593519,community_service_211,,social_centre,openstreetmap
+CHSLD Bussey,45.433108,-73.683356,community_service_211,,group_home,openstreetmap
+Le Boulevard Résidence Urbaine Pour Aînés,45.488327,-73.640644,community_service_211,5900 Boulevard Décarie,group_home,openstreetmap
+Rosemont les Quartiers,45.542734,-73.574508,community_service_211,5200 Rue Molson,group_home,openstreetmap
+Centre communautaire Painter,45.529221,-73.675966,community_service_211,,community_centre,openstreetmap
+Institut Pacifique,45.582452,-73.653195,community_service_211,2901 Boulevard Gouin Est,community_centre,openstreetmap
+Centre Lasallien Saint-Michel,45.571758,-73.632075,community_service_211,3001 Rue De Louvain Est,community_centre,openstreetmap
+Résidence Robert Dobie,45.456793,-73.591211,community_service_211,1940 Rue Jolicoeur,assisted_living,openstreetmap
+Station Est,45.611612,-73.528784,community_service_211,,group_home,openstreetmap
+Centre Le Royer,45.617383,-73.547726,community_service_211,,nursing_home,openstreetmap
+Centre communautaire Marcel-Giroux,45.459359,-73.57649,community_service_211,,community_centre,openstreetmap
+Amalgame,45.447923,-73.576779,community_service_211,5970 Rue Bannantyne,workshop,openstreetmap
+Centre d'hébergement Nazaire-Piché,45.433937,-73.676955,community_service_211,150 15e Avenue,nursing_home,openstreetmap
+Résidence Les Floralies,45.424054,-73.608885,community_service_211,8200 Rue George,group_home,openstreetmap
+Centre d'Hébergement de Lasalle,45.416332,-73.620498,community_service_211,8686 Rue Centrale,group_home,openstreetmap
+Habitation Les 2 Volets,45.536206,-73.597198,community_service_211,,nursing_home,openstreetmap
+L'écho des femmes de la Petite Patrie,45.534353,-73.599629,community_service_211,,social_centre,openstreetmap
+Centre Culturel Roumain de Montréal,45.547465,-73.624037,community_service_211,8060 Avenue Christophe-Colomb,community_centre,openstreetmap
+Résidence Place Saint-Moritz,45.518445,-73.678786,community_service_211,1055 Boulevard de la Côte-Vertu,group_home,openstreetmap
+Carrefour d'entraide Lachine,45.442193,-73.674442,community_service_211,,social_centre,openstreetmap
+Résidence Le Vertical,45.694292,-73.48749,community_service_211,15950 Rue Notre-Dame Est,assisted_living,openstreetmap
+Centre communautaire Ahuntsic,45.552399,-73.671983,community_service_211,10780 Rue Laverdure,community_centre,openstreetmap
+CHSLD de La Petite-Patrie,45.546194,-73.600591,community_service_211,6767 Rue Cartier,nursing_home,openstreetmap
+Centre d'hébergement Champlain-de-Gouin,45.599582,-73.639977,community_service_211,,nursing_home,openstreetmap
+Résidence Beit Chai,45.491143,-73.641179,community_service_211,5065-5067 Avenue Van Horne,group_home,openstreetmap
+Maison de la culture Claude-Léveillée,45.541643,-73.613429,community_service_211,911 Rue Jean-Talon Est,community_centre,openstreetmap
+Résidence Le Savignon,45.436331,-73.690744,community_service_211,,group_home,openstreetmap
+Les Tours Angrignon,45.446391,-73.607518,community_service_211,,group_home,openstreetmap
+Résidence Les Terrasses Versailles,45.59594,-73.557412,community_service_211,,group_home,openstreetmap
+Le Cornelius,45.508536,-73.62587,community_service_211,6235 Avenue de Darlington,group_home,openstreetmap
+CSAI - Centre social d'aide aux immigrants,45.456808,-73.588778,community_service_211,6201 Rue Laurendeau,social_facility,openstreetmap
+Résidence Élizabeth,45.590484,-73.639836,community_service_211,,group_home,openstreetmap
+Centre Communautaire des Juifs de Russie,45.486554,-73.640056,community_service_211,5380 Avenue Bourret,community_centre,openstreetmap
+Habitations Ahuntsic,45.553048,-73.662687,community_service_211,10333 Rue Berri,group_home,openstreetmap
+Alternatives Communautaires d'habitation et d'intervention de milieu,45.459233,-73.595799,community_service_211,5940 Boulevard Monk,assisted_living,openstreetmap
+Habitations Paradoxe,45.458488,-73.59673,community_service_211,5960 Rue Beaulieu,group_home,openstreetmap
+Installations du Nord-de-l'Île–Saint-Laurent,45.548038,-73.687595,community_service_211,,social_facility,openstreetmap
+Action Vie Montréal,45.544037,-73.599071,community_service_211,6630 Avenue Papineau,community_centre,openstreetmap
+La Maisonnée,45.540413,-73.606764,community_service_211,6865 Avenue Christophe-Colomb,community_centre,openstreetmap
+Jardin de la Patrie,45.543043,-73.602564,community_service_211,6720 Rue Garnier,group_home,openstreetmap
+La Résidence 6900 Papineau,45.545854,-73.603107,community_service_211,6900 Avenue Papineau,group_home,openstreetmap
+Maison Marie-Gérin-Lajoie,45.461377,-73.588319,community_service_211,5685 Rue Laurendeau,shelter,openstreetmap
+Don Bosco Youth Leadership Center,45.641152,-73.575921,community_service_211,11991 Avenue Pierre Baillargeon,community_centre,openstreetmap
+Habitation Brin d'Elles,45.566812,-73.599223,community_service_211,3831 Rue Villeray,social_facility,openstreetmap
+Villa Belle Époque,45.542403,-73.59543,community_service_211,6360 Avenue Papineau,group_home,openstreetmap
+Centre Duquesne,45.578792,-73.549478,community_service_211,5005 Rue Du Quesne,community_centre,openstreetmap
+Studios du Pas,45.61108,-73.510843,community_service_211,,assisted_living,openstreetmap
+Maison Benoit Labre,45.48049,-73.57822,community_service_211,,social_facility,openstreetmap
+Résidence Ciel bleu,45.642834,-73.505489,community_service_211,,group_home,openstreetmap
+La Maison du Père,45.513868,-73.556184,community_service_211,,social_facility,openstreetmap
+Manoir Louisiane,45.54804,-73.55472,community_service_211,3600 Rue Sherbrooke Est,group_home,openstreetmap
+CHSLD Cartiervile,45.5314,-73.717245,community_service_211,,nursing_home,openstreetmap
+CHSLD Joseph-François-Perrault,45.559554,-73.602102,community_service_211,7400 Boulevard Saint-Michel,nursing_home,openstreetmap
+Centre communautaire de loisir de la Côte-Des-Neiges,45.497004,-73.622306,community_service_211,5347 Chemin de la Côte-des-Neiges,community_centre,openstreetmap

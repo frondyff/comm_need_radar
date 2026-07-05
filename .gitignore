@@ -20,3 +20,12 @@ dist/
 
 # Streamlit local state
 .streamlit/secrets.toml
+
+# Data pipeline: large downloadable sources + shapefile extraction temp dirs
+data/raw/_sources/
+data/raw/service_sources/installations_recreatives_shp/
+data/raw/boundaries/ct_national_shp/
+
+# SQLite database (regenerable from the CSVs via build_database.py)
+data/community_radar.sqlite
+*.sqlite-journal

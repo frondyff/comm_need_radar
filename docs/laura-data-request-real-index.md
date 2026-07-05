@@ -13,7 +13,7 @@ and the v2 observed-needs index.
 | P1 | `indigenous_identity_pct` (+ `indigenous_identity_count`, `total_indigenous_identity_universe`) added to the census file | ✅ Delivered — 986/1004 CTs populated, 18 blank where suppressed; existing columns byte-for-byte unchanged |
 | P2 | `ct_centroids_montreal.csv`, `montreal_boroughs.geojson` | ✅ Already present and used by `aggregate_ct_to_areas.py` |
 | P3 | `database_centers.csv` | ✅ Delivered — 3,699 real service points; 24 flagged `indigenous_led_or_specific` |
-| P4 | `database_visitor_tags.csv` | ⚠️ Header-only template — no public source; needs a k-anonymized partner export |
+| P4 | `database_visitor_tags.csv` | 🟡 SYNTHETIC stand-in — 1,408 k-anonymized (k>=5) rows across the 679 real social centers (`generate_synthetic_visitor_tags.py`), grounded in real `center_id`s so the observed index can be built. Replace with a real partner export when available. |
 | P5 | `source_metadata.csv` | ✅ Delivered — provenance for every dataset above |
 
 Verified end-to-end: `build_statcan_vulnerability_index.py` + `aggregate_ct_to_areas.py`
