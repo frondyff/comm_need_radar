@@ -94,6 +94,12 @@ AUX = {
     "area_vulnerability_index_real": PROCESSED_DIR / "area_vulnerability_index_real.csv",
     "monitoring_summary": PROCESSED_DIR / "monitoring_summary.csv",
     "role_activity_log": PROCESSED_DIR / "role_activity_log.csv",
+    "flyer_examples": PROCESSED_DIR / "flyer_examples.csv",
+    # v2 observed-needs subsystem (Frondy's scoring), regenerated on the real data
+    "center_area_lookup": PROCESSED_DIR / "center_area_lookup.csv",
+    "observed_need_index": PROCESSED_DIR / "observed_need_index.csv",
+    "observed_need_category_summary": PROCESSED_DIR / "observed_need_category_summary.csv",
+    "vulnerability_index_v2": PROCESSED_DIR / "vulnerability_index_v2.csv",
 }
 
 VIEWS = {

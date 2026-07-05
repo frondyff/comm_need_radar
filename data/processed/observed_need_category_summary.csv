@@ -1,30 +1,111 @@
 area_id,key_need,encounter_count,encounter_share_pct,category_rank
-A001,Settlement Navigation,200,31.5,1
-A001,Language Access,160,25.2,2
-A001,Housing & Shelter,120,18.9,3
-A001,Legal Aid,85,13.39,4
-A001,Mental Health,70,11.02,5
-A002,Settlement Navigation,160,28.93,1
-A002,Language Access,140,25.32,2
-A002,Housing & Shelter,120,21.7,3
-A002,Mental Health,60,10.85,4
-A002,Indigenous Cultural Support,45,8.14,5
-A002,Indigenous-Led Referral,28,5.06,6
-A003,Newcomer Support,300,35.29,1
-A003,Language Access,250,29.41,2
-A003,Family Services,120,14.12,3
-A003,Legal Aid,100,11.76,4
-A003,Mental Health,80,9.41,5
-A004,Housing & Shelter,150,33.71,1
-A004,Food Support,120,26.97,2
-A004,Employment,100,22.47,3
-A004,Mental Health,75,16.85,4
-A006,General Support,110,40.74,1
-A006,Mental Health,90,33.33,2
-A006,Health & Wellness,70,25.93,3
-A007,Senior Support,160,51.61,1
-A007,Health & Wellness,85,27.42,2
-A007,Settlement Navigation,65,20.97,3
-A008,General Support,80,59.26,1
-A008,Housing & Shelter,55,40.74,2
-A012,General Support,12,100.0,1
+A001,Family Services,136,17.13,1
+A001,Housing & Shelter,136,17.13,2
+A001,Food Support,119,14.99,3
+A001,General Support,114,14.36,4
+A001,Mental Health,90,11.34,5
+A001,Employment,81,10.2,6
+A001,Legal Aid,45,5.67,7
+A001,Language Access,40,5.04,8
+A001,Settlement Navigation,33,4.16,9
+A002,General Support,246,14.5,1
+A002,Language Access,243,14.33,2
+A002,Employment,237,13.97,3
+A002,Food Support,215,12.68,4
+A002,Family Services,204,12.03,5
+A002,Mental Health,186,10.97,6
+A002,Housing & Shelter,166,9.79,7
+A002,Settlement Navigation,154,9.08,8
+A002,Legal Aid,45,2.65,9
+A003,Family Services,527,15.0,1
+A003,Language Access,501,14.26,2
+A003,Housing & Shelter,460,13.09,3
+A003,Mental Health,435,12.38,4
+A003,Legal Aid,418,11.9,5
+A003,General Support,379,10.79,6
+A003,Settlement Navigation,298,8.48,7
+A003,Employment,258,7.34,8
+A003,Food Support,238,6.77,9
+A004,Settlement Navigation,176,15.71,1
+A004,Mental Health,162,14.46,2
+A004,Language Access,158,14.11,3
+A004,Employment,128,11.43,4
+A004,Family Services,127,11.34,5
+A004,Legal Aid,125,11.16,6
+A004,Food Support,99,8.84,7
+A004,General Support,93,8.3,8
+A004,Housing & Shelter,52,4.64,9
+A005,Food Support,494,15.89,1
+A005,Mental Health,468,15.06,2
+A005,Housing & Shelter,447,14.38,3
+A005,Employment,414,13.32,4
+A005,Language Access,382,12.29,5
+A005,General Support,278,8.94,6
+A005,Legal Aid,243,7.82,7
+A005,Settlement Navigation,218,7.01,8
+A005,Family Services,164,5.28,9
+A006,General Support,407,19.65,1
+A006,Family Services,311,15.02,2
+A006,Language Access,247,11.93,3
+A006,Food Support,229,11.06,4
+A006,Legal Aid,222,10.72,5
+A006,Mental Health,216,10.43,6
+A006,Housing & Shelter,163,7.87,7
+A006,Employment,144,6.95,8
+A006,Settlement Navigation,119,5.75,9
+A006,Indigenous Cultural Support,13,0.63,10
+A007,General Support,500,13.32,1
+A007,Mental Health,500,13.32,2
+A007,Language Access,489,13.03,3
+A007,Food Support,469,12.49,4
+A007,Legal Aid,431,11.48,5
+A007,Housing & Shelter,398,10.6,6
+A007,Employment,372,9.91,7
+A007,Family Services,344,9.16,8
+A007,Settlement Navigation,251,6.69,9
+A008,Family Services,141,19.53,1
+A008,Settlement Navigation,131,18.14,2
+A008,Housing & Shelter,112,15.51,3
+A008,Language Access,81,11.22,4
+A008,Mental Health,79,10.94,5
+A008,Food Support,54,7.48,6
+A008,Legal Aid,46,6.37,7
+A008,General Support,43,5.96,8
+A008,Employment,35,4.85,9
+A009,Employment,105,33.12,1
+A009,Food Support,84,26.5,2
+A009,Family Services,42,13.25,3
+A009,Mental Health,32,10.09,4
+A009,Settlement Navigation,20,6.31,5
+A009,General Support,16,5.05,6
+A009,Language Access,10,3.15,7
+A009,Housing & Shelter,8,2.52,8
+A010,Family Services,316,21.5,1
+A010,General Support,226,15.37,2
+A010,Settlement Navigation,226,15.37,3
+A010,Employment,146,9.93,4
+A010,Food Support,143,9.73,5
+A010,Language Access,110,7.48,6
+A010,Mental Health,106,7.21,7
+A010,Housing & Shelter,75,5.1,8
+A010,Legal Aid,68,4.63,9
+A010,Indigenous-Led Referral,54,3.67,10
+A011,Settlement Navigation,338,18.54,1
+A011,Food Support,289,15.85,2
+A011,Mental Health,254,13.93,3
+A011,Employment,221,12.12,4
+A011,Language Access,208,11.41,5
+A011,Legal Aid,145,7.95,6
+A011,General Support,132,7.24,7
+A011,Family Services,119,6.53,8
+A011,Housing & Shelter,84,4.61,9
+A011,Indigenous-Led Referral,33,1.81,10
+A012,Legal Aid,287,17.75,1
+A012,General Support,285,17.63,2
+A012,Mental Health,184,11.38,3
+A012,Employment,169,10.45,4
+A012,Family Services,169,10.45,5
+A012,Settlement Navigation,162,10.02,6
+A012,Housing & Shelter,158,9.77,7
+A012,Language Access,122,7.54,8
+A012,Food Support,81,5.01,9

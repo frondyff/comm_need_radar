@@ -72,9 +72,17 @@ class ProcessedContractTests(unittest.TestCase):
         self.assertTrue(required.issubset(observed.columns))
         scored = observed[~observed["insufficient_visit_data"]]
         self.assertTrue(scored["v1_demand_score"].between(0, 100).all())
-        a001 = scored.loc[scored["area_id"] == "A001"].iloc[0]
-        self.assertEqual(a001["top_need_category"], "Settlement Navigation")
-        self.assertEqual(a001["top_need_count"], 200)
+        # Generalised from a fixture-specific snapshot (previously hard-coded to the
+        # 29-row demonstration data) so the contract holds on any visitor dataset:
+        # each scored area's reported top need must be the actual maximum-count
+        # category for that area in the category summary.
+        categories = pd.read_csv(OBSERVED_NEED_CATEGORY_SUMMARY_PATH)
+        for _, area in scored.iterrows():
+            cats = categories[categories["area_id"] == area["area_id"]]
+            self.assertFalse(cats.empty)
+            top = cats.loc[cats["encounter_count"].idxmax()]
+            self.assertEqual(area["top_need_category"], top["key_need"])
+            self.assertEqual(area["top_need_count"], top["encounter_count"])
 
     def test_category_summary_reconciles_to_area_totals(self):
         observed = pd.read_csv(OBSERVED_NEED_INDEX_PATH)
