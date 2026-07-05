@@ -3,6 +3,19 @@ from __future__ import annotations
 import math
 from typing import Iterable
 
+K_ANON_FLOOR = 5
+STRUCTURAL_WEIGHT = 0.6
+OBSERVED_WEIGHT = 0.4
+V1_VOLUME_WEIGHT = 0.7
+V1_TOP_CATEGORY_WEIGHT = 0.3
+V2_OBSERVED_WEIGHTS = {
+    "visit_volume": 0.3,
+    "top_category_pressure": 0.2,
+    "focus_category_share": 0.2,
+    "severity_breadth": 0.2,
+    "recency": 0.1,
+}
+
 INDICATOR_COLUMNS = [
     "income_indicator",
     "age_indicator",
@@ -71,3 +84,74 @@ def require_columns(columns: Iterable[str], required: Iterable[str], table_name:
     missing = sorted(set(required) - set(columns))
     if missing:
         raise ValueError(f"{table_name} is missing required columns: {', '.join(missing)}")
+
+
+def has_sufficient_observed_data(area_visit_count: int) -> bool:
+    """Return True when the area's aggregated visit count meets the k-anonymity floor."""
+    return area_visit_count >= K_ANON_FLOOR
+
+
+def v1_demand_score(visit_volume_score: float, top_category_pressure_score: float) -> float:
+    """Summarize current frontline service demand on a 0-100 scale."""
+    score = (
+        V1_VOLUME_WEIGHT * visit_volume_score
+        + V1_TOP_CATEGORY_WEIGHT * top_category_pressure_score
+    )
+    return round(min(100.0, max(0.0, score)), 2)
+
+
+def v2_observed_need_score(
+    visit_volume_score: float,
+    top_category_pressure_score: float,
+    focus_category_share_score: float,
+    severity_breadth_score: float,
+    recency_score: float,
+) -> float:
+    """Combine fixed observed-demand components for the V2 planning score."""
+    components = {
+        "visit_volume": visit_volume_score,
+        "top_category_pressure": top_category_pressure_score,
+        "focus_category_share": focus_category_share_score,
+        "severity_breadth": severity_breadth_score,
+        "recency": recency_score,
+    }
+    score = sum(V2_OBSERVED_WEIGHTS[name] * value for name, value in components.items())
+    return round(min(100.0, max(0.0, score)), 2)
+
+
+def observed_focus_need_score(
+    immigrant_need_score: float,
+    severity_breadth_score: float,
+    recency_score: float,
+    indigenous_need_score: float | None = None,
+) -> tuple[float, str]:
+    """Compute the legacy variable-component observed score.
+
+    Retained for compatibility. New V2 outputs use v2_observed_need_score().
+    indigenous_need_score is included only when the caller confirms it is not
+    suppressed (k-anonymized count >= K_ANON_FLOOR for that group).
+    """
+    components: list[float] = [immigrant_need_score, severity_breadth_score, recency_score]
+    basis_parts: list[str] = ["immigrant_need", "severity_breadth", "recency"]
+    if indigenous_need_score is not None:
+        components.append(indigenous_need_score)
+        basis_parts.append("indigenous_need")
+    score = round(sum(components) / len(components), 2)
+    return score, "_".join(basis_parts)
+
+
+def composite_vulnerability_index(
+    structural_score: float,
+    observed_score: float | None,
+    structural_weight: float = STRUCTURAL_WEIGHT,
+    observed_weight: float = OBSERVED_WEIGHT,
+) -> tuple[float, str]:
+    """Combine structural census score and observed needs score into v2.
+
+    Returns (v2_score 0-100, data_basis string).
+    Falls back to structural only when observed data is insufficient.
+    """
+    if observed_score is None:
+        return round(structural_score, 2), "structural_focus_only_observed_insufficient"
+    v2 = round(structural_weight * structural_score + observed_weight * observed_score, 2)
+    return v2, "structural_and_observed_focus"

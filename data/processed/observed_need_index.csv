@@ -1,0 +1,13 @@
+area_id,rolling_window_days,rolling_visit_count,visit_volume_per_1000,observed_visit_volume_score,top_need_category,top_need_count,top_need_share_pct,top_category_rate_per_1000,top_category_pressure_score,v1_demand_score,data_through_date,observed_immigrant_need_score,observed_indigenous_need_score,focus_category_share_score,observed_severity_breadth_score,observed_recency_score,v2_observed_score,observed_focus_need_score,observed_data_basis,insufficient_visit_data,top_key_needs,observed_need_rank
+A001,90,635,20.35,20.35,Settlement Navigation,200,31.5,6.41,6.41,16.17,2026-06-20,81.1,,81.1,45.31,69.47,39.62,39.62,fixed_v2_observed_components,False,Settlement Navigation; Language Access; Housing & Shelter; Legal Aid; Mental Health,1
+A002,90,553,11.38,11.38,Settlement Navigation,160,28.93,3.29,3.29,8.95,2026-06-20,54.25,13.2,67.45,40.78,75.79,33.3,33.3,fixed_v2_observed_components,False,Settlement Navigation; Language Access; Housing & Shelter; Mental Health; Indigenous Cultural Support,3
+A003,90,850,16.22,16.22,Newcomer Support,300,35.29,5.73,5.73,13.07,2026-06-20,76.47,,76.47,29.82,67.7,34.04,34.04,fixed_v2_observed_components,False,Newcomer Support; Language Access; Family Services; Legal Aid; Mental Health,2
+A004,90,445,10.21,10.21,Housing & Shelter,150,33.71,3.44,3.44,8.18,2026-06-20,22.47,,22.47,47.39,60.34,23.76,23.76,fixed_v2_observed_components,False,Housing & Shelter; Food Support; Employment; Mental Health,4
+A005,,0,,,,,,,,,,,,,,,,,no_visit_data,True,,
+A006,90,270,3.84,3.84,General Support,110,40.74,1.56,1.56,3.16,2026-06-20,0.0,,0.0,50.48,75.79,19.14,19.14,fixed_v2_observed_components,False,General Support; Mental Health; Health & Wellness,6
+A007,90,310,7.83,7.83,Senior Support,160,51.61,4.04,4.04,6.69,2026-06-20,20.97,,20.97,28.19,75.79,20.57,20.57,fixed_v2_observed_components,False,Senior Support; Health & Wellness; Settlement Navigation,5
+A008,90,135,4.86,4.86,General Support,80,59.26,2.88,2.88,4.27,2026-06-20,0.0,,0.0,34.52,75.79,16.52,16.52,fixed_v2_observed_components,False,General Support; Housing & Shelter,7
+A009,,0,,,,,,,,,,,,,,,,,no_visit_data,True,,
+A010,,0,,,,,,,,,,,,,,,,,no_visit_data,True,,
+A011,,0,,,,,,,,,,,,,,,,,no_visit_data,True,,
+A012,90,12,0.37,0.37,General Support,12,100.0,0.37,0.37,0.37,2026-06-20,0.0,,0.0,3.0,75.79,8.36,8.36,fixed_v2_observed_components,False,General Support,8

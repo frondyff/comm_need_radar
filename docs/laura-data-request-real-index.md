@@ -2,9 +2,9 @@
 
 Owner requesting data: Frondy  
 Data owner: Laura  
-Date: 2026-06-23  
-Purpose: let Frondy build the real immigrant/Indigenous MVP vulnerability index
-and the v2 observed-needs index.
+Date updated: 2026-07-02
+Purpose: replace demonstration inputs in the implemented immigrant/Indigenous
+V1 and V2 scoring pipeline with approved production data.
 
 ## Delivery Status — 2026-06-23 (Laura)
 
@@ -30,9 +30,11 @@ that, the real processed output currently says:
 mvp_focus_data_basis = immigrant_census_only_indigenous_missing
 ```
 
-Frondy can calculate the immigrant concern score now. To calculate the complete
-MVP focus index, Laura needs to provide the missing Indigenous census field and
-the observed frontline/service datasets listed below.
+The repository now calculates the immigrant concern score, V1 demand score, V2
+observed score, and composite V2 score from the available census and
+demonstration encounter data. To calculate a complete production-ready focus
+index, Laura still needs to provide the missing Indigenous census field and
+approved production versions of the frontline/service datasets below.
 
 ## Priority 1 — Census Fields
 
@@ -175,7 +177,7 @@ Required fields:
 | `period_end` | yes | Rolling-window calculation. |
 | `key_need` | yes | Key Needs Ranking and observed index. |
 | `k_anon_count` | yes | Visit volume, privacy floor, and rates. |
-| `severity` | recommended | Need severity component. |
+| `severity` | recommended | QA and future direct severity weighting; the current severity/breadth score uses the documented high-severity `key_need` categories. |
 | `population_group` | recommended | Should allow `immigrant_newcomer`, `indigenous`, `general`, or blank/unknown. |
 | `language_need_flag` | recommended | Immigrant/language observed score. |
 | `settlement_need_flag` | recommended | Newcomer observed score. |
@@ -201,10 +203,14 @@ Employment
 Legal Aid
 Settlement Navigation
 Language Access
+Newcomer Support
+Immigration Legal Need
 Indigenous Cultural Support
 Indigenous-Led Referral
+Indigenous-Specific Service Need
 Family Services
 General Support
+Senior Support
 ```
 
 ## Priority 5 — Metadata / Provenance
@@ -229,9 +235,9 @@ Required fields:
 | `geography_level` | CT, borough, center, area, aggregate visit group |
 | `known_limitations` | Missingness, suppression, approximation notes |
 
-## Minimum Package For Frondy To Start
+## Minimum Package For Production Replacement
 
-Laura can unblock Frondy with this smallest useful package:
+Laura can replace the demonstration inputs with this smallest useful package:
 
 1. Updated `statcan_2021_montreal_ct_variables.csv` including
    `indigenous_identity_pct`.
@@ -240,13 +246,14 @@ Laura can unblock Frondy with this smallest useful package:
 4. K-anonymized `database_visitor_tags.csv` with `center_id`, `key_need`,
    `k_anon_count`, and date window.
 
-With those four items, Frondy can build:
+With those four items, Frondy can rebuild and validate:
 
 - `indigenous_census_concern_score`
 - complete `mvp_focus_census_index`
 - `center_id -> area_id` spatial lookup
 - `observed_need_index.csv`
-- future `vulnerability_index_v2`
+- `observed_need_category_summary.csv`
+- `vulnerability_index_v2.csv`
 
 ## Open Questions For Laura
 
@@ -254,8 +261,7 @@ With those four items, Frondy can build:
   suppression too high?
 - Should Indigenous observed needs be represented through
   `population_group = indigenous`, through Indigenous-specific need tags, or both?
-- What time window should the observed index use first: trailing 30, 90, or 180
-  days?
+- Is the implemented trailing 90-day window appropriate for production refreshes?
 - Are center/service coordinates approved for public map display?
 - Are any visitor aggregates restricted from being shown in a public demo even
   after k-anonymization?

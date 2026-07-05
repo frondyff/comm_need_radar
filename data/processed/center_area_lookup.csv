@@ -1,0 +1,9 @@
+center_id,area_id,borough_name,join_method
+C001,A001,Villeray-Saint-Michel-Parc-Extension,point_in_polygon_then_nearest_area_centroid
+C002,A002,Villeray-Saint-Michel-Parc-Extension,point_in_polygon_then_nearest_area_centroid
+C003,A003,Cote-des-Neiges-Notre-Dame-de-Grace,point_in_polygon_then_nearest_area_centroid
+C004,A004,Montreal-Nord,point_in_polygon_then_nearest_area_centroid
+C005,A006,Verdun,point_in_polygon_then_nearest_area_centroid
+C006,A007,Ahuntsic-Cartierville,point_in_polygon_then_nearest_area_centroid
+C007,A008,Lachine,point_in_polygon_then_nearest_area_centroid
+C008,A012,Riviere-des-Prairies-Pointe-aux-Trembles,point_in_polygon_then_nearest_area_centroid

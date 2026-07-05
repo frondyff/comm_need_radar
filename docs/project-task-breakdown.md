@@ -6,7 +6,7 @@
 | --- | --- | --- |
 | Product and project management | Chloe | Scope, acceptance criteria, decisions, monitoring structure |
 | Data acquisition and processing | Laura | Synthetic raw data and processed contracts |
-| Geospatial analytics and scoring | Frondy | Vulnerability, accessibility, and gap scoring |
+| Geospatial analytics and scoring | Frondy | Vulnerability, accessibility, gap, V1 demand, and experimental V2 scoring |
 | Dashboard and user experience | Jessie | Streamlit Planner, Frontline, and Monitoring views |
 | AI, insights, and presentation | Mariam | Plain-language summaries and simulated user-testing notes |
 | Integration and final review | Chloe and all | README, docs, tests, and local run path |
@@ -26,6 +26,9 @@
 
 - Raw and processed MVP data exist.
 - Processed outputs match `docs/interfaces.md`.
+- V1 encounter/category summaries reconcile and enforce the `k >= 5` privacy floor.
+- V2 exposes its structural and observed components and falls back to structural
+  scoring when observed data is insufficient.
 - Dashboard reads processed data only.
 - Dashboard supports click-selected map inspection for areas and services.
 - Planner mode includes a local policymaker assistant for priority, gap,
