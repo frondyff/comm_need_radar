@@ -1,6 +1,6 @@
-# Data Engineering Contributions — Laura
+# Data Extraction, Sources, and Processing
 
-Summary of the data-engineering work for Community Needs Radar: the datasets,
+The data-engineering work for Community Needs Radar (owner: Laura): the datasets,
 their sources, the processing, and how it supports the V1 and V2 scoring.
 
 ## Does the database have everything needed for V1 and V2? — Yes
