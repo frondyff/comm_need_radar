@@ -1,6 +1,6 @@
 # Community Needs Radar
 
-Community Needs Radar is a Streamlit-based analytics project for mapping social
+Community Needs Radar is a React/Vite dashboard project for mapping social
 vulnerability and service accessibility across Greater Montreal. The project
 combines public census indicators, geographic boundaries, and community service
 locations to identify areas where community need is high and nearby service
@@ -29,12 +29,28 @@ Build a reproducible decision-support tool that lets non-technical users answer:
 public raw data
 -> processed census, service, and geography datasets
 -> vulnerability, accessibility, and gap scores
--> Streamlit dashboard and flyer generator
+-> React dashboard and flyer generator
 -> monitoring, documentation, report, and presentation
 ```
 
 Cloud deployment is optional. The project must still be runnable locally through
 documented commands so it can be evaluated even if deployment is not completed.
+
+## Run Locally
+
+The current frontend is a React/Vite app. Node.js 18+ is required.
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Then open `http://localhost:5173` in a browser. See
+[frontend/README.md](frontend/README.md) for the detailed frontend guide.
+
+Current status: the React frontend uses sample in-app data for the dashboard and
+flyer workflows; real public-data integration remains future work.
 
 ## Planned Repository Structure
 
@@ -53,6 +69,11 @@ comm_need_radar/
   data/
     raw/
     processed/
+  frontend/
+    README.md
+    package.json
+    src/
+      App.jsx
   notebooks/
   scripts/
   src/comm_need_radar/
@@ -75,7 +96,7 @@ deployment files, and full validation are deferred to issue-driven work.
 | Chloe | Product leadership, scope, timeline, proposal coordination, MVP decisions | AI/RAG and dashboard support |
 | Laura | Data engineering for census, boundaries, and service datasets | AI/RAG, geospatial, and dashboard support |
 | Frondy | Geospatial analytics, spatial joins, vulnerability score, service access score, gap score, GitHub documentation | App support |
-| Jessie | Streamlit dashboard, two-mode UI, map UX, exports | AI/RAG, geospatial, and GitHub support |
+| Jessie | React dashboard, two-mode UI, map UX, exports | AI/RAG, geospatial, and GitHub support |
 | Mariam | AI insights, neighborhood summaries, user testing, presentation story | Methodology wording and final presentation |
 
 ## Documentation Index
