@@ -15,7 +15,7 @@ L.Icon.Default.mergeOptions({
 });
 
 const MONO_FONT = "ui-monospace,SFMono-Regular,'JetBrains Mono',Menlo,Consolas,monospace";
-const CAT_COLORS = { Shelter:"#4F46E5", Food:"#D97706", Medical:"#0891B2", Legal:"#059669", Translation:"#7C3AED" };
+const CAT_COLORS = { Shelter:"#DC2626", Food:"#D97706", Medical:"#2563EB", Legal:"#059669", Translation:"#9333EA" };
 
 function makeIcon(category, isSelected) {
   const color = CAT_COLORS[category] || "#888";
@@ -41,11 +41,11 @@ const SERVICES = [
 ];
 
 const CATEGORIES = [
-  { label:"Shelter", color:"#4F46E5", bg:"#EEF2FF" },
+  { label:"Shelter", color:"#DC2626", bg:"#FEF2F2" },
   { label:"Food", color:"#D97706", bg:"#FFFBEB" },
-  { label:"Medical", color:"#0891B2", bg:"#ECFEFF" },
+  { label:"Medical", color:"#2563EB", bg:"#EFF6FF" },
   { label:"Legal", color:"#059669", bg:"#ECFDF5" },
-  { label:"Translation", color:"#7C3AED", bg:"#F5F3FF" },
+  { label:"Translation", color:"#9333EA", bg:"#F5F3FF" },
 ];
 
 const ICON_MAP = { Shelter:Home, Food:UtensilsCrossed, Medical:Stethoscope, Legal:Scale, Translation:Globe };
@@ -127,7 +127,7 @@ function generatePDF(service, lang, otherServices) {
   // Freshness
   y += 3;
   doc.setFontSize(7); doc.setTextColor(100,116,139); doc.setFont("helvetica","italic");
-  doc.text(isEN?"Info updated June 2026 — confirm by calling 211":"Info mise à jour juin 2026 — confirmer en appelant le 211", pad, y);
+  doc.text(isEN?"Info updated June 2026":"Info mise à jour juin 2026 — confirmer en appelant le 211", pad, y);
   y += 8;
 
   // Footer
@@ -357,13 +357,6 @@ function PlannerView({ lang, setLang, onSwitch }) {
             ))}
           </div>
         </div>
-
-        {/* Chatbot */}
-        <div style={{display:"flex",alignItems:"center",gap:10,background:"#fff",border:"1px solid #E2E8F0",borderRadius:8,padding:"10px 14px"}}>
-          <Bot size={18} color="#2563EB"/>
-          <input value={chat} onChange={e=>setChat(e.target.value)} placeholder={isEN?`Ask about ${selectedBorough}…`:`Poser une question sur ${selectedBorough}…`}
-            style={{flex:1,border:"none",outline:"none",fontSize:14,background:"transparent"}}/>
-        </div>
       </div>
     </div>
   );
@@ -398,6 +391,8 @@ export default function CommunityRadar() {
   const [showMap, setShowMap] = useState(false);
   const [flyerDone, setFlyerDone] = useState(false);
   const [mapCenter, setMapCenter] = useState(null);
+  const [viewMode, setViewMode] = useState("list"); // "list" | "grid"
+  const [rightTab, setRightTab] = useState("info"); // "info" | "flyer"
 
   const meta = { group: activeGroup, age: activeAge };
   const isEN = lang === "EN";
@@ -417,10 +412,10 @@ export default function CommunityRadar() {
     nearby: isEN?"Nearby services":"Services à proximité",
     viewMap: isEN?"🗺  View on map":"🗺  Voir sur la carte",
     backList: isEN?"← Back to list":"← Retour à la liste",
-    generate: isEN?"Generate flyer (PDF)":"Générer un dépliant (PDF)",
+    generate: isEN?"Download flyer (PDF)":"Générer un dépliant (PDF)",
     flyerPreview: isEN?"Flyer preview":"Aperçu du dépliant",
     download: isEN?"⬇  Download PDF flyer":"⬇  Télécharger le dépliant PDF",
-    updated: isEN?"Info updated June 2026 — confirm by calling 211":"Info juin 2026 — confirmer en appelant le 211",
+    updated: isEN?"Info updated June 2026":"Info juin 2026",
     phone: isEN?"211 or other":"211 ou autre",
     qr: isEN?"QR code (our app)":"Code QR",
     langs: isEN?"Languages:":"Langues:",
@@ -436,7 +431,7 @@ export default function CommunityRadar() {
     return mg && mge && mc && ms;
   });
 
-  const handleSelect = s => { setSelected(s); setFlyerDone(false); setMapCenter([s.lat,s.lng]); logEvent("service_card_opened",s.name,meta); };
+  const handleSelect = s => { setSelected(s); setFlyerDone(false); setMapCenter([s.lat,s.lng]); setRightTab("info"); logEvent("service_card_opened",s.name,meta); };
 
   const handleDownload = () => {
     const others = SERVICES.filter(s=>s.id!==selected.id);
@@ -508,10 +503,6 @@ export default function CommunityRadar() {
               </button>
             ))}
           </div>
-          <button onClick={()=>{setDistLocation(null);setStep("main");}}
-            style={{width:"100%",marginTop:14,padding:"9px",borderRadius:8,border:"1px solid #E2E8F0",background:"transparent",color:"#64748B",fontSize:13,cursor:"pointer"}}>
-            {isEN?"Skip — I'll use my current GPS location":"Passer — utiliser ma position GPS"}
-          </button>
         </div>
         <button onClick={()=>setStep("role")} style={{marginTop:16,background:"transparent",border:"none",color:"#64748B",fontSize:13,cursor:"pointer"}}>
           ← {isEN?"Back":"Retour"}
@@ -621,25 +612,51 @@ export default function CommunityRadar() {
               </div>
             ) : (
               <>
-                <div style={{padding:"12px 16px",borderBottom:"1px solid #E2E8F0",fontWeight:700,fontSize:16}}>{T.nearby} <span style={{fontWeight:400,color:"#64748B",fontSize:13}}>({filtered.length})</span></div>
-                <div style={{overflowY:"auto",flex:1}}>
+                <div style={{padding:"10px 16px",borderBottom:"1px solid #E2E8F0",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+                  <span style={{fontWeight:700,fontSize:16}}>{T.nearby} <span style={{fontWeight:400,color:"#64748B",fontSize:13}}>({filtered.length})</span></span>
+                  <div style={{display:"flex",border:"1px solid #E2E8F0",borderRadius:6,overflow:"hidden"}}>
+                    <button onClick={()=>setViewMode("list")} style={{padding:"4px 9px",border:"none",background:viewMode==="list"?"#2563EB":"#fff",color:viewMode==="list"?"#fff":"#64748B",cursor:"pointer",fontSize:12,display:"flex",alignItems:"center",gap:4}}>
+                      ☰ List
+                    </button>
+                    <button onClick={()=>setViewMode("grid")} style={{padding:"4px 9px",border:"none",background:viewMode==="grid"?"#2563EB":"#fff",color:viewMode==="grid"?"#fff":"#64748B",cursor:"pointer",fontSize:12,display:"flex",alignItems:"center",gap:4}}>
+                      ⊞ Grid
+                    </button>
+                  </div>
+                </div>
+                <div style={{overflowY:"auto",flex:1,padding:viewMode==="grid"?"10px":"0"}}>
                   {filtered.length===0
                     ? <div style={{padding:20,color:"#64748B",textAlign:"center",fontSize:14}}>No services match.</div>
-                    : filtered.map((s,i)=>(
-                      <div key={s.id} onClick={()=>handleSelect(s)}
-                        style={{padding:"12px 16px",borderBottom:i<filtered.length-1?"1px solid #E2E8F0":"none",cursor:"pointer",background:selected?.id===s.id?"#EFF6FF":"transparent",borderLeft:selected?.id===s.id?"3px solid #2563EB":"3px solid transparent",transition:"background 0.15s"}}>
-                        <div style={{display:"flex",gap:10,alignItems:"flex-start"}}>
-                          <div style={{width:38,height:38,borderRadius:"50%",background:selected?.id===s.id?"#2563EB":"#F1F5F9",display:"flex",alignItems:"center",justifyContent:"center",fontSize:15,flexShrink:0}}><CatIcon category={s.category} size={19} color={selected?.id===s.id?"#fff":CAT_COLORS[s.category]}/></div>
-                          <div style={{flex:1,minWidth:0}}>
-                            <div style={{fontWeight:600,color:selected?.id===s.id?"#2563EB":"#0F172A",fontSize:15,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{s.name}</div>
-                            <div style={{color:"#64748B",fontSize:13,margin:"3px 0 6px"}}>{s.dist} · {s.hours}{s.gender!=="All"?` · ${s.gender} only`:""}</div>
-                            <div style={{display:"flex",gap:4,flexWrap:"wrap"}}>
-                              {s.tags.slice(0,2).map(t=><span key={t} style={{padding:"2px 8px",borderRadius:4,border:`1px solid ${selected?.id===s.id?"#2563EB":"#E2E8F0"}`,color:selected?.id===s.id?"#2563EB":"#334155",fontSize:12}}>{t}</span>)}
+                    : viewMode==="list"
+                      ? filtered.map((s,i)=>(
+                          <div key={s.id} onClick={()=>handleSelect(s)}
+                            style={{padding:"12px 16px",borderBottom:i<filtered.length-1?"1px solid #E2E8F0":"none",cursor:"pointer",background:selected?.id===s.id?"#EFF6FF":"transparent",borderLeft:selected?.id===s.id?"3px solid #2563EB":"3px solid transparent",transition:"background 0.15s"}}>
+                            <div style={{display:"flex",gap:10,alignItems:"flex-start"}}>
+                              <div style={{width:38,height:38,borderRadius:"50%",background:selected?.id===s.id?"#2563EB":"#F1F5F9",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><CatIcon category={s.category} size={19} color={selected?.id===s.id?"#fff":CAT_COLORS[s.category]}/></div>
+                              <div style={{flex:1,minWidth:0}}>
+                                <div style={{fontWeight:600,color:selected?.id===s.id?"#2563EB":"#0F172A",fontSize:15,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{s.name}</div>
+                                <div style={{color:"#64748B",fontSize:13,margin:"3px 0 6px"}}>{s.dist} · {s.hours}{s.gender!=="All"?` · ${s.gender} only`:""}</div>
+                                <div style={{display:"flex",gap:4,flexWrap:"wrap"}}>
+                                  {s.tags.slice(0,2).map(t=><span key={t} style={{padding:"2px 8px",borderRadius:4,border:`1px solid ${selected?.id===s.id?"#2563EB":"#E2E8F0"}`,color:selected?.id===s.id?"#2563EB":"#334155",fontSize:12}}>{t}</span>)}
+                                </div>
+                              </div>
                             </div>
                           </div>
+                        ))
+                      : <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
+                          {filtered.map(s=>(
+                            <div key={s.id} onClick={()=>handleSelect(s)}
+                              style={{padding:"12px",borderRadius:8,border:`1.5px solid ${selected?.id===s.id?"#2563EB":"#E2E8F0"}`,background:selected?.id===s.id?"#EFF6FF":"#fff",cursor:"pointer",transition:"all 0.15s"}}>
+                              <div style={{width:36,height:36,borderRadius:"50%",background:selected?.id===s.id?"#2563EB":"#F1F5F9",display:"flex",alignItems:"center",justifyContent:"center",marginBottom:8}}><CatIcon category={s.category} size={18} color={selected?.id===s.id?"#fff":CAT_COLORS[s.category]}/></div>
+                              <div style={{fontWeight:600,fontSize:13,color:selected?.id===s.id?"#2563EB":"#0F172A",marginBottom:3,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{s.name}</div>
+                              <div style={{fontSize:11,color:"#64748B",marginBottom:6}}>{s.type}</div>
+                              <div style={{fontSize:11,color:"#64748B",marginBottom:6}}>{s.dist} · {s.hours}</div>
+                              <div style={{display:"flex",gap:3,flexWrap:"wrap"}}>
+                                {s.tags.slice(0,1).map(t=><span key={t} style={{padding:"2px 6px",borderRadius:3,border:`1px solid ${selected?.id===s.id?"#2563EB":"#E2E8F0"}`,color:selected?.id===s.id?"#2563EB":"#334155",fontSize:10}}>{t}</span>)}
+                              </div>
+                            </div>
+                          ))}
                         </div>
-                      </div>
-                    ))}
+                  }
                 </div>
                 <div style={{padding:"12px 16px",borderTop:"1px solid #E2E8F0"}}>
                   <button onClick={()=>{setShowMap(true);logEvent("map_opened","view_on_map",meta);}}
@@ -651,60 +668,158 @@ export default function CommunityRadar() {
             )}
           </div>
 
-          {/* RIGHT: detail + flyer */}
-          <div style={{display:"flex",flexDirection:"column",gap:12}}>
-            {selected && (<>
-              <div style={{background:"#ECFDF5",border:"1.5px solid #059669",borderRadius:8,padding:"18px"}}>
-                <div style={{fontWeight:700,fontSize:19,color:"#059669",marginBottom:6}}>{selected.type} — {selected.name}</div>
-                <div style={{color:"#64748B",fontSize:14,marginBottom:10}}>{selected.dist} · {selected.hours} · {selected.address}</div>
-                <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:10}}>
-                  {selected.tags.map(t=><span key={t} style={{padding:"5px 12px",borderRadius:6,border:"1.5px solid #059669",background:"#fff",color:"#059669",fontSize:13,fontWeight:500}}>{t}</span>)}
+          {/* RIGHT: tabbed panel */}
+          <div style={{display:"flex",flexDirection:"column",gap:0}}>
+            {selected && (
+              <div style={{background:"#fff",border:"1px solid #E2E8F0",borderRadius:8,overflow:"hidden",display:"flex",flexDirection:"column",height:"100%"}}>
+                {/* Tab bar */}
+                <div style={{display:"flex",borderBottom:"1px solid #E2E8F0"}}>
+                  {[
+                    { id:"info", label: isEN?"Service info":"Infos du service" },
+                    { id:"flyer", label: isEN?"Flyer preview":"Aperçu du dépliant" },
+                  ].map(tab=>(
+                    <button key={tab.id} onClick={()=>setRightTab(tab.id)}
+                      style={{flex:1,padding:"11px",border:"none",background:rightTab===tab.id?"#fff":"#F8FAFC",borderBottom:rightTab===tab.id?"2px solid #059669":"2px solid transparent",color:rightTab===tab.id?"#059669":"#64748B",fontWeight:rightTab===tab.id?600:400,cursor:"pointer",fontSize:13,transition:"all 0.15s"}}>
+                      {tab.label}
+                    </button>
+                  ))}
                 </div>
-                <div style={{color:"#64748B",fontSize:13,marginBottom:5}}>{T.langs} {selected.langs.join(" / ")}</div>
-                <div style={{color:"#64748B",fontSize:12,fontStyle:"italic",marginBottom:16}}>{T.updated}</div>
-                <button onClick={handleDownload}
-                  style={{width:"100%",padding:"12px",borderRadius:8,border:"none",background:"#059669",color:"#fff",fontWeight:600,cursor:"pointer",fontSize:15}}>
-                  {T.generate}
-                </button>
-              </div>
 
-              <div style={{background:"#fff",border:"1px solid #E2E8F0",borderRadius:8,padding:"16px"}}>
-                <div style={{fontWeight:600,fontSize:15,marginBottom:12}}>{T.flyerPreview}</div>
-                <div style={{border:"1.5px solid #2563EB",borderRadius:8,padding:"16px",background:"#EFF6FF"}}>
-                  <div style={{height:280,borderRadius:7,overflow:"hidden",marginBottom:12,border:"1px solid #E2E8F0",position:"relative",zIndex:0}}>
-                    <MapContainer key={selected.id+"-"+(distLocation?.id||"gps")} center={distLocation?[(distLocation.lat+selected.lat)/2,(distLocation.lng+selected.lng)/2]:[selected.lat,selected.lng]} zoom={distLocation?14:15} style={{height:"100%",width:"100%"}} zoomControl={false} dragging={false} scrollWheelZoom={false} doubleClickZoom={false}>
-                      <TileLayer attribution='© CartoDB' url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"/>
-                      {distLocation && (
-                        <Marker position={[distLocation.lat,distLocation.lng]} icon={makeYouIcon()}>
-                          <Popup><b>📍 {isEN?"You are here":"Vous êtes ici"}</b><br/>{distLocation.name}</Popup>
-                        </Marker>
+                {/* Service info tab */}
+                {rightTab==="info" && (
+                  <div style={{flex:1,overflowY:"auto",display:"flex",flexDirection:"column"}}>
+                    {/* Dark header band */}
+                    <div style={{background:"#F8FAFC",padding:"18px 20px",display:"flex",alignItems:"center",gap:14,borderBottom:"1px solid #E2E8F0"}}>
+                      <div style={{width:46,height:46,borderRadius:10,background:"rgba(5,150,105,0.2)",border:"1.5px solid rgba(5,150,105,0.4)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
+                        <CatIcon category={selected.category} size={22} color="#34D399"/>
+                      </div>
+                      <div>
+                        <div style={{fontWeight:700,fontSize:16,color:"#0F172A",lineHeight:1.3}}>{selected.name}</div>
+                        <div style={{fontSize:11,color:"#34D399",fontWeight:600,marginTop:3,textTransform:"uppercase",letterSpacing:0.6}}>{selected.type}</div>
+                      </div>
+                    </div>
+
+                    {/* Info rows */}
+                    <div style={{padding:"4px 20px",flex:1}}>
+                      {[
+                        selected.address && { icon:"📍", label: isEN?"Address":"Adresse", value: selected.address },
+                        selected.hours   && { icon:"🕐", label: isEN?"Hours":"Horaires",  value: selected.hours },
+                        selected.phone   && { icon:"📞", label: isEN?"Phone":"Téléphone",  value: selected.phone },
+                        selected.langs?.length>0 && { icon:"🌐", label: isEN?"Languages":"Langues", value: selected.langs.join(" · ") },
+                      ].filter(Boolean).map((row,i,arr)=>(
+                        <div key={row.label} style={{display:"flex",gap:12,padding:"11px 0",borderBottom:i<arr.length-1?"1px solid #F1F5F9":"none",alignItems:"flex-start"}}>
+                          <span style={{fontSize:16,flexShrink:0,marginTop:1}}>{row.icon}</span>
+                          <div>
+                            <div style={{fontSize:10,fontWeight:600,color:"#94A3B8",textTransform:"uppercase",letterSpacing:0.6,marginBottom:2}}>{row.label}</div>
+                            <div style={{fontSize:13,color:"#1E293B",lineHeight:1.4}}>{row.value}</div>
+                          </div>
+                        </div>
+                      ))}
+
+                      {selected.tags?.length > 0 && (
+                        <div style={{paddingTop:12,paddingBottom:12}}>
+                          <div style={{fontSize:10,fontWeight:600,color:"#94A3B8",textTransform:"uppercase",letterSpacing:0.6,marginBottom:8}}>{isEN?"Services offered":"Services offerts"}</div>
+                          <div style={{display:"flex",gap:5,flexWrap:"wrap"}}>
+                            {selected.tags.map(t=>(
+                              <span key={t} style={{padding:"4px 10px",borderRadius:20,background:"#ECFDF5",color:"#059669",fontSize:12,fontWeight:500,border:"1px solid #A7F3D0"}}>{t}</span>
+                            ))}
+                          </div>
+                        </div>
                       )}
-                      <Marker position={[selected.lat,selected.lng]} icon={makeIcon(selected.category,true)}>
-                        <Popup><b>{selected.name}</b><br/>{selected.dist}</Popup>
-                      </Marker>
-                    </MapContainer>
-                    <div style={{position:"absolute",bottom:8,left:8,zIndex:1000,background:"rgba(255,255,255,0.92)",borderRadius:5,padding:"4px 9px",fontSize:12,display:"flex",gap:10,border:"1px solid #E2E8F0"}}>
-                      <span style={{display:"flex",alignItems:"center",gap:4}}><span style={{width:9,height:9,borderRadius:"50%",background:"#059669",display:"inline-block"}}/>{isEN?"You are here":"Vous êtes ici"}</span>
-                      <span style={{display:"flex",alignItems:"center",gap:4}}><span style={{width:9,height:9,borderRadius:"50%",background:"#2563EB",display:"inline-block"}}/>{selected.type}</span>
+                    </div>
+
+                    {/* Footer */}
+                    <div style={{padding:"14px 20px",borderTop:"1px solid #F1F5F9",background:"#FAFAFA"}}>
+                      <div style={{color:"#CBD5E1",fontSize:11,fontStyle:"italic",marginBottom:10}}>{T.updated}</div>
+                      <button onClick={()=>setRightTab("flyer")}
+                        style={{width:"100%",padding:"11px",borderRadius:8,border:"none",background:"#059669",color:"#fff",fontWeight:600,cursor:"pointer",fontSize:14}}>
+                        {isEN?"Preview Flyer →":"Prévisualiser le dépliant →"}
+                      </button>
                     </div>
                   </div>
-                  <div style={{fontWeight:700,fontSize:16,color:"#1E3A8A",marginBottom:6,display:"flex",alignItems:"center",gap:6}}><CatIcon category={selected.category} size={17} color="#1E3A8A"/> {selected.type} — {selected.name}</div>
-                  <div style={{fontSize:13,color:"#1E3A8A",marginBottom:10}}>{selected.address} · {selected.hours}</div>
-                  <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:10}}>
-                    {selected.tags.slice(0,3).map(t=><span key={t} style={{padding:"4px 10px",borderRadius:5,background:"#fff",border:"1px solid #2563EB",color:"#1E3A8A",fontSize:12}}>{t}</span>)}
+                )}
+
+                {/* Flyer preview tab — A5 flyer layout */}
+                {rightTab==="flyer" && (
+                  <div style={{flex:1,overflowY:"auto",background:"#F1F5F9",padding:"16px",display:"flex",flexDirection:"column",gap:12}}>
+                    {/* The actual flyer — this is what gets screenshot-ed for PDF */}
+                    <div id="flyer-preview-content" style={{background:"#fff",borderRadius:10,overflow:"hidden",boxShadow:"0 4px 20px rgba(0,0,0,0.10)",fontFamily:"system-ui,sans-serif"}}>
+                      {/* Flyer header */}
+                      <div style={{background:CAT_COLORS[selected.category]||"#2563EB",padding:"14px 16px",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+                        <div>
+                          <div style={{fontSize:9,color:"rgba(255,255,255,0.7)",textTransform:"uppercase",letterSpacing:1,marginBottom:2}}>Community Radar · {isEN?"Community Services":"Services communautaires"}</div>
+                          <div style={{fontSize:16,fontWeight:700,color:"#fff"}}>{selected.name}</div>
+                          <div style={{fontSize:11,color:"rgba(255,255,255,0.85)",marginTop:2}}>{selected.type}</div>
+                        </div>
+                        <div style={{width:36,height:36,borderRadius:8,background:"rgba(255,255,255,0.2)",display:"flex",alignItems:"center",justifyContent:"center"}}>
+                          <CatIcon category={selected.category} size={20} color="#fff"/>
+                        </div>
+                      </div>
+
+                      {/* Map */}
+                      <div style={{height:160,position:"relative",zIndex:0}}>
+                        <MapContainer key={selected.id+"-"+(distLocation?.id||"gps")} center={distLocation?[(distLocation.lat+selected.lat)/2,(distLocation.lng+selected.lng)/2]:[selected.lat,selected.lng]} zoom={distLocation?14:15} style={{height:"100%",width:"100%"}} zoomControl={false} dragging={false} scrollWheelZoom={false} doubleClickZoom={false}>
+                          <TileLayer attribution="" url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"/>
+                          {distLocation && <Marker position={[distLocation.lat,distLocation.lng]} icon={makeYouIcon()}/>}
+                          <Marker position={[selected.lat,selected.lng]} icon={makeIcon(selected.category,true)}/>
+                        </MapContainer>
+                        {distLocation && (
+                          <div style={{position:"absolute",bottom:6,left:6,zIndex:1000,background:"rgba(255,255,255,0.95)",borderRadius:4,padding:"3px 7px",fontSize:10,border:"1px solid #E2E8F0",display:"flex",gap:8}}>
+                            <span style={{display:"flex",alignItems:"center",gap:3}}><span style={{width:7,height:7,borderRadius:"50%",background:"#059669",display:"inline-block"}}/>{isEN?"You are here":"Vous êtes ici"}</span>
+                            <span style={{display:"flex",alignItems:"center",gap:3}}><span style={{width:7,height:7,borderRadius:"50%",background:CAT_COLORS[selected.category],display:"inline-block"}}/>{selected.type}</span>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Service details */}
+                      <div style={{padding:"12px 16px"}}>
+                        {selected.address && <div style={{display:"flex",gap:8,marginBottom:6,alignItems:"flex-start"}}><span style={{fontSize:13}}>📍</span><span style={{fontSize:12,color:"#334155",lineHeight:1.4}}>{selected.address}</span></div>}
+                        {selected.hours   && <div style={{display:"flex",gap:8,marginBottom:6,alignItems:"flex-start"}}><span style={{fontSize:13}}>🕐</span><span style={{fontSize:12,color:"#334155"}}>{selected.hours}</span></div>}
+                        {selected.phone   && <div style={{display:"flex",gap:8,marginBottom:8,alignItems:"flex-start"}}><span style={{fontSize:13}}>📞</span><span style={{fontSize:12,color:"#334155"}}>{selected.phone}</span></div>}
+                        {selected.tags?.length>0 && (
+                          <div style={{display:"flex",gap:4,flexWrap:"wrap",marginBottom:8}}>
+                            {selected.tags.slice(0,4).map(t=><span key={t} style={{padding:"2px 8px",borderRadius:10,background:`${CAT_COLORS[selected.category]}15`,color:CAT_COLORS[selected.category],fontSize:10,fontWeight:600,border:`1px solid ${CAT_COLORS[selected.category]}40`}}>{t}</span>)}
+                          </div>
+                        )}
+                        {selected.langs?.length>0 && <div style={{fontSize:10,color:"#94A3B8",marginBottom:10}}>🌐 {selected.langs.join(" · ")}</div>}
+
+                        {/* Other nearby */}
+                        {SERVICES.filter(s=>s.id!==selected.id).length>0 && (
+                          <div style={{borderTop:"1px solid #F1F5F9",paddingTop:8,marginTop:4}}>
+                            <div style={{fontSize:9,fontWeight:600,color:"#94A3B8",textTransform:"uppercase",letterSpacing:0.6,marginBottom:6}}>{isEN?"Also nearby":"Aussi à proximité"}</div>
+                            {SERVICES.filter(s=>s.id!==selected.id).slice(0,2).map(s=>(
+                              <div key={s.id} style={{display:"flex",alignItems:"center",gap:6,marginBottom:4}}>
+                                <span style={{width:6,height:6,borderRadius:"50%",background:CAT_COLORS[s.category],flexShrink:0}}/>
+                                <span style={{fontSize:11,color:"#334155"}}>{s.name}</span>
+                                {s.dist && <span style={{fontSize:10,color:"#94A3B8"}}>· {s.dist}</span>}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Flyer footer */}
+                      <div style={{background:"#F8FAFC",borderTop:"1px solid #E2E8F0",padding:"10px 16px",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                        <div style={{fontSize:10,color:"#64748B",fontStyle:"italic"}}>{T.updated}</div>
+                        <div style={{display:"flex",gap:8}}>
+                          <div style={{padding:"4px 10px",borderRadius:5,border:"1px solid #E2E8F0",background:"#fff",fontSize:10,color:"#334155",display:"flex",alignItems:"center",gap:4}}><Phone size={10} color="#64748B"/> 211</div>
+                          <div style={{padding:"4px 10px",borderRadius:5,border:"1px solid #E2E8F0",background:"#fff",fontSize:10,color:"#334155",display:"flex",alignItems:"center",gap:4}}><QrCode size={10} color="#64748B"/> App</div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Generate button outside the flyer */}
+                    <div>
+                      {flyerDone && <div style={{marginBottom:8,padding:"7px 10px",background:"#ECFDF5",borderRadius:6,color:"#059669",fontSize:12}}>✓ PDF downloaded successfully</div>}
+                      <button onClick={handleDownload}
+                        style={{width:"100%",padding:"12px",borderRadius:8,border:"none",background:"#059669",color:"#fff",fontWeight:600,cursor:"pointer",fontSize:15}}>
+                        {T.generate}
+                      </button>
+                    </div>
                   </div>
-                  {SERVICES.filter(s=>s.id!==selected.id).slice(0,2).map(s=>(
-                    <div key={s.id} style={{fontSize:13,color:"#0F172A",borderTop:"1px solid #C7D2FE",paddingTop:6,marginTop:6,display:"flex",alignItems:"center",gap:6}}><CatIcon category={s.category} size={13} color={CAT_COLORS[s.category]}/> {s.name} · {s.dist}</div>
-                  ))}
-                  <div style={{color:"#1E3A8A",fontSize:12,fontStyle:"italic",margin:"10px 0"}}>{T.updated}</div>
-                  <div style={{display:"flex",gap:8}}>
-                    <div style={{flex:1,padding:"8px",borderRadius:5,border:"1px solid #E2E8F0",background:"#fff",textAlign:"center",fontSize:12,display:"flex",alignItems:"center",justifyContent:"center",gap:5}}><Phone size={13} color="#64748B"/>{T.phone}</div>
-                    <div style={{flex:1,padding:"8px",borderRadius:5,border:"1px solid #E2E8F0",background:"#fff",textAlign:"center",fontSize:12,display:"flex",alignItems:"center",justifyContent:"center",gap:5}}><QrCode size={13} color="#64748B"/>{T.qr}</div>
-                  </div>
-                </div>
-                {flyerDone && <div style={{marginTop:10,padding:"8px 12px",background:"#ECFDF5",borderRadius:6,color:"#059669",fontSize:13}}>✓ PDF downloaded successfully</div>}
+                )}
               </div>
-            </>)}
+            )}
           </div>
         </div>
       </div>
