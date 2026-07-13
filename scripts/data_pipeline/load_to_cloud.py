@@ -70,6 +70,15 @@ def main() -> None:
     host = engine.url.host
     print(f"Loading {len(tables)} tables into Postgres @ {host} …")
     with engine.begin() as conn:
+        # Drop every existing public table first (CASCADE removes FK constraints and
+        # dependent views from a prior load, and any tables no longer in the SQLite
+        # e.g. the retired service_directory), so the reload is a clean mirror.
+        existing = [r[0] for r in conn.execute(text(
+            "SELECT tablename FROM pg_tables WHERE schemaname='public'"))]
+        for t in existing:
+            conn.execute(text(f'DROP TABLE IF EXISTS "{t}" CASCADE'))
+        if existing:
+            print(f"  cleared {len(existing)} existing tables")
         for t in tables:
             df = pd.read_sql(f"SELECT * FROM {t}", src)
             df.to_sql(t, conn, if_exists="replace", index=False)

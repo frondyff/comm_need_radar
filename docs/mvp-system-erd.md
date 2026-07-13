@@ -262,6 +262,27 @@ erDiagram
         string v2_top_concern
         int vulnerability_rank_v2
     }
+
+    SERVICES_MASTER {
+        string service_id PK
+        string name
+        string primary_category
+        string service_categories
+        string address
+        float latitude
+        float longitude
+        boolean mappable
+        string geocode_precision
+        string area_id FK
+        string borough_name
+        string phone
+        string website
+        string email
+        string hours
+        string services
+        string sources
+        string legacy_center_id
+    }
 ```
 
 ## Relationship Notes
@@ -283,3 +304,11 @@ erDiagram
   `OBSERVED_NEED_INDEX` contains the area-level V1 and V2 observed summaries.
 - `VULNERABILITY_INDEX_V2` is implemented as an experimental planning score but
   is not yet wired into `GAP_SCORE` or the application-facing views.
+- `SERVICES_MASTER` is the canonical single services table: the 211 Grand
+  Montréal directory merged with the open-data social/food/library service points,
+  de-duplicated (3,933 unique organizations; park amenities excluded), classified,
+  and area-assigned. `mappable=1` rows carry trustworthy coordinates and an
+  `area_id`; `mappable=0` rows stay searchable by name/category. `legacy_center_id`
+  links a row back to its `DATABASE_CENTER` twin so Frondy's scoring can migrate
+  onto this table. Until it does, `DATABASE_CENTER` / `CENTER_AREA_LOOKUP` and the
+  scores are left intact and unchanged.

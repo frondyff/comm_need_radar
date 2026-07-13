@@ -95,6 +95,10 @@ AUX = {
     "monitoring_summary": PROCESSED_DIR / "monitoring_summary.csv",
     "role_activity_log": PROCESSED_DIR / "role_activity_log.csv",
     "flyer_examples": PROCESSED_DIR / "flyer_examples.csv",
+    # Canonical single services table: 211 directory + open-data social/food/library
+    # services, de-duplicated, classified, area-assigned. Frondy's scoring can
+    # migrate onto this (each row carries area_id + legacy_center_id).
+    "services_master": PROCESSED_DIR / "services_master.csv",
     # v2 observed-needs subsystem (Frondy's scoring), regenerated on the real data
     "center_area_lookup": PROCESSED_DIR / "center_area_lookup.csv",
     "observed_need_index": PROCESSED_DIR / "observed_need_index.csv",

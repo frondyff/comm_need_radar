@@ -26,6 +26,9 @@ data/raw/_sources/
 data/raw/service_sources/installations_recreatives_shp/
 data/raw/boundaries/ct_national_shp/
 
+# Raw 211/Centraide directory (licensed source + large extract -- keep out of the public repo)
+data/raw/service_sources/_211/
+
 # SQLite database (regenerable from the CSVs via build_database.py)
 data/community_radar.sqlite
 *.sqlite-journal
