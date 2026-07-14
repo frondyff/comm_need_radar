@@ -150,6 +150,25 @@ function Chip({ active, color, bg, border, onClick, children }) {
   );
 }
 
+function LocationBadge({ location, onChange, changeLabel="change" }) {
+  if (!location) return null;
+
+  return (
+    <div style={{fontSize:12,color:"#fff",background:"rgba(255,255,255,0.1)",padding:"4px 10px",borderRadius:6,display:"flex",alignItems:"center",gap:5}}>
+      <span style={{width:6,height:6,borderRadius:"50%",background:"#059669",display:"inline-block",flexShrink:0}}/>
+      <span style={{fontWeight:600,whiteSpace:"nowrap"}}>{location.name}</span>
+      <button
+        type="button"
+        onClick={onChange}
+        aria-label={`Change distribution location from ${location.name}`}
+        style={{background:"none",border:"none",color:"#60A5FA",cursor:"pointer",fontSize:11,padding:"0 2px",fontWeight:600}}
+      >
+        {changeLabel}
+      </button>
+    </div>
+  );
+}
+
 // V2 Planner View 
 const BOROUGH_SCORES = {
   "Mercier-Hochelaga-Maisonneuve": { score:0.81, income:0.78, housing:0.64, immigration:0.52 },
@@ -235,7 +254,7 @@ function ChoroplethMap({ selectedBorough, onSelect }) {
   );
 }
 
-function PlannerView({ lang, setLang, onSwitch }) {
+function PlannerView({ lang, setLang, onSwitch, onExit, location, onChangeLocation }) {
   const [chat, setChat] = useState("");
   const [selectedBorough, setSelectedBorough] = useState("Mercier-Hochelaga-Maisonneuve");
   const priorities = Object.entries(BOROUGH_SCORES)
@@ -254,11 +273,12 @@ function PlannerView({ lang, setLang, onSwitch }) {
           <div style={{fontSize:12,color:"#60A5FA",fontWeight:600,textTransform:"uppercase",letterSpacing:0.6}}>Planner View (V2)</div>
         </div>
         <div style={{display:"flex",gap:6,alignItems:"center"}}>
+          <LocationBadge location={location} onChange={onChangeLocation}/>
           <div style={{display:"flex",background:"rgba(255,255,255,0.08)",borderRadius:6,overflow:"hidden"}}>
             {["EN","FR"].map(l=><button key={l} onClick={()=>setLang(l)} style={{padding:"4px 10px",border:"none",background:lang===l?"#2563EB":"transparent",color:"#fff",fontWeight:lang===l?700:400,cursor:"pointer",fontSize:12}}>{l}</button>)}
           </div>
           <button onClick={onSwitch} style={{padding:"4px 12px",borderRadius:6,border:"1px solid #334155",color:"#CBD5E1",background:"transparent",cursor:"pointer",fontSize:12}}>Community View (V1)</button>
-          <button onClick={()=>setStep("role")} style={{display:"flex",alignItems:"center",gap:3,padding:"4px 10px",borderRadius:6,border:"none",color:"#CBD5E1",background:"transparent",cursor:"pointer",fontSize:11}}><ChevronLeft size={12}/> Exit</button>
+          <button onClick={onExit} style={{display:"flex",alignItems:"center",gap:3,padding:"4px 10px",borderRadius:6,border:"none",color:"#CBD5E1",background:"transparent",cursor:"pointer",fontSize:11}}><ChevronLeft size={12}/> Exit</button>
         </div>
       </div>
       <div style={{padding:"16px 20px"}}>
@@ -368,6 +388,7 @@ const DIST_LOCATIONS = [
   { id:"cdn",     name:"CLSC Côte-des-Neiges",   org:"CLSC",                 lat:45.4889, lng:-73.6241 },
   { id:"parcext", name:"Parc-Extension",          org:"BIPE",                 lat:45.5356, lng:-73.6219 },
 ];
+const DEFAULT_DIST_LOCATION = DIST_LOCATIONS[0];
 
 function makeYouIcon() {
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="#059669" stroke="white" stroke-width="2.5"/><circle cx="12" cy="12" r="4" fill="white"/></svg>`;
@@ -380,6 +401,8 @@ export default function CommunityRadar() {
   const [step, setStep] = useState("role");
   const [role, setRole] = useState(null);
   const [distLocation, setDistLocation] = useState(null);
+  const [locationReturnStep, setLocationReturnStep] = useState("main");
+  const [locationBackStep, setLocationBackStep] = useState("role");
 
   // V1 filters
   const [activeGroup, setActiveGroup] = useState([]);
@@ -396,6 +419,7 @@ export default function CommunityRadar() {
 
   const meta = { group: activeGroup, age: activeAge };
   const isEN = lang === "EN";
+  const selectedLocation = distLocation || DEFAULT_DIST_LOCATION;
 
   const T = {
     title:"Community Radar",
@@ -433,10 +457,22 @@ export default function CommunityRadar() {
 
   const handleSelect = s => { setSelected(s); setFlyerDone(false); setMapCenter([s.lat,s.lng]); setRightTab("info"); logEvent("service_card_opened",s.name,meta); };
 
+  const handleChangeLocation = (returnStep, backStep=returnStep) => {
+    setLocationReturnStep(returnStep);
+    setLocationBackStep(backStep);
+    setStep("location");
+  };
+
+  const handleLocationSelected = (location) => {
+    setDistLocation(location);
+    logEvent("dist_location_selected", location.name, {});
+    setStep(locationReturnStep);
+  };
+
   const handleDownload = () => {
     const others = SERVICES.filter(s=>s.id!==selected.id);
     generatePDF(selected, lang, others);
-    logFlyer(selected,{group:activeGroup,gender:activeGender,location:distLocation?.name||"unknown"},meta);
+    logFlyer(selected,{group:activeGroup,gender:activeGender,location:selectedLocation.name},meta);
     setFlyerDone(true);
   };
 
@@ -456,7 +492,7 @@ export default function CommunityRadar() {
         </div>
         <p style={{fontWeight:600,fontSize:17,color:"#0F172A",marginBottom:16}}>{T.chooseRole}</p>
         <div style={{display:"flex",flexDirection:"column",gap:12}}>
-          <button onClick={()=>{setRole("v1");logEvent("role_selected","v1",{});setStep("location");}}
+          <button onClick={()=>{setRole("v1");logEvent("role_selected","v1",{});handleChangeLocation("main","role");}}
             style={{padding:"20px 24px",borderRadius:8,border:"1.5px solid #0891B2",background:"#ECFEFF",color:"#164E63",textAlign:"left",cursor:"pointer"}}>
             <div style={{fontWeight:700,fontSize:16,marginBottom:4}}>V1 — {T.roleV1}</div>
             <div style={{fontSize:13,opacity:0.8}}>{T.roleV1sub}</div>
@@ -472,9 +508,18 @@ export default function CommunityRadar() {
   );
 
   // V2 
-  if (step==="v2") return <PlannerView lang={lang} setLang={setLang} onSwitch={()=>{setRole("v1");setStep("main");}}/>;
+  if (step==="v2") return (
+    <PlannerView
+      lang={lang}
+      setLang={setLang}
+      location={selectedLocation}
+      onChangeLocation={()=>handleChangeLocation("v2")}
+      onSwitch={()=>{setRole("v1");setStep("main");}}
+      onExit={()=>setStep("role")}
+    />
+  );
 
-  // LOCATION SELECTION (V1 only)
+  // LOCATION SELECTION
   if (step==="location") return (
     <div style={{minHeight:"100vh",background:"#FFFFFF",display:"flex",alignItems:"center",justifyContent:"center",fontFamily:"system-ui,sans-serif",padding:"2rem"}}>
       <div style={{maxWidth:520,width:"100%",textAlign:"center"}}>
@@ -493,8 +538,8 @@ export default function CommunityRadar() {
           </p>
           <div style={{display:"flex",flexDirection:"column",gap:10}}>
             {DIST_LOCATIONS.map(loc=>(
-              <button key={loc.id} onClick={()=>{setDistLocation(loc);logEvent("dist_location_selected",loc.name,{});setStep("main");}}
-                style={{padding:"14px 18px",borderRadius:8,border:`1.5px solid ${distLocation?.id===loc.id?"#2563EB":"#E2E8F0"}`,background:distLocation?.id===loc.id?"#EFF6FF":"#fff",color:"#0F172A",textAlign:"left",cursor:"pointer",display:"flex",alignItems:"center",gap:12}}>
+              <button key={loc.id} onClick={()=>handleLocationSelected(loc)}
+                style={{padding:"14px 18px",borderRadius:8,border:`1.5px solid ${selectedLocation.id===loc.id?"#2563EB":"#E2E8F0"}`,background:selectedLocation.id===loc.id?"#EFF6FF":"#fff",color:"#0F172A",textAlign:"left",cursor:"pointer",display:"flex",alignItems:"center",gap:12}}>
                 <div style={{width:10,height:10,borderRadius:"50%",background:"#059669",flexShrink:0}}/>
                 <div>
                   <div style={{fontWeight:600,fontSize:14}}>{loc.name}</div>
@@ -504,7 +549,7 @@ export default function CommunityRadar() {
             ))}
           </div>
         </div>
-        <button onClick={()=>setStep("role")} style={{marginTop:16,background:"transparent",border:"none",color:"#64748B",fontSize:13,cursor:"pointer"}}>
+        <button onClick={()=>setStep(locationBackStep)} style={{marginTop:16,background:"transparent",border:"none",color:"#64748B",fontSize:13,cursor:"pointer"}}>
           ← {isEN?"Back":"Retour"}
         </button>
       </div>
@@ -523,13 +568,7 @@ export default function CommunityRadar() {
           <div style={{fontSize:12,color:"#60A5FA",fontWeight:600,textTransform:"uppercase",letterSpacing:0.6}}>Community View (V1)</div>
         </div>
         <div style={{display:"flex",gap:6,alignItems:"center"}}>
-          {distLocation && (
-            <div style={{fontSize:12,color:"#fff",background:"rgba(255,255,255,0.1)",padding:"4px 10px",borderRadius:6,display:"flex",alignItems:"center",gap:5}}>
-              <span style={{width:6,height:6,borderRadius:"50%",background:"#059669",display:"inline-block"}}/>
-              {distLocation.name}
-              <button onClick={()=>setStep("location")} style={{background:"none",border:"none",color:"#60A5FA",cursor:"pointer",fontSize:11,padding:"0 2px"}}>change</button>
-            </div>
-          )}
+          <LocationBadge location={selectedLocation} onChange={()=>handleChangeLocation("main")}/>
           <div style={{display:"flex",background:"rgba(255,255,255,0.1)",borderRadius:6,overflow:"hidden"}}>
             {["EN","FR"].map(l=><button key={l} onClick={()=>setLang(l)} style={{padding:"4px 10px",border:"none",background:lang===l?"#2563EB":"transparent",color:"#fff",fontWeight:lang===l?700:400,cursor:"pointer",fontSize:12}}>{l}</button>)}
           </div>
@@ -758,17 +797,15 @@ export default function CommunityRadar() {
 
                       {/* Map */}
                       <div style={{height:160,position:"relative",zIndex:0}}>
-                        <MapContainer key={selected.id+"-"+(distLocation?.id||"gps")} center={distLocation?[(distLocation.lat+selected.lat)/2,(distLocation.lng+selected.lng)/2]:[selected.lat,selected.lng]} zoom={distLocation?14:15} style={{height:"100%",width:"100%"}} zoomControl={false} dragging={false} scrollWheelZoom={false} doubleClickZoom={false}>
+                        <MapContainer key={selected.id+"-"+selectedLocation.id} center={[(selectedLocation.lat+selected.lat)/2,(selectedLocation.lng+selected.lng)/2]} zoom={14} style={{height:"100%",width:"100%"}} zoomControl={false} dragging={false} scrollWheelZoom={false} doubleClickZoom={false}>
                           <TileLayer attribution="" url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"/>
-                          {distLocation && <Marker position={[distLocation.lat,distLocation.lng]} icon={makeYouIcon()}/>}
+                          <Marker position={[selectedLocation.lat,selectedLocation.lng]} icon={makeYouIcon()}/>
                           <Marker position={[selected.lat,selected.lng]} icon={makeIcon(selected.category,true)}/>
                         </MapContainer>
-                        {distLocation && (
-                          <div style={{position:"absolute",bottom:6,left:6,zIndex:1000,background:"rgba(255,255,255,0.95)",borderRadius:4,padding:"3px 7px",fontSize:10,border:"1px solid #E2E8F0",display:"flex",gap:8}}>
-                            <span style={{display:"flex",alignItems:"center",gap:3}}><span style={{width:7,height:7,borderRadius:"50%",background:"#059669",display:"inline-block"}}/>{isEN?"You are here":"Vous êtes ici"}</span>
-                            <span style={{display:"flex",alignItems:"center",gap:3}}><span style={{width:7,height:7,borderRadius:"50%",background:CAT_COLORS[selected.category],display:"inline-block"}}/>{selected.type}</span>
-                          </div>
-                        )}
+                        <div style={{position:"absolute",bottom:6,left:6,zIndex:1000,background:"rgba(255,255,255,0.95)",borderRadius:4,padding:"3px 7px",fontSize:10,border:"1px solid #E2E8F0",display:"flex",gap:8}}>
+                          <span style={{display:"flex",alignItems:"center",gap:3}}><span style={{width:7,height:7,borderRadius:"50%",background:"#059669",display:"inline-block"}}/>{isEN?"You are here":"Vous êtes ici"}</span>
+                          <span style={{display:"flex",alignItems:"center",gap:3}}><span style={{width:7,height:7,borderRadius:"50%",background:CAT_COLORS[selected.category],display:"inline-block"}}/>{selected.type}</span>
+                        </div>
                       </div>
 
                       {/* Service details */}
