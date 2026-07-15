@@ -3,9 +3,10 @@ import { MapContainer, TileLayer, Marker, Popup, useMap, GeoJSON } from "react-l
 import { useEffect } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import jsPDF from "jspdf";
-import { Radar, LocateFixed, Home, UtensilsCrossed, Stethoscope, Scale, Globe, Search, Phone, QrCode, Bot, ChevronLeft, Layers, Activity, AlertTriangle, TrendingUp } from "lucide-react";
-import html2canvas from "html2canvas";
+import { Radar, LocateFixed, Search, Bot, ChevronLeft, Layers, Activity, AlertTriangle, TrendingUp } from "lucide-react";
+import { CategoryIcon, CATEGORY_COLORS, createServiceMarker } from "./components/serviceVisuals";
+import { FlyerPreview } from "./flyer/FlyerPreview";
+import { flyerPdfExporter } from "./flyer/FlyerPdfExporter";
 
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -15,15 +16,6 @@ L.Icon.Default.mergeOptions({
 });
 
 const MONO_FONT = "ui-monospace,SFMono-Regular,'JetBrains Mono',Menlo,Consolas,monospace";
-const CAT_COLORS = { Shelter:"#DC2626", Food:"#D97706", Medical:"#2563EB", Legal:"#059669", Translation:"#9333EA" };
-
-function makeIcon(category, isSelected) {
-  const color = CAT_COLORS[category] || "#888";
-  const size = isSelected ? 36 : 26;
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="${color}" stroke="white" stroke-width="${isSelected?2.5:2}"/><circle cx="12" cy="12" r="${isSelected?5:3.5}" fill="white"/></svg>`;
-  return L.divIcon({ html: svg, className: "", iconSize:[size,size], iconAnchor:[size/2,size/2], popupAnchor:[0,-size/2] });
-}
-
 function FlyTo({ center }) {
   const map = useMap();
   useEffect(() => { if (center) map.flyTo(center, 15, { duration: 1 }); }, [center]);
@@ -41,18 +33,13 @@ const SERVICES = [
 ];
 
 const CATEGORIES = [
-  { label:"Shelter", color:"#DC2626", bg:"#FEF2F2" },
-  { label:"Food", color:"#D97706", bg:"#FFFBEB" },
-  { label:"Medical", color:"#2563EB", bg:"#EFF6FF" },
-  { label:"Legal", color:"#059669", bg:"#ECFDF5" },
-  { label:"Translation", color:"#9333EA", bg:"#F5F3FF" },
+  { label:"Shelter", color:CATEGORY_COLORS.Shelter, bg:"#FEF2F2" },
+  { label:"Food", color:CATEGORY_COLORS.Food, bg:"#FFFBEB" },
+  { label:"Medical", color:CATEGORY_COLORS.Medical, bg:"#EFF6FF" },
+  { label:"Legal", color:CATEGORY_COLORS.Legal, bg:"#ECFDF5" },
+  { label:"Translation", color:CATEGORY_COLORS.Translation, bg:"#F5F3FF" },
 ];
 
-const ICON_MAP = { Shelter:Home, Food:UtensilsCrossed, Medical:Stethoscope, Legal:Scale, Translation:Globe };
-function CatIcon({ category, size=14, color, style }) {
-  const Icon = ICON_MAP[category] || Home;
-  return <Icon size={size} color={color} strokeWidth={2.25} style={{flexShrink:0,verticalAlign:"middle",...style}}/>;
-}
 const AGE_RANGES = ["Under 25","25–44","45–64","65+"];
 const GENDER_OPTS = [{val:"Male",label:"Male",icon:"♂"},{val:"Female",label:"Female",icon:"♀"},{val:"All",label:"All",icon:"⚥"}];
 
@@ -64,82 +51,6 @@ async function logEvent(type, detail, meta={}) {
 async function logFlyer(service, filters, meta={}) {
   try { await fetch(`${BACKEND}/log/flyer`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({service_name:service.name,service_type:service.type,service_category:service.category,group_filter:filters.group||null,gender_filter:filters.gender||null,user_group:meta.group||null,user_age_range:meta.age||null,location:"fixed-point"})}); }
   catch(e) { console.log("📊 flyer",service.name); }
-}
-
-function generatePDF(service, lang, otherServices) {
-  const isEN = lang === "EN";
-  const doc = new jsPDF({ unit:"mm", format:"a5" });
-  const W = 148, pad = 10;
-  let y = pad;
-
-  // Header
-  doc.setFillColor(239,246,255); doc.rect(0,0,W,18,"F");
-  doc.setFont("helvetica","bold"); doc.setFontSize(14); doc.setTextColor(15,23,42);
-  doc.text("Community Radar", pad, 8);
-  doc.setFont("helvetica","normal"); doc.setFontSize(8); doc.setTextColor(100,116,139);
-  doc.text(isEN?"Services near this location":"Services près de cet endroit", pad, 14);
-  doc.setFont("helvetica","bold"); doc.setFontSize(9); doc.setTextColor(30,58,138);
-  doc.text(lang, W-pad, 8, {align:"right"});
-  y = 24;
-
-  // Map placeholder box
-  doc.setDrawColor(37,99,235); doc.setFillColor(239,246,255);
-  doc.roundedRect(pad, y, W-2*pad, 40, 3,3,"FD");
-  doc.setFontSize(20); doc.text("🗺", W/2, y+18, {align:"center"});
-  doc.setFont("helvetica","normal"); doc.setFontSize(8); doc.setTextColor(37,99,235);
-  doc.text(`${service.name} — ${service.dist}`, W/2, y+26, {align:"center"});
-  doc.setFillColor(239,246,255); doc.roundedRect(W-pad-28, y+32, 28, 5, 2,2,"F");
-  doc.setFontSize(7); doc.setTextColor(30,58,138);
-  doc.text(isEN?"📍 You are here":"📍 Vous êtes ici", W-pad-14, y+35.5, {align:"center"});
-  y += 46;
-
-  // Featured service card
-  doc.setFillColor(239,246,255); doc.setDrawColor(37,99,235);
-  doc.roundedRect(pad, y, W-2*pad, 38, 3,3,"FD");
-  doc.setFont("helvetica","bold"); doc.setFontSize(11); doc.setTextColor(30,58,138);
-  doc.text(`${service.type} — ${service.name}`, pad+4, y+8);
-  doc.setFont("helvetica","normal"); doc.setFontSize(8); doc.setTextColor(71,85,105);
-  doc.text(`${service.dist} · ${service.hours}`, pad+4, y+14);
-  doc.text(service.address, pad+4, y+19);
-  // tags
-  let tx = pad+4; const ty = y+25;
-  service.tags.forEach(tag => {
-    const tw = doc.getTextWidth(tag)+4;
-    doc.setDrawColor(37,99,235); doc.setFillColor(255,255,255);
-    doc.roundedRect(tx, ty-3.5, tw, 5.5, 1.5,1.5,"FD");
-    doc.setFontSize(7); doc.setTextColor(30,58,138); doc.text(tag, tx+2, ty+0.5);
-    tx += tw+3;
-  });
-  doc.setFontSize(7); doc.setTextColor(71,85,105);
-  doc.text(`${isEN?"Languages":"Langues"}: ${service.langs.join(" / ")}`, pad+4, y+33);
-  y += 44;
-
-  // Other nearby services
-  otherServices.slice(0,3).forEach(s => {
-    doc.setDrawColor(226,232,240); doc.line(pad, y, W-pad, y);
-    doc.setFont("helvetica","normal"); doc.setFontSize(8); doc.setTextColor(15,23,42);
-    doc.text(`${s.type} — ${s.name}`, pad+2, y+5);
-    doc.setTextColor(100,116,139);
-    doc.text(`${s.dist} · ${s.hours}`, W-pad-2, y+5, {align:"right"});
-    y += 9;
-  });
-
-  // Freshness
-  y += 3;
-  doc.setFontSize(7); doc.setTextColor(100,116,139); doc.setFont("helvetica","italic");
-  doc.text(isEN?"Info updated June 2026":"Info mise à jour juin 2026 — confirmer en appelant le 211", pad, y);
-  y += 8;
-
-  // Footer
-  const fw = (W-2*pad-4)/2;
-  doc.setFont("helvetica","normal"); doc.setTextColor(15,23,42);
-  doc.setDrawColor(226,232,240); doc.setFillColor(255,255,255);
-  doc.roundedRect(pad, y, fw, 8, 2,2,"FD");
-  doc.setFontSize(8); doc.text(isEN?"📞 211 or other":"📞 211 ou autre", pad+fw/2, y+5, {align:"center"});
-  doc.roundedRect(pad+fw+4, y, fw, 8, 2,2,"FD");
-  doc.text(isEN?"QR code (our app)":"Code QR (appli)", pad+fw+4+fw/2, y+5, {align:"center"});
-
-  doc.save(`flyer-${service.name.replace(/\s+/g,"-").toLowerCase()}.pdf`);
 }
 
 function Chip({ active, color, bg, border, onClick, children }) {
@@ -331,8 +242,8 @@ function PlannerView({ lang, setLang, onSwitch, onExit, location, onChangeLocati
             <MapContainer center={[45.5188,-73.5878]} zoom={12} style={{height:"100%",width:"100%"}} zoomControl={true}>
               <TileLayer attribution='© CartoDB' url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"/>
               {SERVICES.map(s=>(
-                <Marker key={s.id} position={[s.lat,s.lng]} icon={makeIcon(s.category,false)}>
-                  <Popup><div style={{fontFamily:"system-ui",minWidth:140}}><div style={{fontWeight:700,fontSize:13,color:CAT_COLORS[s.category],display:"flex",alignItems:"center",gap:5}}><CatIcon category={s.category} size={14} color={CAT_COLORS[s.category]}/> {s.name}</div><div style={{fontSize:12,color:"#64748B"}}>{s.type} · {s.dist}</div></div></Popup>
+                <Marker key={s.id} position={[s.lat,s.lng]} icon={createServiceMarker(s.category,false)}>
+                  <Popup><div style={{fontFamily:"system-ui",minWidth:140}}><div style={{fontWeight:700,fontSize:13,color:CATEGORY_COLORS[s.category],display:"flex",alignItems:"center",gap:5}}><CategoryIcon category={s.category} size={14} color={CATEGORY_COLORS[s.category]}/> {s.name}</div><div style={{fontSize:12,color:"#64748B"}}>{s.type} · {s.dist}</div></div></Popup>
                 </Marker>
               ))}
             </MapContainer>
@@ -390,11 +301,6 @@ const DIST_LOCATIONS = [
 ];
 const DEFAULT_DIST_LOCATION = DIST_LOCATIONS[0];
 
-function makeYouIcon() {
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="#059669" stroke="white" stroke-width="2.5"/><circle cx="12" cy="12" r="4" fill="white"/></svg>`;
-  return L.divIcon({ html: svg, className: "", iconSize:[32,32], iconAnchor:[16,16], popupAnchor:[0,-16] });
-}
-
 // Main App 
 export default function CommunityRadar() {
   const [lang, setLang] = useState("EN");
@@ -413,6 +319,8 @@ export default function CommunityRadar() {
   const [selected, setSelected] = useState(SERVICES[0]);
   const [showMap, setShowMap] = useState(false);
   const [flyerDone, setFlyerDone] = useState(false);
+  const [isDownloadingFlyer, setIsDownloadingFlyer] = useState(false);
+  const [flyerDownloadError, setFlyerDownloadError] = useState("");
   const [mapCenter, setMapCenter] = useState(null);
   const [viewMode, setViewMode] = useState("list"); // "list" | "grid"
   const [rightTab, setRightTab] = useState("info"); // "info" | "flyer"
@@ -455,7 +363,7 @@ export default function CommunityRadar() {
     return mg && mge && mc && ms;
   });
 
-  const handleSelect = s => { setSelected(s); setFlyerDone(false); setMapCenter([s.lat,s.lng]); setRightTab("info"); logEvent("service_card_opened",s.name,meta); };
+  const handleSelect = s => { setSelected(s); setFlyerDone(false); setFlyerDownloadError(""); setMapCenter([s.lat,s.lng]); setRightTab("info"); logEvent("service_card_opened",s.name,meta); };
 
   const handleChangeLocation = (returnStep, backStep=returnStep) => {
     setLocationReturnStep(returnStep);
@@ -469,11 +377,23 @@ export default function CommunityRadar() {
     setStep(locationReturnStep);
   };
 
-  const handleDownload = () => {
-    const others = SERVICES.filter(s=>s.id!==selected.id);
-    generatePDF(selected, lang, others);
-    logFlyer(selected,{group:activeGroup,gender:activeGender,location:selectedLocation.name},meta);
-    setFlyerDone(true);
+  const handleDownload = async () => {
+    if (!selected || isDownloadingFlyer) return;
+
+    setFlyerDone(false);
+    setFlyerDownloadError("");
+    setIsDownloadingFlyer(true);
+
+    try {
+      await flyerPdfExporter.export(selected);
+      setFlyerDone(true);
+      logFlyer(selected,{group:activeGroup,gender:activeGender,location:selectedLocation.name},meta);
+    } catch (error) {
+      console.error("Could not download the flyer PDF", error);
+      setFlyerDownloadError(isEN ? "The flyer could not be downloaded. Please try again." : "Le dépliant n'a pas pu être téléchargé. Veuillez réessayer.");
+    } finally {
+      setIsDownloadingFlyer(false);
+    }
   };
 
   // ROLE SELECTION 
@@ -622,7 +542,7 @@ export default function CommunityRadar() {
             <span style={{color:"#64748B",fontSize:12,fontWeight:600,whiteSpace:"nowrap"}}>{T.filterCat}</span>
             {CATEGORIES.map(c=>(
               <Chip key={c.label} active={activeCategory.includes(c.label)} color={c.color} bg={c.bg} border={c.color} onClick={()=>{toggleArr(activeCategory,setActiveCategory,c.label);logEvent("category_filter",c.label,meta);}}>
-                <CatIcon category={c.label} size={13} color={c.color}/> {c.label}
+                <CategoryIcon category={c.label} size={13} color={c.color}/> {c.label}
               </Chip>
             ))}
           </div>
@@ -640,8 +560,8 @@ export default function CommunityRadar() {
                   <TileLayer attribution='© CartoDB' url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"/>
                   {mapCenter && <FlyTo center={mapCenter}/>}
                   {filtered.map(s=>(
-                    <Marker key={s.id} position={[s.lat,s.lng]} icon={makeIcon(s.category,selected?.id===s.id)} eventHandlers={{click:()=>handleSelect(s)}}>
-                      <Popup><div style={{fontFamily:"system-ui",minWidth:150}}><div style={{fontWeight:700,fontSize:12,color:CAT_COLORS[s.category],display:"flex",alignItems:"center",gap:5}}><CatIcon category={s.category} size={13} color={CAT_COLORS[s.category]}/> {s.name}</div><div style={{fontSize:11,color:"#64748B"}}>{s.type} · {s.dist}</div><div style={{fontSize:11,color:"#64748B"}}>{s.hours}</div></div></Popup>
+                    <Marker key={s.id} position={[s.lat,s.lng]} icon={createServiceMarker(s.category,selected?.id===s.id)} eventHandlers={{click:()=>handleSelect(s)}}>
+                      <Popup><div style={{fontFamily:"system-ui",minWidth:150}}><div style={{fontWeight:700,fontSize:12,color:CATEGORY_COLORS[s.category],display:"flex",alignItems:"center",gap:5}}><CategoryIcon category={s.category} size={13} color={CATEGORY_COLORS[s.category]}/> {s.name}</div><div style={{fontSize:11,color:"#64748B"}}>{s.type} · {s.dist}</div><div style={{fontSize:11,color:"#64748B"}}>{s.hours}</div></div></Popup>
                     </Marker>
                   ))}
                 </MapContainer>
@@ -670,7 +590,7 @@ export default function CommunityRadar() {
                           <div key={s.id} onClick={()=>handleSelect(s)}
                             style={{padding:"12px 16px",borderBottom:i<filtered.length-1?"1px solid #E2E8F0":"none",cursor:"pointer",background:selected?.id===s.id?"#EFF6FF":"transparent",borderLeft:selected?.id===s.id?"3px solid #2563EB":"3px solid transparent",transition:"background 0.15s"}}>
                             <div style={{display:"flex",gap:10,alignItems:"flex-start"}}>
-                              <div style={{width:38,height:38,borderRadius:"50%",background:selected?.id===s.id?"#2563EB":"#F1F5F9",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><CatIcon category={s.category} size={19} color={selected?.id===s.id?"#fff":CAT_COLORS[s.category]}/></div>
+                              <div style={{width:38,height:38,borderRadius:"50%",background:selected?.id===s.id?"#2563EB":"#F1F5F9",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><CategoryIcon category={s.category} size={19} color={selected?.id===s.id?"#fff":CATEGORY_COLORS[s.category]}/></div>
                               <div style={{flex:1,minWidth:0}}>
                                 <div style={{fontWeight:600,color:selected?.id===s.id?"#2563EB":"#0F172A",fontSize:15,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{s.name}</div>
                                 <div style={{color:"#64748B",fontSize:13,margin:"3px 0 6px"}}>{s.dist} · {s.hours}{s.gender!=="All"?` · ${s.gender} only`:""}</div>
@@ -685,7 +605,7 @@ export default function CommunityRadar() {
                           {filtered.map(s=>(
                             <div key={s.id} onClick={()=>handleSelect(s)}
                               style={{padding:"12px",borderRadius:8,border:`1.5px solid ${selected?.id===s.id?"#2563EB":"#E2E8F0"}`,background:selected?.id===s.id?"#EFF6FF":"#fff",cursor:"pointer",transition:"all 0.15s"}}>
-                              <div style={{width:36,height:36,borderRadius:"50%",background:selected?.id===s.id?"#2563EB":"#F1F5F9",display:"flex",alignItems:"center",justifyContent:"center",marginBottom:8}}><CatIcon category={s.category} size={18} color={selected?.id===s.id?"#fff":CAT_COLORS[s.category]}/></div>
+                              <div style={{width:36,height:36,borderRadius:"50%",background:selected?.id===s.id?"#2563EB":"#F1F5F9",display:"flex",alignItems:"center",justifyContent:"center",marginBottom:8}}><CategoryIcon category={s.category} size={18} color={selected?.id===s.id?"#fff":CATEGORY_COLORS[s.category]}/></div>
                               <div style={{fontWeight:600,fontSize:13,color:selected?.id===s.id?"#2563EB":"#0F172A",marginBottom:3,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{s.name}</div>
                               <div style={{fontSize:11,color:"#64748B",marginBottom:6}}>{s.type}</div>
                               <div style={{fontSize:11,color:"#64748B",marginBottom:6}}>{s.dist} · {s.hours}</div>
@@ -730,7 +650,7 @@ export default function CommunityRadar() {
                     {/* Dark header band */}
                     <div style={{background:"#F8FAFC",padding:"18px 20px",display:"flex",alignItems:"center",gap:14,borderBottom:"1px solid #E2E8F0"}}>
                       <div style={{width:46,height:46,borderRadius:10,background:"rgba(5,150,105,0.2)",border:"1.5px solid rgba(5,150,105,0.4)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
-                        <CatIcon category={selected.category} size={22} color="#34D399"/>
+                        <CategoryIcon category={selected.category} size={22} color="#34D399"/>
                       </div>
                       <div>
                         <div style={{fontWeight:700,fontSize:16,color:"#0F172A",lineHeight:1.3}}>{selected.name}</div>
@@ -778,79 +698,17 @@ export default function CommunityRadar() {
                   </div>
                 )}
 
-                {/* Flyer preview tab — A5 flyer layout */}
+                {/* Flyer preview tab */}
                 {rightTab==="flyer" && (
                   <div style={{flex:1,overflowY:"auto",background:"#F1F5F9",padding:"16px",display:"flex",flexDirection:"column",gap:12}}>
-                    {/* The actual flyer — this is what gets screenshot-ed for PDF */}
-                    <div id="flyer-preview-content" style={{background:"#fff",borderRadius:10,overflow:"hidden",boxShadow:"0 4px 20px rgba(0,0,0,0.10)",fontFamily:"system-ui,sans-serif"}}>
-                      {/* Flyer header */}
-                      <div style={{background:CAT_COLORS[selected.category]||"#2563EB",padding:"14px 16px",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
-                        <div>
-                          <div style={{fontSize:9,color:"rgba(255,255,255,0.7)",textTransform:"uppercase",letterSpacing:1,marginBottom:2}}>Community Radar · {isEN?"Community Services":"Services communautaires"}</div>
-                          <div style={{fontSize:16,fontWeight:700,color:"#fff"}}>{selected.name}</div>
-                          <div style={{fontSize:11,color:"rgba(255,255,255,0.85)",marginTop:2}}>{selected.type}</div>
-                        </div>
-                        <div style={{width:36,height:36,borderRadius:8,background:"rgba(255,255,255,0.2)",display:"flex",alignItems:"center",justifyContent:"center"}}>
-                          <CatIcon category={selected.category} size={20} color="#fff"/>
-                        </div>
-                      </div>
+                    <FlyerPreview service={selected} location={selectedLocation} services={SERVICES} language={lang} updatedLabel={T.updated}/>
 
-                      {/* Map */}
-                      <div style={{height:160,position:"relative",zIndex:0}}>
-                        <MapContainer key={selected.id+"-"+selectedLocation.id} center={[(selectedLocation.lat+selected.lat)/2,(selectedLocation.lng+selected.lng)/2]} zoom={14} style={{height:"100%",width:"100%"}} zoomControl={false} dragging={false} scrollWheelZoom={false} doubleClickZoom={false}>
-                          <TileLayer attribution="" url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"/>
-                          <Marker position={[selectedLocation.lat,selectedLocation.lng]} icon={makeYouIcon()}/>
-                          <Marker position={[selected.lat,selected.lng]} icon={makeIcon(selected.category,true)}/>
-                        </MapContainer>
-                        <div style={{position:"absolute",bottom:6,left:6,zIndex:1000,background:"rgba(255,255,255,0.95)",borderRadius:4,padding:"3px 7px",fontSize:10,border:"1px solid #E2E8F0",display:"flex",gap:8}}>
-                          <span style={{display:"flex",alignItems:"center",gap:3}}><span style={{width:7,height:7,borderRadius:"50%",background:"#059669",display:"inline-block"}}/>{isEN?"You are here":"Vous êtes ici"}</span>
-                          <span style={{display:"flex",alignItems:"center",gap:3}}><span style={{width:7,height:7,borderRadius:"50%",background:CAT_COLORS[selected.category],display:"inline-block"}}/>{selected.type}</span>
-                        </div>
-                      </div>
-
-                      {/* Service details */}
-                      <div style={{padding:"12px 16px"}}>
-                        {selected.address && <div style={{display:"flex",gap:8,marginBottom:6,alignItems:"flex-start"}}><span style={{fontSize:13}}>📍</span><span style={{fontSize:12,color:"#334155",lineHeight:1.4}}>{selected.address}</span></div>}
-                        {selected.hours   && <div style={{display:"flex",gap:8,marginBottom:6,alignItems:"flex-start"}}><span style={{fontSize:13}}>🕐</span><span style={{fontSize:12,color:"#334155"}}>{selected.hours}</span></div>}
-                        {selected.phone   && <div style={{display:"flex",gap:8,marginBottom:8,alignItems:"flex-start"}}><span style={{fontSize:13}}>📞</span><span style={{fontSize:12,color:"#334155"}}>{selected.phone}</span></div>}
-                        {selected.tags?.length>0 && (
-                          <div style={{display:"flex",gap:4,flexWrap:"wrap",marginBottom:8}}>
-                            {selected.tags.slice(0,4).map(t=><span key={t} style={{padding:"2px 8px",borderRadius:10,background:`${CAT_COLORS[selected.category]}15`,color:CAT_COLORS[selected.category],fontSize:10,fontWeight:600,border:`1px solid ${CAT_COLORS[selected.category]}40`}}>{t}</span>)}
-                          </div>
-                        )}
-                        {selected.langs?.length>0 && <div style={{fontSize:10,color:"#94A3B8",marginBottom:10}}>🌐 {selected.langs.join(" · ")}</div>}
-
-                        {/* Other nearby */}
-                        {SERVICES.filter(s=>s.id!==selected.id).length>0 && (
-                          <div style={{borderTop:"1px solid #F1F5F9",paddingTop:8,marginTop:4}}>
-                            <div style={{fontSize:9,fontWeight:600,color:"#94A3B8",textTransform:"uppercase",letterSpacing:0.6,marginBottom:6}}>{isEN?"Also nearby":"Aussi à proximité"}</div>
-                            {SERVICES.filter(s=>s.id!==selected.id).slice(0,2).map(s=>(
-                              <div key={s.id} style={{display:"flex",alignItems:"center",gap:6,marginBottom:4}}>
-                                <span style={{width:6,height:6,borderRadius:"50%",background:CAT_COLORS[s.category],flexShrink:0}}/>
-                                <span style={{fontSize:11,color:"#334155"}}>{s.name}</span>
-                                {s.dist && <span style={{fontSize:10,color:"#94A3B8"}}>· {s.dist}</span>}
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Flyer footer */}
-                      <div style={{background:"#F8FAFC",borderTop:"1px solid #E2E8F0",padding:"10px 16px",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-                        <div style={{fontSize:10,color:"#64748B",fontStyle:"italic"}}>{T.updated}</div>
-                        <div style={{display:"flex",gap:8}}>
-                          <div style={{padding:"4px 10px",borderRadius:5,border:"1px solid #E2E8F0",background:"#fff",fontSize:10,color:"#334155",display:"flex",alignItems:"center",gap:4}}><Phone size={10} color="#64748B"/> 211</div>
-                          <div style={{padding:"4px 10px",borderRadius:5,border:"1px solid #E2E8F0",background:"#fff",fontSize:10,color:"#334155",display:"flex",alignItems:"center",gap:4}}><QrCode size={10} color="#64748B"/> App</div>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Generate button outside the flyer */}
                     <div>
                       {flyerDone && <div style={{marginBottom:8,padding:"7px 10px",background:"#ECFDF5",borderRadius:6,color:"#059669",fontSize:12}}>✓ PDF downloaded successfully</div>}
-                      <button onClick={handleDownload}
-                        style={{width:"100%",padding:"12px",borderRadius:8,border:"none",background:"#059669",color:"#fff",fontWeight:600,cursor:"pointer",fontSize:15}}>
-                        {T.generate}
+                      {flyerDownloadError && <div style={{marginBottom:8,padding:"7px 10px",background:"#FEF2F2",borderRadius:6,color:"#B91C1C",fontSize:12}}>{flyerDownloadError}</div>}
+                      <button onClick={handleDownload} disabled={isDownloadingFlyer}
+                        style={{width:"100%",padding:"12px",borderRadius:8,border:"none",background:isDownloadingFlyer?"#94A3B8":"#059669",color:"#fff",fontWeight:600,cursor:isDownloadingFlyer?"wait":"pointer",fontSize:15}}>
+                        {isDownloadingFlyer ? (isEN ? "Preparing flyer..." : "Préparation du dépliant...") : T.generate}
                       </button>
                     </div>
                   </div>
