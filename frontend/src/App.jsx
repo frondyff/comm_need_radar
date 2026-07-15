@@ -44,13 +44,12 @@ const CATEGORIES = [
 const AGE_RANGES = ["Under 25","25–44","45–64","65+"];
 const GENDER_OPTS = [{val:"Male",label:"Male",icon:"♂"},{val:"Female",label:"Female",icon:"♀"},{val:"All",label:"All",icon:"⚥"}];
 
-const BACKEND = "http://localhost:8000";
 async function logEvent(type, detail, meta={}) {
-  try { await fetch(`${BACKEND}/log/event`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({event_type:type,detail:String(detail||""),user_group:meta.group||null,user_age_range:meta.age||null})}); }
+  try { await fetch("/api/events",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({event_type:type,detail:String(detail||""),user_group:meta.group||null,user_age_range:meta.age||null})}); }
   catch(e) { console.log("📊",type,detail); }
 }
 async function logFlyer(service, filters, meta={}) {
-  try { await fetch(`${BACKEND}/log/flyer`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({service_name:service.name,service_type:service.type,service_category:service.category,group_filter:filters.group||null,gender_filter:filters.gender||null,user_group:meta.group||null,user_age_range:meta.age||null,location:"fixed-point"})}); }
+  try { await fetch("/api/events",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({event_type:"flyer_generated",service_name:service.name,service_type:service.type,service_category:service.category,group_filter:filters.group||null,gender_filter:filters.gender||null,user_group:meta.group||null,user_age_range:meta.age||null,location:"fixed-point"})}); }
   catch(e) { console.log("📊 flyer",service.name); }
 }
 

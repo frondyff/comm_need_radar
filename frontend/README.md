@@ -6,7 +6,7 @@ A React web app for social workers and planners to find community services and g
 
 ## Quick start
 
-**Requirements:** Node.js 22+ (download at [nodejs.org](https://nodejs.org))
+**Requirements:** Node.js 22.12+ (download at [nodejs.org](https://nodejs.org))
 
 ```bash
 cd frontend
@@ -29,12 +29,27 @@ Copy `.env.example` to `.env` and set the public Supabase project URL and
 publishable key. The dashboard then loads services and planner scores from the
 public tables; missing configuration or a failed query falls back to demo data.
 
+Vercel server routes live under `api/`. `/api/events` is the dashboard's
+same-origin telemetry boundary and currently acknowledges events without
+persisting personal data. `/api/chat` is a server-side, evidence-validated
+chatbot scaffold with a deterministic fallback. It is not yet connected to the
+dashboard chat input or validated in a Vercel preview, so it does not complete
+issue #14 by itself. Configure its non-`VITE_*` variables only in the Vercel
+server environment.
+
+Typecheck the server routes before deployment:
+
+```bash
+npm run typecheck:api
+```
+
 ---
 
 ## What's in here
 
 ```
 frontend/
+├── api/                     ← Vercel server routes
 ├── public/geo/areas.geojson  ← Versioned planning-area boundaries
 ├── scripts/validate-boundaries.mjs
 ├── src/
