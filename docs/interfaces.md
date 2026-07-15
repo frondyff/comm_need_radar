@@ -186,6 +186,30 @@ File: `data/processed/monitoring_summary.csv`
 
 Grain: one row per monitoring check.
 
+## Supabase Cloud Contract
+
+Versioned schema and RLS definitions live in `supabase/migrations/`; operational
+steps and refresh semantics live in `docs/supabase-operations.md`.
+
+The current cloud schema contains 19 tables. Browser roles have read-only access
+to `area_profile`, `gap_score`, `accessibility`, `service_table`,
+`observed_need_index`, and `vulnerability_index_v2`. All raw/source tables and
+database views are denied to browser roles.
+
+Required application keys:
+
+| Table | Primary key | Parent relationship |
+| --- | --- | --- |
+| `area_profile` | `area_id` | none |
+| `gap_score` | `area_id` | `area_profile.area_id` |
+| `accessibility` | `area_id`, `service_category` | `area_profile.area_id` |
+| `service_table` | `service_id` | `database_center.center_id` |
+| `observed_need_index` | `area_id` | `area_profile.area_id` |
+| `vulnerability_index_v2` | `area_id` | `area_profile.area_id` |
+
+Cloud refresh uses transactional replacement of rows. Migrations, rather than
+the data loader, own tables, types, keys, indexes, views, grants, and RLS.
+
 ## Role Activity Log
 
 File: `data/processed/role_activity_log.csv`

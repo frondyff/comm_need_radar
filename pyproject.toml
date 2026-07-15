@@ -18,6 +18,11 @@ dependencies = [
 geo = [
     "shapely>=2.1",
 ]
+cloud = [
+    "python-dotenv>=1.0",
+    "psycopg2-binary>=2.9",
+    "sqlalchemy>=2.0",
+]
 
 [tool.setuptools.packages.find]
 where = ["src"]
