@@ -1,107 +1,238 @@
-"""Push the project data to a free shared cloud Postgres (e.g. Supabase / Neon).
+"""Atomically refresh the migrated Supabase schema from the local SQLite build.
 
-Reads the local SQLite database (data/community_radar.sqlite) and copies every
-table to a Postgres database so the whole team can query the same live data.
-
-Security: the connection string is read from the DATABASE_URL environment variable
-(keep it in a gitignored .env — never commit it). This script never prints it.
-
-Prerequisites:
-    pip install sqlalchemy psycopg2-binary python-dotenv
-    python scripts/data_pipeline/build_database.py    # builds the local SQLite first
-
-Set the connection string (Supabase: Project Settings -> Database -> Connection
-string -> URI). Example .env line:
-    DATABASE_URL=postgresql://postgres:<password>@db.<ref>.supabase.co:5432/postgres
-
-Run:
-    python scripts/data_pipeline/load_to_cloud.py
+The committed Supabase migrations own schema, keys, indexes, views, grants, and
+RLS. This loader owns rows only: it truncates and reloads all current contract
+tables in one transaction, then verifies source/target row counts. Any failure
+rolls the transaction back and exits nonzero.
 """
-from pathlib import Path
+
+from __future__ import annotations
+
 import os
+from pathlib import Path
 import sqlite3
 import sys
+from typing import Any
 
 import pandas as pd
 
+
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
-sys.path.insert(0, str(PROJECT_ROOT / "src"))
-from comm_need_radar.config.paths import DATA_DIR  # noqa: E402
+SQLITE_PATH = PROJECT_ROOT / "data" / "community_radar.sqlite"
 
-SQLITE_PATH = DATA_DIR / "community_radar.sqlite"
+# Parents precede children so immediate foreign keys remain valid during load.
+TABLES = (
+    "census_tract",
+    "ct_centroid",
+    "database_center",
+    "database_visitor_tag",
+    "area_profile",
+    "service_table",
+    "cisv_reference",
+    "stm_stop",
+    "gap_score",
+    "accessibility",
+    "area_vulnerability_index_real",
+    "monitoring_summary",
+    "role_activity_log",
+    "flyer_examples",
+    "services_master",
+    "center_area_lookup",
+    "observed_need_index",
+    "observed_need_category_summary",
+    "vulnerability_index_v2",
+)
 
-# Primary keys to (re)apply on the cloud side after loading, for clean joins/UI.
-PRIMARY_KEYS = {
-    "census_tract": "ct_code",
-    "ct_centroid": "ct_code",
-    "database_center": "center_id",
-    "database_visitor_tag": "visit_group_id",
-    "service_table": "service_id",
+APP_READY_TABLES = (
+    "area_profile",
+    "gap_score",
+    "accessibility",
+    "service_table",
+    "observed_need_index",
+    "vulnerability_index_v2",
+)
+
+REQUIRED_VIEWS = ("v_visit_needs_by_center", "v_ct_vulnerability")
+
+BOOLEAN_COLUMNS = {
+    "database_center": ("indigenous_led_or_specific",),
+    "database_visitor_tag": (
+        "language_need_flag",
+        "settlement_need_flag",
+        "indigenous_specific_need_flag",
+    ),
+    "services_master": ("mappable",),
+    "observed_need_index": ("insufficient_visit_data",),
+    "vulnerability_index_v2": ("insufficient_visit_data",),
 }
+
+CISV_COLUMN_NAMES = {
+    "\ufeffDissemination Area (DA)": "dissemination_area",
+    "ï»¿Dissemination Area (DA)": "dissemination_area",
+    "Dissemination Area (DA)": "dissemination_area",
+    "Province or territory": "province_or_territory",
+    "Dimension 1 Scores": "dimension_1_score",
+    "Dimension 2 Scores": "dimension_2_score",
+    "Dimension 3 Scores": "dimension_3_score",
+    "Dimension 4 Scores": "dimension_4_score",
+    "CISV Scores": "cisv_score",
+    "CISV Quintiles": "cisv_quintile",
+    "CISV Most Vulnerable Dimension": "cisv_most_vulnerable_dimension",
+}
+
+
+def _as_boolean(value: Any) -> bool | None:
+    if pd.isna(value):
+        return None
+    if isinstance(value, str):
+        normalized = value.strip().lower()
+        if normalized in {"1", "true", "t", "yes"}:
+            return True
+        if normalized in {"0", "false", "f", "no"}:
+            return False
+        raise ValueError(f"Cannot convert {value!r} to boolean")
+    return bool(value)
+
+
+def prepare_frame(table: str, frame: pd.DataFrame) -> pd.DataFrame:
+    prepared = frame.rename(columns=CISV_COLUMN_NAMES if table == "cisv_reference" else {})
+    for column in BOOLEAN_COLUMNS.get(table, ()):
+        if column in prepared.columns:
+            prepared[column] = prepared[column].map(_as_boolean)
+    return prepared
+
+
+def _quoted_names(names: tuple[str, ...]) -> str:
+    return ", ".join(f'public."{name}"' for name in names)
 
 
 def main() -> None:
     try:
-        from sqlalchemy import create_engine, text
-    except ImportError:
-        sys.exit("Missing deps. Run: pip install sqlalchemy psycopg2-binary python-dotenv")
-
-    try:
         from dotenv import load_dotenv
+
         load_dotenv(PROJECT_ROOT / ".env")
     except ImportError:
         pass
 
-    url = os.environ.get("DATABASE_URL")
-    if not url:
-        sys.exit("Set DATABASE_URL (in .env or the environment). See this script's header.")
-    # SQLAlchemy needs the postgresql:// scheme.
-    if url.startswith("postgres://"):
-        url = url.replace("postgres://", "postgresql://", 1)
+    try:
+        from sqlalchemy import create_engine, text
+    except ImportError:
+        sys.exit(
+            "Missing cloud dependencies. Run: "
+            "python -m pip install -e '.[cloud]'"
+        )
 
+    database_url = os.environ.get("SUPABASE_DB_URL") or os.environ.get("DATABASE_URL")
+    if not database_url:
+        sys.exit("Set SUPABASE_DB_URL in the environment or gitignored root .env file.")
+    if database_url.startswith("postgres://"):
+        database_url = database_url.replace("postgres://", "postgresql://", 1)
     if not SQLITE_PATH.exists():
-        sys.exit(f"Missing {SQLITE_PATH}. Run build_database.py first.")
+        sys.exit(f"Missing {SQLITE_PATH}. Build the local SQLite database first.")
 
-    src = sqlite3.connect(SQLITE_PATH)
-    tables = [r[0] for r in src.execute(
-        "SELECT name FROM sqlite_master WHERE type='table' ORDER BY name")]
+    source = sqlite3.connect(SQLITE_PATH)
+    engine = create_engine(database_url, pool_pre_ping=True)
 
-    engine = create_engine(url)
-    host = engine.url.host
-    print(f"Loading {len(tables)} tables into Postgres @ {host} …")
-    with engine.begin() as conn:
-        # Drop every existing public table first (CASCADE removes FK constraints and
-        # dependent views from a prior load, and any tables no longer in the SQLite
-        # e.g. the retired service_directory), so the reload is a clean mirror.
-        existing = [r[0] for r in conn.execute(text(
-            "SELECT tablename FROM pg_tables WHERE schemaname='public'"))]
-        for t in existing:
-            conn.execute(text(f'DROP TABLE IF EXISTS "{t}" CASCADE'))
-        if existing:
-            print(f"  cleared {len(existing)} existing tables")
-        for t in tables:
-            df = pd.read_sql(f"SELECT * FROM {t}", src)
-            df.to_sql(t, conn, if_exists="replace", index=False)
-            print(f"  ✓ {t:34s} {len(df):>6d} rows")
-        # apply primary keys where the column exists
-        for t, pk in PRIMARY_KEYS.items():
-            if t in tables:
-                try:
-                    conn.execute(text(f'ALTER TABLE {t} ADD PRIMARY KEY ("{pk}")'))
-                except Exception as e:  # noqa: BLE001
-                    print(f"  (PK on {t}.{pk} skipped: {str(e)[:60]})")
-        # recreate the SQLite views on the cloud side (standard SQL, portable)
-        for name, sql in src.execute(
-                "SELECT name, sql FROM sqlite_master WHERE type='view'").fetchall():
-            try:
-                conn.execute(text(sql.replace("CREATE VIEW", "CREATE OR REPLACE VIEW", 1)))
-                print(f"  ✓ view {name}")
-            except Exception as e:  # noqa: BLE001
-                print(f"  (view {name} skipped: {str(e)[:60]})")
-    src.close()
-    print("\nDone. Teammates can now query the shared database:")
-    print("  • Supabase dashboard -> Table editor / SQL editor (browser, no install)")
-    print("  • Any Postgres client with the same DATABASE_URL")
+    try:
+        source_tables = {
+            row[0]
+            for row in source.execute(
+                "select name from sqlite_master where type = 'table'"
+            ).fetchall()
+        }
+        missing_source = sorted(set(TABLES) - source_tables)
+        if missing_source:
+            raise RuntimeError(
+                f"SQLite source is missing required tables: {', '.join(missing_source)}"
+            )
+
+        with engine.begin() as connection:
+            target_tables = {
+                row[0]
+                for row in connection.execute(
+                    text(
+                        "select tablename from pg_tables "
+                        "where schemaname = 'public'"
+                    )
+                )
+            }
+            missing_target = sorted(set(TABLES) - target_tables)
+            if missing_target:
+                raise RuntimeError(
+                    "Supabase is missing migrated tables: "
+                    f"{', '.join(missing_target)}. Apply supabase/migrations first."
+                )
+
+            target_views = {
+                row[0]
+                for row in connection.execute(
+                    text(
+                        "select viewname from pg_views "
+                        "where schemaname = 'public'"
+                    )
+                )
+            }
+            missing_views = sorted(set(REQUIRED_VIEWS) - target_views)
+            if missing_views:
+                raise RuntimeError(
+                    f"Supabase is missing required views: {', '.join(missing_views)}"
+                )
+
+            connection.execute(text(f"truncate table {_quoted_names(TABLES)} cascade"))
+
+            print(f"Refreshing {len(TABLES)} migrated tables atomically...")
+            for table in TABLES:
+                frame = prepare_frame(
+                    table,
+                    pd.read_sql_query(f'select * from "{table}"', source),
+                )
+                target_columns = {
+                    row[0]
+                    for row in connection.execute(
+                        text(
+                            "select column_name from information_schema.columns "
+                            "where table_schema = 'public' and table_name = :table"
+                        ),
+                        {"table": table},
+                    )
+                }
+                unknown_columns = sorted(set(frame.columns) - target_columns)
+                if unknown_columns:
+                    raise RuntimeError(
+                        f"{table} has source columns absent from the migration: "
+                        f"{', '.join(unknown_columns)}"
+                    )
+
+                frame.to_sql(
+                    table,
+                    connection,
+                    schema="public",
+                    if_exists="append",
+                    index=False,
+                    chunksize=1000,
+                    method="multi",
+                )
+                target_count = connection.execute(
+                    text(f'select count(*) from public."{table}"')
+                ).scalar_one()
+                if target_count != len(frame):
+                    raise RuntimeError(
+                        f"{table} row-count mismatch: source={len(frame)}, "
+                        f"target={target_count}"
+                    )
+                if table in APP_READY_TABLES and target_count == 0:
+                    raise RuntimeError(f"Required app-ready table {table} is empty")
+                print(f"  PASS {table:34s} {target_count:>6d} rows")
+
+            connection.execute(text("set constraints all immediate"))
+
+        print("Supabase refresh committed. Schema, views, grants, and RLS were preserved.")
+    except Exception as error:
+        print(f"Supabase refresh failed and was rolled back: {error}", file=sys.stderr)
+        raise SystemExit(1) from error
+    finally:
+        source.close()
+        engine.dispose()
 
 
 if __name__ == "__main__":
