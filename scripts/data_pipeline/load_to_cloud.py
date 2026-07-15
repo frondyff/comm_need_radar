@@ -178,7 +178,9 @@ def main() -> None:
                     f"Supabase is missing required views: {', '.join(missing_views)}"
                 )
 
-            connection.execute(text(f"truncate table {_quoted_names(TABLES)} cascade"))
+            # Every table in the known FK graph is included. Avoid CASCADE so a
+            # future dependent table outside this contract cannot be erased.
+            connection.execute(text(f"truncate table {_quoted_names(TABLES)}"))
 
             print(f"Refreshing {len(TABLES)} migrated tables atomically...")
             for table in TABLES:

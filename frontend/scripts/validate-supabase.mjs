@@ -234,9 +234,9 @@ for (const [table, columns] of Object.entries(keyColumns)) {
 }
 
 for (const objectName of privateObjects) {
-  const { data, error } = await client.from(objectName).select("*").limit(1);
-  if (!error && data && data.length > 0) {
-    fail(`${objectName} is readable by the anonymous browser role`);
+  const { error } = await client.from(objectName).select("*").limit(1);
+  if (!error) {
+    fail(`${objectName} accepted an anonymous read query`);
   } else {
     pass(`${objectName} is not readable by the anonymous browser role`);
   }
