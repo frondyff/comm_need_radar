@@ -50,6 +50,19 @@ each file is also machine-readable in `data/raw/source_metadata.csv`.
 - **Grain / size:** **11 boroughs** (polygon + `NOM`).
 - **Use:** aggregation target for the 12 MVP areas.
 
+### `frontend/public/geo/areas.geojson`
+- **Derived from:** `montreal_boroughs.geojson` using
+  `scripts/build_area_boundaries.py`.
+- **Grain / size:** **12 stable project areas**, 265,418 bytes raw / 71,183 bytes
+  gzip.
+- **Transformation:** ten IDs use an official administrative polygon directly.
+  `A001` and `A002` partition their shared official borough by nearest committed
+  area centroid in a local equirectangular projection.
+- **Validation:** `scripts/validate_spatial_joins.py`; results and limitations are
+  recorded in `docs/spatial-join-validation.md`.
+- **Limitation:** the `A001`/`A002` internal divider is derived, not an official
+  neighbourhood boundary. All outer geometry remains official.
+
 ---
 
 ## 3. Service locations (`data/raw/database_centers.csv` — 4,255 centers)

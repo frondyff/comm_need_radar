@@ -18,6 +18,8 @@ scripts consume — it does not change the scoring.
 | `data/processed/cisv_reference_montreal.csv` | `build_cisv_reference.py` | dissemination area |
 | `data/processed/stm_stops.csv` | `build_transit_stops.py` | transit stop |
 | `data/raw/source_metadata.csv` | (committed) | dataset |
+| `frontend/public/geo/areas.geojson` | `scripts/build_area_boundaries.py` | project area (12) |
+| `data/processed/spatial_join_*.csv` | `scripts/validate_spatial_joins.py` | QA result / issue |
 
 Service sources are fetched by `fetch_community_services.py` (MSSS health/social
 facilities), `fetch_osm_services.py` (OpenStreetMap social facilities), and
@@ -60,6 +62,11 @@ python scripts/data_pipeline/generate_synthetic_visitor_tags.py   # synthetic (n
 # 5. feed Frondy's scoring (real immigrant/Indigenous focus index)
 python scripts/build_statcan_vulnerability_index.py
 python scripts/aggregate_ct_to_areas.py
+
+# 5b. build stable frontend polygons and validate all spatial joins
+python scripts/build_area_boundaries.py
+python scripts/map_centers_to_areas.py
+python scripts/validate_spatial_joins.py
 
 # 6. (optional) load everything into a single SQLite database
 python scripts/data_pipeline/build_database.py   # -> data/community_radar.sqlite

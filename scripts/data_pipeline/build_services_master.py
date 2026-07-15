@@ -6,9 +6,8 @@ service centers (database_centers.csv) into a single canonical list:
     normalized name and by location),
   - classified into the same taxonomy (service_taxonomy.py),
   - tagged with its source(s),
-  - assigned to its MVP area where mappable (point-in-polygon -> nearest area
-    centroid, identical method to map_centers_to_areas.py), so it is
-    scoring-ready.
+  - assigned to its MVP area where mappable using the same real-boundary
+    contract shipped to the frontend, so it is scoring-ready.
 
 Frondy's existing database_center / center_area_lookup / scoring tables are left
 untouched; this is the table his scoring can migrate onto (each row carries
@@ -22,17 +21,20 @@ Writes: data/processed/services_master.csv
 """
 from pathlib import Path
 import hashlib
-import json
 import math
 import re
 import sys
 import unicodedata
 
 import pandas as pd
-from shapely.geometry import Point, shape
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+sys.path.insert(0, str(ROOT / "src"))
+from comm_need_radar.geospatial.boundaries import (  # noqa: E402
+    build_area_boundaries_from_files,
+    match_point,
+)
 from service_taxonomy import classify  # noqa: E402
 
 SD = ROOT / "data" / "processed" / "service_directory_211.csv"
@@ -49,16 +51,6 @@ DC_SOURCE = {"Recreation & Sport": "montreal_open_data", "Library & Culture": "m
 EXCLUDE_DC = {"Recreation & Sport"}
 DC_SEED = {"Recreation & Sport": "Recreation & Culture", "Library & Culture": "Recreation & Culture",
            "Food Support": "Food", "Community & Social Services": "Community & Advocacy"}
-
-BOROUGH_NAME_MAP = {
-    "Villeray-Saint-Michel-Parc-Extension": "Villeray-Saint-Michel-Parc-Extension",
-    "Côte-des-Neiges-Notre-Dame-de-Grâce": "Cote-des-Neiges-Notre-Dame-de-Grace",
-    "Montréal-Nord": "Montreal-Nord", "Mercier-Hochelaga-Maisonneuve": "Mercier-Hochelaga-Maisonneuve",
-    "Verdun": "Verdun", "Ahuntsic-Cartierville": "Ahuntsic-Cartierville", "Lachine": "Lachine",
-    "Westmount": "Westmount", "Le Plateau-Mont-Royal": "Le Plateau-Mont-Royal",
-    "Le Sud-Ouest": "Le Sud-Ouest",
-    "Rivière-des-Prairies-Pointe-aux-Trembles": "Riviere-des-Prairies-Pointe-aux-Trembles",
-}
 
 
 def norm(s):
@@ -108,26 +100,11 @@ def haversine_km(la1, lo1, la2, lo2):
     return 2 * r * math.asin(math.sqrt(a))
 
 
-def load_polys():
-    gj = json.loads(BOROUGHS.read_text(encoding="utf-8"))
-    out = []
-    for f in gj["features"]:
-        proj = BOROUGH_NAME_MAP.get(f["properties"]["NOM"])
-        if proj:
-            out.append((proj, shape(f["geometry"])))
-    return out
-
-
-def assign_area(lat, lon, polys, areas):
-    pt = Point(lon, lat)
-    borough = next((n for n, poly in polys if poly.contains(pt)), None)
-    if not borough:
+def assign_area(lat, lon, boundaries):
+    matches = match_point(lon, lat, boundaries)
+    if len(matches) != 1:
         return "", ""
-    cands = [a for a in areas if a["borough_name"] == borough]
-    if not cands:
-        return "", borough
-    aid = min(cands, key=lambda a: haversine_km(lat, lon, float(a["latitude"]), float(a["longitude"])))["area_id"]
-    return aid, borough
+    return matches[0].area_id, matches[0].borough_name
 
 
 def main():
@@ -232,12 +209,15 @@ def main():
                 collapsed += 1
 
     # 3. assign each mappable service to its MVP area
-    polys = load_polys()
-    areas = pd.read_csv(AREAS, dtype=str).fillna("").to_dict("records")
+    boundaries = build_area_boundaries_from_files(AREAS, BOROUGHS)
     assigned = 0
     for row in master.values():
         if row["mappable"] == "1":
-            aid, bor = assign_area(float(row["latitude"]), float(row["longitude"]), polys, areas)
+            aid, bor = assign_area(
+                float(row["latitude"]),
+                float(row["longitude"]),
+                boundaries,
+            )
             row["area_id"], row["borough_name"] = aid, bor
             assigned += 1 if aid else 0
         else:
