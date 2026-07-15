@@ -1,0 +1,4 @@
+dataset,total_records,matched_once,unmatched,multiply_matched,lookup_mismatches
+scored_area_centroids,12,12,0,0,0
+service_centers,4255,2537,1718,0,0
+census_tract_centroids,1004,309,695,0,0

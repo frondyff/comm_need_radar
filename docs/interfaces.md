@@ -210,6 +210,29 @@ Required application keys:
 Cloud refresh uses transactional replacement of rows. Migrations, rather than
 the data loader, own tables, types, keys, indexes, views, grants, and RLS.
 
+## Area Boundary GeoJSON
+
+File: `frontend/public/geo/areas.geojson`
+
+Grain: one non-overlapping feature per stable `area_id` in `area_profile` and
+`gap_score`.
+
+Required feature properties:
+
+| Field | Meaning |
+| --- | --- |
+| `area_id` | Stable join key used by scoring and map selection |
+| `area_name` | Project display name |
+| `borough_name` | Normalized administrative-area name |
+| `boundary_type` | Official polygon or documented centroid partition |
+| `boundary_source` | Human-readable source attribution |
+| `source_downloaded_date` | Date the committed source was acquired |
+
+Geometry may be `Polygon` or `MultiPolygon`. `A001` and `A002` are a derived,
+non-overlapping partition of their shared official borough; other IDs map
+one-to-one to an official administrative polygon. Run
+`scripts/validate_spatial_joins.py` after any boundary or centroid change.
+
 ## Role Activity Log
 
 File: `data/processed/role_activity_log.csv`

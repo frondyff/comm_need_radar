@@ -31,7 +31,7 @@ sample records with public census, boundary, and service-location data.
   - Monitoring View.
 - A separate customizable React frontend prototype with Planner and Frontline
   modes, MapLibre maps, vulnerability cards, card detail, and local policy chat.
-- Custom frontend upgrades for PDF handouts, synthetic polygon choropleth
+- Custom frontend upgrades for PDF handouts, real-boundary polygon choropleth
   layers, radius catchments, and scenario-style geospatial analysis.
 - Plain-language area summaries grounded in processed data.
 - Markdown docs and GitHub templates for team monitoring.
@@ -114,9 +114,13 @@ Vite, React, TypeScript, Tailwind CSS, MapLibre GL JS, and deck.gl-ready
 dependencies. I used Vite here because the patched secure Next.js release
 requires Node 20.9+, while this repo currently runs Node 18.19. The frontend
 reads the same processed CSV outputs copied into `frontend/public/data/`.
-The synthetic polygon layer lives at `frontend/public/geo/areas.geojson`; replace
-it with real boundary GeoJSON using the same `area_id` keys when public
-geography is ready.
+The real polygon layer lives at `frontend/public/geo/areas.geojson`. Rebuild and
+validate it from the approved source while preserving stable `area_id` keys:
+
+```bash
+python3 scripts/build_area_boundaries.py
+python3 scripts/validate_spatial_joins.py
+```
 
 ```bash
 cd frontend
