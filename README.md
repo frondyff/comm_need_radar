@@ -29,10 +29,10 @@ sample records with public census, boundary, and service-location data.
   - Frontline / Community View with postal-code/community search and
     clickable vulnerability profile cards.
   - Monitoring View.
-- A separate customizable React frontend prototype with Planner and Frontline
-  modes, MapLibre maps, vulnerability cards, card detail, and local policy chat.
-- Custom frontend upgrades for PDF handouts, real-boundary polygon choropleth
-  layers, radius catchments, and scenario-style geospatial analysis.
+- A canonical Vite/React dashboard with Planner and Frontline modes, Leaflet
+  maps, Supabase-backed services and scores, and CSV demo fallbacks.
+- Frontend support for PDF handouts and a real-boundary polygon choropleth with
+  stable scoring-area identifiers.
 - Plain-language area summaries grounded in processed data.
 - Markdown docs and GitHub templates for team monitoring.
 - Lightweight standard-library tests that can run without pytest.
@@ -109,11 +109,10 @@ The app uses processed CSV files and does not need external credentials.
 
 ## Run Custom Frontend
 
-The `frontend/` directory contains the recommended production-oriented UI stack:
-Vite, React, TypeScript, Tailwind CSS, MapLibre GL JS, and deck.gl-ready
-dependencies. I used Vite here because the patched secure Next.js release
-requires Node 20.9+, while this repo currently runs Node 18.19. The frontend
-reads the same processed CSV outputs copied into `frontend/public/data/`.
+The `frontend/` directory contains the canonical dashboard UI built with Vite,
+React, and React Leaflet. With public Supabase environment variables configured,
+it loads services and planner scores from the app-ready tables. It falls back to
+the committed demo data when configuration or queries are unavailable.
 The real polygon layer lives at `frontend/public/geo/areas.geojson`. Rebuild and
 validate it from the approved source while preserving stable `area_id` keys:
 
@@ -125,14 +124,17 @@ python3 scripts/validate_spatial_joins.py
 ```bash
 cd frontend
 npm install
+npm run validate:boundaries
+npm run validate:dashboard-adapter
+npm run validate:supabase-dashboard
 npm run dev
 ```
 
 Use the localhost URL printed in the terminal, usually `http://localhost:5173`.
 
-Use Streamlit for the current cloud-ready MVP. Use the custom frontend when the
-project needs more control over interaction design, map behavior, routing, and
-component-level UX.
+See `docs/production-web-architecture.md` and
+`docs/production-web-implementation-guide.md` for the production web boundary,
+deployment responsibilities, and issue-ordered delivery plan.
 
 ## Deploy To Streamlit Community Cloud
 

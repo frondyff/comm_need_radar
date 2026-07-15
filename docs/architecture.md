@@ -33,6 +33,9 @@ No bronze, silver, or gold layers are used.
 See `docs/mvp-system-erd.md` for the application-facing and scoring-pipeline data
 models.
 
+See `docs/production-web-architecture.md` for the canonical React, Supabase,
+Vercel, and server-side chatbot deployment boundary.
+
 ## Processing Layer
 
 Baseline processing is handled by `scripts/build_processed_data.py`, which calls

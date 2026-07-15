@@ -210,6 +210,18 @@ Required application keys:
 Cloud refresh uses transactional replacement of rows. Migrations, rather than
 the data loader, own tables, types, keys, indexes, views, grants, and RLS.
 
+## Dashboard Frontend Adapter
+
+The canonical `feature/dashboard` frontend reads the browser-safe Supabase
+tables through `frontend/src/data/supabaseAdapter.js`. It maps cloud rows into
+the existing dashboard view model and joins planner scores to map features by
+stable `area_id`. A missing public configuration or failed cloud query activates
+the explicit committed demo fallback; it must not silently change identifiers.
+
+Only `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` are browser
+variables. Service-role keys, database passwords, direct database URLs, and LLM
+keys are server-only and must never be placed in `VITE_*` variables.
+
 ## Area Boundary GeoJSON
 
 File: `frontend/public/geo/areas.geojson`

@@ -19,6 +19,8 @@
 | 2026-07-02 | Treat encounter counts as visits, not unique people | The aggregate source has no deduplicated client identifier |
 | 2026-07-14 | Use official administrative polygons and a labeled centroid partition for `A001`/`A002` | Preserves the 12 stable scoring IDs without overlapping synthetic envelopes or presenting the derived divider as official |
 | 2026-07-14 | Keep GeoJSON for the 12-feature production map contract | The generated payload is 265 KB raw and 71 KB gzip; PMTiles adds complexity without a payload benefit at this scale |
+| 2026-07-15 | Use the app-ready Supabase tables as the canonical frontend data source | Keeps browser access read-only and traceable while retaining explicit CSV demo fallbacks |
+| 2026-07-15 | Use `feature/dashboard` as the canonical frontend baseline | Preserves the approved dashboard UX while geospatial and scoring branches contribute data contracts and artifacts only |
 
 ## Pending Decisions For Real Data Version
 
