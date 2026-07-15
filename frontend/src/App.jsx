@@ -107,57 +107,104 @@ function scoreToColor(score) {
   return "#FFE4E6";
 }
 
-function ChoroplethMap({ selectedBorough, onSelect }) {
+const BOUNDARY_SCORE_ALIASES = {
+  "Montreal-Nord": "Montréal-Nord",
+  "Cote-des-Neiges-Notre-Dame-de-Grace": "Côte-des-Neiges--Notre-Dame-de-Grâce",
+  "Verdun": "Verdun--Ile-des-Soeurs",
+  "Le Sud-Ouest": "Sud-Ouest",
+  "Le Plateau-Mont-Royal": "Plateau-Mont-Royal",
+};
+
+function boundaryScoreKey(feature) {
+  const boroughName = feature.properties?.borough_name || "";
+  return BOUNDARY_SCORE_ALIASES[boroughName] || boroughName || null;
+}
+
+function ChoroplethMap({ selectedBorough, selectedAreaId, onSelect }) {
   const [geojson, setGeojson] = useState(null);
+  const [mapStatus, setMapStatus] = useState("loading");
   const mapRef = useRef(null);
 
   useEffect(() => {
-    fetch("https://raw.githubusercontent.com/blackmad/neighborhoods/master/montreal.geojson")
-      .then(r => r.json())
-      .then(data => setGeojson(data))
-      .catch(() => setGeojson(null));
+    const controller = new AbortController();
+    fetch("/geo/areas.geojson", { signal: controller.signal })
+      .then(r => {
+        if (!r.ok) throw new Error(`Boundary request failed: ${r.status}`);
+        return r.json();
+      })
+      .then(data => {
+        if (!Array.isArray(data.features) || data.features.length === 0) {
+          throw new Error("Boundary artifact has no features");
+        }
+        setGeojson(data);
+        setMapStatus("ready");
+      })
+      .catch(error => {
+        if (error.name !== "AbortError") {
+          console.error("Unable to load local area boundaries", error);
+          setGeojson(null);
+          setMapStatus("error");
+        }
+      });
+    return () => controller.abort();
   }, []);
 
   const onEachFeature = (feature, layer) => {
-    const name = feature.properties?.name || "";
-    const data = BOROUGH_SCORES[name];
+    const name = boundaryScoreKey(feature);
+    const label = feature.properties?.area_name || feature.properties?.borough_name || "";
+    const boroughLabel = feature.properties?.borough_name || "";
+    const areaId = feature.properties?.area_id || "";
+    const data = name ? BOROUGH_SCORES[name] : null;
     const score = data?.score;
+    const isSelected = selectedAreaId ? areaId === selectedAreaId : name === selectedBorough;
     layer.setStyle({
       fillColor: scoreToColor(score),
       fillOpacity: 0.8,
-      color: name === selectedBorough ? "#0F172A" : "#fff",
-      weight: name === selectedBorough ? 2.5 : 1,
+      color: isSelected ? "#0F172A" : "#fff",
+      weight: isSelected ? 2.5 : 1,
     });
     layer.on({
-      click: () => onSelect(name),
+      click: () => {
+        if (name && areaId) onSelect({ scoreKey: name, areaId, areaName: label });
+      },
       mouseover: (e) => { e.target.setStyle({ fillOpacity: 1 }); },
       mouseout: (e) => { e.target.setStyle({ fillOpacity: 0.8 }); },
     });
-    if (name) {
-      layer.bindTooltip(`<b>${name}</b>${score ? `<br/>Gap Score: <b>${score}</b>` : ""}`, { sticky: true });
+    if (label) {
+      layer.bindTooltip(
+        `<b>${label}</b><br/>${boroughLabel}${areaId ? ` · ${areaId}` : ""}${score ? `<br/>Gap Score: <b>${score}</b>` : ""}`,
+        { sticky: true }
+      );
     }
   };
 
   const style = (feature) => {
-    const name = feature.properties?.name || "";
+    const name = boundaryScoreKey(feature);
+    const areaId = feature.properties?.area_id || "";
+    const isSelected = selectedAreaId ? areaId === selectedAreaId : name === selectedBorough;
     return {
-      fillColor: scoreToColor(BOROUGH_SCORES[name]?.score),
+      fillColor: scoreToColor(name ? BOROUGH_SCORES[name]?.score : null),
       fillOpacity: 0.8,
-      color: name === selectedBorough ? "#0F172A" : "#fff",
-      weight: name === selectedBorough ? 2.5 : 1,
+      color: isSelected ? "#0F172A" : "#fff",
+      weight: isSelected ? 2.5 : 1,
     };
   };
 
   return (
     <div style={{height:"100%",width:"100%",position:"relative",zIndex:0}}>
       <MapContainer center={[45.53,-73.65]} zoom={11} style={{height:"100%",width:"100%"}} zoomControl={true}>
-        <TileLayer attribution='© CartoDB' url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png" opacity={0.3}/>
+        <TileLayer attribution='© CartoDB · Boundaries © Ville de Montréal, CC BY 4.0' url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png" opacity={0.3}/>
         {geojson && (
-          <GeoJSON key={selectedBorough} data={geojson} style={style} onEachFeature={onEachFeature}/>
+          <GeoJSON key={`${selectedBorough}:${selectedAreaId || "ranked"}`} data={geojson} style={style} onEachFeature={onEachFeature}/>
         )}
-        {!geojson && (
+        {mapStatus === "loading" && (
           <div style={{position:"absolute",inset:0,display:"flex",alignItems:"center",justifyContent:"center",zIndex:1000,background:"rgba(255,255,255,0.7)",fontSize:13,color:"#64748B"}}>
             Loading map…
+          </div>
+        )}
+        {mapStatus === "error" && (
+          <div style={{position:"absolute",inset:0,display:"flex",alignItems:"center",justifyContent:"center",zIndex:1000,background:"rgba(255,255,255,0.9)",fontSize:13,color:"#9F1239"}}>
+            Boundary map unavailable
           </div>
         )}
       </MapContainer>
@@ -168,12 +215,24 @@ function ChoroplethMap({ selectedBorough, onSelect }) {
 function PlannerView({ lang, setLang, onSwitch, onExit, location, onChangeLocation }) {
   const [chat, setChat] = useState("");
   const [selectedBorough, setSelectedBorough] = useState("Mercier-Hochelaga-Maisonneuve");
+  const [selectedAreaId, setSelectedAreaId] = useState("A005");
+  const [selectedAreaLabel, setSelectedAreaLabel] = useState("Mercier-Hochelaga-Maisonneuve");
   const priorities = Object.entries(BOROUGH_SCORES)
     .sort((a,b)=>b[1].score-a[1].score)
     .slice(0,5)
     .map(([name,d])=>({ name: name.length>18?name.slice(0,16)+"…":name, fullName:name, score:d.score }));
   const areaData = BOROUGH_SCORES[selectedBorough] || { score:0, income:0, housing:0, immigration:0 };
   const isEN = lang==="EN";
+  const selectMapArea = ({ scoreKey, areaId, areaName }) => {
+    setSelectedBorough(scoreKey);
+    setSelectedAreaId(areaId);
+    setSelectedAreaLabel(areaName);
+  };
+  const selectRankedBorough = (boroughName) => {
+    setSelectedBorough(boroughName);
+    setSelectedAreaId(null);
+    setSelectedAreaLabel(boroughName);
+  };
   return (
     <div style={{minHeight:"100vh",background:"#FFFFFF",fontFamily:"system-ui,sans-serif",fontSize:14}}>
       <div style={{background:"#0B1220",padding:"10px 20px",display:"flex",alignItems:"center",justifyContent:"space-between",position:"sticky",top:0,zIndex:1000,borderBottom:"1px solid #1E293B"}}>
@@ -225,7 +284,7 @@ function PlannerView({ lang, setLang, onSwitch, onExit, location, onChangeLocati
               <span style={{fontSize:13,color:"#64748B"}}>{isEN?"by Gap Score":"par Score d'écart"}</span>
             </div>
             <div style={{flex:1,minHeight:460}}>
-              <ChoroplethMap selectedBorough={selectedBorough} onSelect={setSelectedBorough}/>
+              <ChoroplethMap selectedBorough={selectedBorough} selectedAreaId={selectedAreaId} onSelect={selectMapArea}/>
             </div>
             <div style={{padding:"10px 16px",borderTop:"1px solid #E2E8F0",display:"flex",alignItems:"center",gap:8,fontSize:13,color:"#334155"}}>
               <span>{isEN?"Low":"Faible"}</span>
@@ -257,7 +316,7 @@ function PlannerView({ lang, setLang, onSwitch, onExit, location, onChangeLocati
             <div style={{fontWeight:600,fontSize:15,marginBottom:12}}>{isEN?"Top priority areas (by Gap Score)":"Zones prioritaires (par Score d'écart)"}</div>
             <div style={{display:"flex",flexDirection:"column",gap:8,flex:1}}>
               {priorities.map((p,i)=>(
-                <div key={p.name} onClick={()=>setSelectedBorough(p.fullName)}
+                <div key={p.name} onClick={()=>selectRankedBorough(p.fullName)}
                   style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"10px 12px",borderRadius:8,cursor:"pointer",background:selectedBorough===p.fullName?"#EFF6FF":"#F1F5F9",border:`1px solid ${selectedBorough===p.fullName?"#2563EB":"#E2E8F0"}`,transition:"all 0.15s"}}>
                   <span style={{fontSize:13,fontWeight:selectedBorough===p.fullName?600:400,color:selectedBorough===p.fullName?"#2563EB":"#0F172A"}}>{p.name}</span>
                   <span style={{fontSize:13,fontWeight:700,color:"#2563EB",background:"#EFF6FF",padding:"3px 8px",borderRadius:4,fontFamily:MONO_FONT}}>{p.score}</span>
@@ -270,7 +329,7 @@ function PlannerView({ lang, setLang, onSwitch, onExit, location, onChangeLocati
         {/* Area profile — updates when borough clicked */}
         <div style={{background:"#fff",border:"1px solid #E2E8F0",borderRadius:8,padding:"16px",marginBottom:12}}>
           <div style={{fontWeight:600,fontSize:15,marginBottom:12}}>
-            {isEN?"Area profile":"Profil de la zone"} — <span style={{color:"#2563EB"}}>{selectedBorough}</span>
+            {isEN?"Area profile":"Profil de la zone"} — <span style={{color:"#2563EB"}}>{selectedAreaLabel}</span>
             <span style={{marginLeft:10,fontSize:13,color:"#64748B",fontWeight:400}}>Gap Score: <b style={{fontFamily:MONO_FONT}}>{areaData.score}</b></span>
           </div>
           <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:20}}>
