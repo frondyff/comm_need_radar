@@ -6,7 +6,7 @@ A React web app for social workers and planners to find community services and g
 
 ## Quick start
 
-**Requirements:** Node.js 18+ (download at [nodejs.org](https://nodejs.org))
+**Requirements:** Node.js 22+ (download at [nodejs.org](https://nodejs.org))
 
 ```bash
 cd frontend
@@ -16,12 +16,27 @@ npm run dev
 
 Then open **http://localhost:5173** in your browser.
 
+The Planner map loads the committed `public/geo/areas.geojson` artifact. Validate
+its feature IDs, geometry types, attribution, and payload size before publishing:
+
+```bash
+npm run validate:boundaries
+npm run validate:dashboard-adapter
+npm run validate:supabase-dashboard
+```
+
+Copy `.env.example` to `.env` and set the public Supabase project URL and
+publishable key. The dashboard then loads services and planner scores from the
+public tables; missing configuration or a failed query falls back to demo data.
+
 ---
 
 ## What's in here
 
 ```
 frontend/
+├── public/geo/areas.geojson  ← Versioned planning-area boundaries
+├── scripts/validate-boundaries.mjs
 ├── src/
     ├── main.jsx
 │   └── App.jsx        ← All UI logic lives here (single file)

@@ -7,6 +7,7 @@ import { Radar, LocateFixed, Search, Bot, ChevronLeft, Layers, Activity, AlertTr
 import { CategoryIcon, CATEGORY_COLORS, createServiceMarker } from "./components/serviceVisuals";
 import { FlyerPreview } from "./flyer/FlyerPreview";
 import { flyerPdfExporter } from "./flyer/FlyerPdfExporter";
+import { loadDashboardData } from "./lib/dashboardAdapter.js";
 
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -107,57 +108,105 @@ function scoreToColor(score) {
   return "#FFE4E6";
 }
 
-function ChoroplethMap({ selectedBorough, onSelect }) {
+const BOUNDARY_SCORE_ALIASES = {
+  "Montreal-Nord": "Montréal-Nord",
+  "Cote-des-Neiges-Notre-Dame-de-Grace": "Côte-des-Neiges--Notre-Dame-de-Grâce",
+  "Verdun": "Verdun--Ile-des-Soeurs",
+  "Le Sud-Ouest": "Sud-Ouest",
+  "Le Plateau-Mont-Royal": "Plateau-Mont-Royal",
+};
+
+function boundaryScoreKey(feature, boroughScores) {
+  const boroughName = feature.properties?.borough_name || "";
+  const alias = BOUNDARY_SCORE_ALIASES[boroughName];
+  return [boroughName, alias].find(name => name && boroughScores[name]) || alias || boroughName || null;
+}
+
+function ChoroplethMap({ selectedBorough, selectedAreaId, onSelect, boroughScores }) {
   const [geojson, setGeojson] = useState(null);
+  const [mapStatus, setMapStatus] = useState("loading");
   const mapRef = useRef(null);
 
   useEffect(() => {
-    fetch("https://raw.githubusercontent.com/blackmad/neighborhoods/master/montreal.geojson")
-      .then(r => r.json())
-      .then(data => setGeojson(data))
-      .catch(() => setGeojson(null));
+    const controller = new AbortController();
+    fetch("/geo/areas.geojson", { signal: controller.signal })
+      .then(r => {
+        if (!r.ok) throw new Error(`Boundary request failed: ${r.status}`);
+        return r.json();
+      })
+      .then(data => {
+        if (!Array.isArray(data.features) || data.features.length === 0) {
+          throw new Error("Boundary artifact has no features");
+        }
+        setGeojson(data);
+        setMapStatus("ready");
+      })
+      .catch(error => {
+        if (error.name !== "AbortError") {
+          console.error("Unable to load local area boundaries", error);
+          setGeojson(null);
+          setMapStatus("error");
+        }
+      });
+    return () => controller.abort();
   }, []);
 
   const onEachFeature = (feature, layer) => {
-    const name = feature.properties?.name || "";
-    const data = BOROUGH_SCORES[name];
+    const name = boundaryScoreKey(feature, boroughScores);
+    const label = feature.properties?.area_name || feature.properties?.borough_name || "";
+    const boroughLabel = feature.properties?.borough_name || "";
+    const areaId = feature.properties?.area_id || "";
+    const data = name ? boroughScores[name] : null;
     const score = data?.score;
+    const isSelected = selectedAreaId ? areaId === selectedAreaId : name === selectedBorough;
     layer.setStyle({
       fillColor: scoreToColor(score),
       fillOpacity: 0.8,
-      color: name === selectedBorough ? "#0F172A" : "#fff",
-      weight: name === selectedBorough ? 2.5 : 1,
+      color: isSelected ? "#0F172A" : "#fff",
+      weight: isSelected ? 2.5 : 1,
     });
     layer.on({
-      click: () => onSelect(name),
+      click: () => {
+        if (name && areaId) onSelect({ scoreKey: name, areaId, areaName: label });
+      },
       mouseover: (e) => { e.target.setStyle({ fillOpacity: 1 }); },
       mouseout: (e) => { e.target.setStyle({ fillOpacity: 0.8 }); },
     });
-    if (name) {
-      layer.bindTooltip(`<b>${name}</b>${score ? `<br/>Gap Score: <b>${score}</b>` : ""}`, { sticky: true });
+    if (label) {
+      layer.bindTooltip(
+        `<b>${label}</b><br/>${boroughLabel}${areaId ? ` · ${areaId}` : ""}${score != null ? `<br/>Gap Score: <b>${score}</b>` : ""}`,
+        { sticky: true }
+      );
     }
   };
 
   const style = (feature) => {
-    const name = feature.properties?.name || "";
+    const name = boundaryScoreKey(feature, boroughScores);
+    const areaId = feature.properties?.area_id || "";
+    const isSelected = selectedAreaId ? areaId === selectedAreaId : name === selectedBorough;
     return {
-      fillColor: scoreToColor(BOROUGH_SCORES[name]?.score),
+      fillColor: scoreToColor(name ? boroughScores[name]?.score : null),
       fillOpacity: 0.8,
-      color: name === selectedBorough ? "#0F172A" : "#fff",
-      weight: name === selectedBorough ? 2.5 : 1,
+      color: isSelected ? "#0F172A" : "#fff",
+      weight: isSelected ? 2.5 : 1,
     };
   };
 
   return (
     <div style={{height:"100%",width:"100%",position:"relative",zIndex:0}}>
       <MapContainer center={[45.53,-73.65]} zoom={11} style={{height:"100%",width:"100%"}} zoomControl={true}>
-        <TileLayer attribution='© CartoDB' url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png" opacity={0.3}/>
+        <TileLayer attribution='© CartoDB · Boundaries © Ville de Montréal, CC BY 4.0' url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png" opacity={0.3}/>
         {geojson && (
-          <GeoJSON key={selectedBorough} data={geojson} style={style} onEachFeature={onEachFeature}/>
+          <GeoJSON key={`${selectedBorough}:${selectedAreaId || "ranked"}`} data={geojson} style={style} onEachFeature={onEachFeature}/>
         )}
-        {!geojson && (
+        {mapStatus === "loading" && (
           <div style={{position:"absolute",inset:0,display:"flex",alignItems:"center",justifyContent:"center",zIndex:1000,background:"rgba(255,255,255,0.7)",fontSize:13,color:"#64748B"}}>
             Loading map…
+          </div>
+        )}
+        {mapStatus === "error" && (
+          <div style={{position:"absolute",inset:0,display:"flex",alignItems:"center",justifyContent:"center",zIndex:1000,background:"rgba(255,255,255,0.9)",fontSize:13,color:"#9F1239"}}>
+            Boundary map unavailable
           </div>
         )}
       </MapContainer>
@@ -165,15 +214,35 @@ function ChoroplethMap({ selectedBorough, onSelect }) {
   );
 }
 
-function PlannerView({ lang, setLang, onSwitch, onExit, location, onChangeLocation }) {
+function PlannerView({ lang, setLang, onSwitch, onExit, location, onChangeLocation, services, categories, boroughScores, sourceStatus }) {
   const [chat, setChat] = useState("");
   const [selectedBorough, setSelectedBorough] = useState("Mercier-Hochelaga-Maisonneuve");
-  const priorities = Object.entries(BOROUGH_SCORES)
+  const [selectedAreaId, setSelectedAreaId] = useState("A005");
+  const [selectedAreaLabel, setSelectedAreaLabel] = useState("Mercier-Hochelaga-Maisonneuve");
+  const boroughEntries = Object.entries(boroughScores);
+  useEffect(() => {
+    if (boroughEntries.length > 0 && !boroughScores[selectedBorough]) {
+      setSelectedBorough(boroughEntries[0][0]);
+      setSelectedAreaId(null);
+      setSelectedAreaLabel(boroughEntries[0][0]);
+    }
+  }, [boroughScores, selectedBorough]);
+  const priorities = boroughEntries
     .sort((a,b)=>b[1].score-a[1].score)
     .slice(0,5)
     .map(([name,d])=>({ name: name.length>18?name.slice(0,16)+"…":name, fullName:name, score:d.score }));
-  const areaData = BOROUGH_SCORES[selectedBorough] || { score:0, income:0, housing:0, immigration:0 };
+  const areaData = boroughScores[selectedBorough] || { score:0, income:0, housing:0, immigration:0 };
   const isEN = lang==="EN";
+  const selectMapArea = ({ scoreKey, areaId, areaName }) => {
+    setSelectedBorough(scoreKey);
+    setSelectedAreaId(areaId);
+    setSelectedAreaLabel(areaName);
+  };
+  const selectRankedBorough = (boroughName) => {
+    setSelectedBorough(boroughName);
+    setSelectedAreaId(null);
+    setSelectedAreaLabel(boroughName);
+  };
   return (
     <div style={{minHeight:"100vh",background:"#FFFFFF",fontFamily:"system-ui,sans-serif",fontSize:14}}>
       <div style={{background:"#0B1220",padding:"10px 20px",display:"flex",alignItems:"center",justifyContent:"space-between",position:"sticky",top:0,zIndex:1000,borderBottom:"1px solid #1E293B"}}>
@@ -184,6 +253,9 @@ function PlannerView({ lang, setLang, onSwitch, onExit, location, onChangeLocati
           <div style={{fontSize:12,color:"#60A5FA",fontWeight:600,textTransform:"uppercase",letterSpacing:0.6}}>Planner View (V2)</div>
         </div>
         <div style={{display:"flex",gap:6,alignItems:"center"}}>
+          <span style={{fontSize:11,color:sourceStatus==="supabase"?"#6EE7B7":"#FCD34D",fontWeight:600}}>
+            {sourceStatus==="supabase"?"Supabase":"Demo data"}
+          </span>
           <LocationBadge location={location} onChange={onChangeLocation}/>
           <div style={{display:"flex",background:"rgba(255,255,255,0.08)",borderRadius:6,overflow:"hidden"}}>
             {["EN","FR"].map(l=><button key={l} onClick={()=>setLang(l)} style={{padding:"4px 10px",border:"none",background:lang===l?"#2563EB":"transparent",color:"#fff",fontWeight:lang===l?700:400,cursor:"pointer",fontSize:12}}>{l}</button>)}
@@ -225,7 +297,7 @@ function PlannerView({ lang, setLang, onSwitch, onExit, location, onChangeLocati
               <span style={{fontSize:13,color:"#64748B"}}>{isEN?"by Gap Score":"par Score d'écart"}</span>
             </div>
             <div style={{flex:1,minHeight:460}}>
-              <ChoroplethMap selectedBorough={selectedBorough} onSelect={setSelectedBorough}/>
+              <ChoroplethMap selectedBorough={selectedBorough} selectedAreaId={selectedAreaId} onSelect={selectMapArea} boroughScores={boroughScores}/>
             </div>
             <div style={{padding:"10px 16px",borderTop:"1px solid #E2E8F0",display:"flex",alignItems:"center",gap:8,fontSize:13,color:"#334155"}}>
               <span>{isEN?"Low":"Faible"}</span>
@@ -241,14 +313,14 @@ function PlannerView({ lang, setLang, onSwitch, onExit, location, onChangeLocati
             </div>
             <MapContainer center={[45.5188,-73.5878]} zoom={12} style={{height:"100%",width:"100%"}} zoomControl={true}>
               <TileLayer attribution='© CartoDB' url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"/>
-              {SERVICES.map(s=>(
+              {services.map(s=>(
                 <Marker key={s.id} position={[s.lat,s.lng]} icon={createServiceMarker(s.category,false)}>
                   <Popup><div style={{fontFamily:"system-ui",minWidth:140}}><div style={{fontWeight:700,fontSize:13,color:CATEGORY_COLORS[s.category],display:"flex",alignItems:"center",gap:5}}><CategoryIcon category={s.category} size={14} color={CATEGORY_COLORS[s.category]}/> {s.name}</div><div style={{fontSize:12,color:"#64748B"}}>{s.type} · {s.dist}</div></div></Popup>
                 </Marker>
               ))}
             </MapContainer>
             <div style={{position:"absolute",bottom:8,left:8,zIndex:1000,background:"rgba(255,255,255,0.95)",borderRadius:6,padding:"5px 10px",border:"1px solid #E2E8F0",fontSize:12,display:"flex",gap:10,flexWrap:"wrap"}}>
-              {CATEGORIES.map(c=><span key={c.label} style={{display:"flex",alignItems:"center",gap:4}}><span style={{width:9,height:9,borderRadius:"50%",background:c.color,display:"inline-block"}}/>{c.label}</span>)}
+              {categories.map(c=><span key={c.label} style={{display:"flex",alignItems:"center",gap:4}}><span style={{width:9,height:9,borderRadius:"50%",background:c.color,display:"inline-block"}}/>{c.label}</span>)}
             </div>
           </div>
 
@@ -257,7 +329,7 @@ function PlannerView({ lang, setLang, onSwitch, onExit, location, onChangeLocati
             <div style={{fontWeight:600,fontSize:15,marginBottom:12}}>{isEN?"Top priority areas (by Gap Score)":"Zones prioritaires (par Score d'écart)"}</div>
             <div style={{display:"flex",flexDirection:"column",gap:8,flex:1}}>
               {priorities.map((p,i)=>(
-                <div key={p.name} onClick={()=>setSelectedBorough(p.fullName)}
+                <div key={p.name} onClick={()=>selectRankedBorough(p.fullName)}
                   style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"10px 12px",borderRadius:8,cursor:"pointer",background:selectedBorough===p.fullName?"#EFF6FF":"#F1F5F9",border:`1px solid ${selectedBorough===p.fullName?"#2563EB":"#E2E8F0"}`,transition:"all 0.15s"}}>
                   <span style={{fontSize:13,fontWeight:selectedBorough===p.fullName?600:400,color:selectedBorough===p.fullName?"#2563EB":"#0F172A"}}>{p.name}</span>
                   <span style={{fontSize:13,fontWeight:700,color:"#2563EB",background:"#EFF6FF",padding:"3px 8px",borderRadius:4,fontFamily:MONO_FONT}}>{p.score}</span>
@@ -270,7 +342,7 @@ function PlannerView({ lang, setLang, onSwitch, onExit, location, onChangeLocati
         {/* Area profile — updates when borough clicked */}
         <div style={{background:"#fff",border:"1px solid #E2E8F0",borderRadius:8,padding:"16px",marginBottom:12}}>
           <div style={{fontWeight:600,fontSize:15,marginBottom:12}}>
-            {isEN?"Area profile":"Profil de la zone"} — <span style={{color:"#2563EB"}}>{selectedBorough}</span>
+            {isEN?"Area profile":"Profil de la zone"} — <span style={{color:"#2563EB"}}>{selectedAreaLabel}</span>
             <span style={{marginLeft:10,fontSize:13,color:"#64748B",fontWeight:400}}>Gap Score: <b style={{fontFamily:MONO_FONT}}>{areaData.score}</b></span>
           </div>
           <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:20}}>
@@ -309,6 +381,13 @@ export default function CommunityRadar() {
   const [distLocation, setDistLocation] = useState(null);
   const [locationReturnStep, setLocationReturnStep] = useState("main");
   const [locationBackStep, setLocationBackStep] = useState("role");
+  const [dashboardData, setDashboardData] = useState({
+    services: SERVICES,
+    categories: CATEGORIES,
+    boroughScores: BOROUGH_SCORES,
+    sourceStatus: "demo",
+    warnings: [],
+  });
 
   // V1 filters
   const [activeGroup, setActiveGroup] = useState([]);
@@ -324,6 +403,25 @@ export default function CommunityRadar() {
   const [mapCenter, setMapCenter] = useState(null);
   const [viewMode, setViewMode] = useState("list"); // "list" | "grid"
   const [rightTab, setRightTab] = useState("info"); // "info" | "flyer"
+
+  useEffect(() => {
+    let active = true;
+    loadDashboardData({ demoServices: SERVICES, demoBoroughScores: BOROUGH_SCORES }).then(data => {
+      if (active) setDashboardData(data);
+    });
+    return () => { active = false; };
+  }, []);
+
+  const services = dashboardData.services || SERVICES;
+  const categories = dashboardData.categories || CATEGORIES;
+  const boroughScores = dashboardData.boroughScores || BOROUGH_SCORES;
+
+  useEffect(() => {
+    if (services.length > 0 && !services.some(service => service.id === selected?.id)) {
+      setSelected(services[0]);
+      setFlyerDone(false);
+    }
+  }, [services, selected?.id]);
 
   const meta = { group: activeGroup, age: activeAge };
   const isEN = lang === "EN";
@@ -355,7 +453,7 @@ export default function CommunityRadar() {
 
   const toggleArr = (arr, setArr, val) => setArr(p => p.includes(val) ? p.filter(x=>x!==val) : [...p, val]);
 
-  const filtered = SERVICES.filter(s => {
+  const filtered = services.filter(s => {
     const mg = activeGroup.length===0 || s.group.some(g=>activeGroup.includes(g));
     const mge = !activeGender || s.gender===activeGender || s.gender==="All";
     const mc = activeCategory.length===0 || activeCategory.includes(s.category);
@@ -436,6 +534,10 @@ export default function CommunityRadar() {
       onChangeLocation={()=>handleChangeLocation("v2")}
       onSwitch={()=>{setRole("v1");setStep("main");}}
       onExit={()=>setStep("role")}
+      services={services}
+      categories={categories}
+      boroughScores={boroughScores}
+      sourceStatus={dashboardData.sourceStatus}
     />
   );
 
@@ -540,7 +642,7 @@ export default function CommunityRadar() {
           {/* Category */}
           <div style={{display:"flex",alignItems:"center",gap:6}}>
             <span style={{color:"#64748B",fontSize:12,fontWeight:600,whiteSpace:"nowrap"}}>{T.filterCat}</span>
-            {CATEGORIES.map(c=>(
+            {categories.map(c=>(
               <Chip key={c.label} active={activeCategory.includes(c.label)} color={c.color} bg={c.bg} border={c.color} onClick={()=>{toggleArr(activeCategory,setActiveCategory,c.label);logEvent("category_filter",c.label,meta);}}>
                 <CategoryIcon category={c.label} size={13} color={c.color}/> {c.label}
               </Chip>
@@ -566,7 +668,7 @@ export default function CommunityRadar() {
                   ))}
                 </MapContainer>
                 <div style={{position:"absolute",bottom:10,left:10,zIndex:1000,background:"rgba(255,255,255,0.95)",borderRadius:6,padding:"4px 8px",border:"1px solid #E2E8F0",display:"flex",flexDirection:"column",gap:3}}>
-                  {CATEGORIES.map(c=><div key={c.label} style={{display:"flex",alignItems:"center",gap:4,fontSize:11}}><div style={{width:8,height:8,borderRadius:"50%",background:c.color}}/>{c.label}</div>)}
+                  {categories.map(c=><div key={c.label} style={{display:"flex",alignItems:"center",gap:4,fontSize:11}}><div style={{width:8,height:8,borderRadius:"50%",background:c.color}}/>{c.label}</div>)}
                 </div>
               </div>
             ) : (
@@ -701,7 +803,7 @@ export default function CommunityRadar() {
                 {/* Flyer preview tab */}
                 {rightTab==="flyer" && (
                   <div style={{flex:1,overflowY:"auto",background:"#F1F5F9",padding:"16px",display:"flex",flexDirection:"column",gap:12}}>
-                    <FlyerPreview service={selected} location={selectedLocation} services={SERVICES} language={lang} updatedLabel={T.updated}/>
+                    <FlyerPreview service={selected} location={selectedLocation} services={services} language={lang} updatedLabel={T.updated}/>
 
                     <div>
                       {flyerDone && <div style={{marginBottom:8,padding:"7px 10px",background:"#ECFDF5",borderRadius:6,color:"#059669",fontSize:12}}>✓ PDF downloaded successfully</div>}
