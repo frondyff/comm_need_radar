@@ -138,6 +138,7 @@ erDiagram
     CENSUS_TRACT ||--o{ CT_TO_AREA_LOOKUP : "spatially assigned to"
     AREA_BOUNDARY ||--o{ CT_TO_AREA_LOOKUP : "contains tract centroid"
     AREA_BOUNDARY ||--o{ CENTER_AREA_LOOKUP : "contains center point"
+    AREA_BOUNDARY ||--o{ SERVICES_MASTER : "contains located service"
     DATABASE_CENTER ||--|| CENTER_AREA_LOOKUP : "mapped through"
     DATABASE_CENTER ||--o{ DATABASE_VISITOR_TAG : "receives aggregate visits"
     DATABASE_VISITOR_TAG }o--|| OBSERVED_NEED_INDEX : "aggregates into"
@@ -282,6 +283,10 @@ erDiagram
         string services
         string sources
         string legacy_center_id
+        boolean serves_indigenous
+        boolean serves_immigrant
+        string gender_focus
+        string age_groups
     }
 ```
 
@@ -306,9 +311,17 @@ erDiagram
   is not yet wired into `GAP_SCORE` or the application-facing views.
 - `SERVICES_MASTER` is the canonical single services table: the 211 Grand
   Montréal directory merged with the open-data social/food/library service points,
-  de-duplicated (3,933 unique organizations; park amenities excluded), classified,
-  and area-assigned. `mappable=1` rows carry trustworthy coordinates and an
-  `area_id`; `mappable=0` rows stay searchable by name/category. `legacy_center_id`
-  links a row back to its `DATABASE_CENTER` twin so Frondy's scoring can migrate
-  onto this table. Until it does, `DATABASE_CENTER` / `CENTER_AREA_LOOKUP` and the
-  scores are left intact and unchanged.
+  de-duplicated (3,664 actionable organizations; park amenities and name-only
+  stubs excluded), classified, and area-assigned. `service_id` is the primary key;
+  `area_id` is an enforced foreign key to `AREA_PROFILE` (0 orphans). Located rows
+  carry `geocode_precision` = `exact` (real building, safe as a map pin) or
+  `approximate` (street/postal-centroid, good for area assignment only); rows with
+  no coordinate stay searchable by name/category. `legacy_center_id` is a soft
+  reference (not a foreign key) back to `DATABASE_CENTER` — it is blank for 211-only
+  orgs and can hold multiple `; `-joined ids for merged twins, so Frondy's scoring
+  can reconcile against it while migrating. Until it migrates, `DATABASE_CENTER` /
+  `CENTER_AREA_LOOKUP` and the scores are left intact and unchanged.
+- `SERVICES_MASTER.serves_indigenous`, `serves_immigrant`, `gender_focus`, and
+  `age_groups` power the app's who-is-served filters. They are keyword-derived
+  from each org's services text + name (classify_service_audience.py), so treat
+  them as best-effort hints: group and gender are reliable, age is looser.

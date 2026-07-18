@@ -61,7 +61,7 @@ BOOLEAN_COLUMNS = {
         "settlement_need_flag",
         "indigenous_specific_need_flag",
     ),
-    "services_master": ("mappable",),
+    "services_master": ("mappable", "serves_indigenous", "serves_immigrant"),
     "observed_need_index": ("insufficient_visit_data",),
     "vulnerability_index_v2": ("insufficient_visit_data",),
 }

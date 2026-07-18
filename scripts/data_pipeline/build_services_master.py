@@ -36,6 +36,7 @@ from comm_need_radar.geospatial.boundaries import (  # noqa: E402
     match_point,
 )
 from service_taxonomy import classify  # noqa: E402
+from classify_service_audience import classify_audience  # noqa: E402
 
 SD = ROOT / "data" / "processed" / "service_directory_211.csv"
 DC = ROOT / "data" / "raw" / "database_centers.csv"
@@ -233,6 +234,12 @@ def main():
         lambda r: any(str(v).strip() for v in r), axis=1)
     dropped_empty = int((~usable).sum())
     df = df[usable].sort_values("name").reset_index(drop=True)
+
+    # Audience classification for the app filters (group / gender / age).
+    aud = df.apply(lambda r: classify_audience(r["name"], r["services"], r["service_categories"]), axis=1)
+    for col in ("serves_indigenous", "serves_immigrant", "gender_focus", "age_groups"):
+        df[col] = aud.apply(lambda a, c=col: a[c])
+
     OUT.parent.mkdir(parents=True, exist_ok=True)
     df.to_csv(OUT, index=False)
 
