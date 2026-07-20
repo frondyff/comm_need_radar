@@ -1,173 +1,153 @@
 """Community Radar chatbot -- simple, grounded, no-LLM.
 
 Matches keywords in a question, calls the right database query, and formats a
-plain-language answer. No API key, no cost, no hallucination: every answer comes
-straight from the project database, and questions outside the supported scope are
-politely declined.
+plain-language answer with a "Source" line naming the exact table(s) the answer
+came from. No API key, no cost, no hallucination: every answer comes straight
+from the project database, and questions outside scope or with no data are
+declined honestly.
 
 Usage:
     from scripts.chatbot import answer
-    print(answer("Which areas have the highest gap?"))
-    print(answer("Why is Parc Extension high-gap?"))
+    print(answer("Which areas have the highest demand for shelter services?"))
+
+    python scripts/chatbot.py --chat        # interactive
+    python scripts/chatbot.py "How many people received food assistance in Verdun?"
 """
 import sys
-from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent))
-import chatbot_queries as db
+import chatbot_queries as q
 
-SOURCE = "  (Source: Community Radar database)"
+# Out-of-scope guardrail: refuse politely instead of guessing.
+REFUSE = ("weather", "stock", "invest", "medical advice", "diagnos", "prescri", "joke",
+          "recipe", "translate this", "who are you", "your name", "politic")
 
-
-# ── Guardrails: the scope's "cannot answer" list ──────────────────────────────
-REFUSALS = [
-    (("eligib", "qualify", "am i eligible", "do i qualify"),
-     "I can't determine service eligibility. Please contact the service directly for eligibility details."),
-    (("open now", "open right now", "real-time", "real time", "currently open", "hours today", "wait time"),
-     "I can't give real-time availability or hours. Please call the service to confirm."),
-    (("refer me", "referral", "should i go", "what should i do", "give me advice"),
-     "I can't make referrals or give personal advice, but I can show you nearby services and information."),
-    (("how much funding", "funding recommendation", "recommend funding", "grant", "budget should"),
-     "I can't make funding recommendations. I can show vulnerability, service access, and gap data to inform decisions."),
-    (("policy", "should the city", "should the government", "what law"),
-     "I can't make policy decisions. I can provide the underlying vulnerability and gap data."),
-    (("predict", "will this person", "this individual", "individual risk"),
-     "I can't make individual-level predictions. I only work with area-level, aggregate data."),
-]
+# Data the database does not collect -> answered honestly, not guessed.
+NOT_COLLECTED = {
+    "occupancy": "occupancy or capacity rates",
+    "capacity": "occupancy or capacity rates",
+    "what days": "day-of-week demand",
+    "which days": "day-of-week demand",
+    "resolve": "average case-resolution time",
+    "resolution": "average case-resolution time",
+    "how long": "average case-resolution time",
+}
 
 
-def _resolve_area(text):
-    """Find an area named in the question. Returns (area_id, area_name) or (None, None)."""
-    areas = db._q("select area_id, area_name from area_vulnerability_index_real")
-    norm = lambda s: s.lower().replace("-", " ").replace("é", "e").strip()
-    t = norm(text)
-    for _, r in areas.iterrows():
-        if norm(r["area_name"]) in t:
-            return r["area_id"], r["area_name"]
-    return None, None
+def _format(answer_source):
+    text, source = answer_source
+    return f"{text}\n\n\U0001F4CA Source (table): {source}"
 
 
-def _need_area():
-    return "Which area do you mean? For example: Parc Extension, Cote-des-Neiges, or Saint-Michel."
+def answer(question: str) -> str:
+    ql = question.lower().strip()
+    if not ql:
+        return "Ask me about services, visits, demand, or gaps by area and category."
 
+    if any(w in ql for w in REFUSE):
+        return ("I can only answer questions about Montreal community services, service demand, and "
+                "the vulnerability and gap scores in this project's database.")
 
-# ── Answer formatting ─────────────────────────────────────────────────────────
+    for kw, topic in NOT_COLLECTED.items():
+        if kw in ql:
+            return _format(q.not_collected(topic))
 
-def _fmt_top_gap(n=10):
-    df = db.top_gap_areas(n)
-    lines = [f"{r.gap_rank}. {r.area_name} ({r.borough_name}) — gap {r.gap_score:.1f}, {r.priority_flag}"
-             for r in df.itertuples()]
-    return "The highest-priority (gap) areas are:\n" + "\n".join(lines) + SOURCE
+    cat = q.find_category(question)      # (need_label, service_category) or None
+    area = q.find_area(question)         # (area_id, name) or None
+    aud = q.find_audience(question)      # {'indigenous','immigrant','gender','age'} subset
 
+    # 1. Specific-language questions: honestly cannot rank individual languages.
+    if any(p in ql for p in ("which language", "what language", "which languages",
+                             "what languages")) or ("language" in ql and "priorit" in ql):
+        base = q.language_need(area)
+        return _format((base[0] + " So I cannot rank specific languages, only the overall need.", base[1]))
 
-def _fmt_explain(area_id):
-    d = db.explain_area(area_id)
-    if "error" in d:
-        return _need_area()
-    return (f"{d['area']} ({d['borough']}) is ranked #{d['vulnerability_rank']} for vulnerability "
-            f"(index {d['vulnerability_index']}/100). Its top concern is {d['top_concern']}. "
-            f"It has {d['services_in_area']} services and a gap score of {d['gap_score']} "
-            f"({d['priority_flag']})." + SOURCE)
+    # 2. Vulnerability / gap / area profile. A named area gets its own numbers,
+    #    not the ranking.
+    if "vulnerab" in ql:
+        return _format(q.explain_area(area) if area else q.most_vulnerable())
+    if "gap" in ql:
+        return _format(q.explain_area(area) if area else q.highest_gap())
+    if any(w in ql for w in ("priority area", "underserved", "least served", "most in need")):
+        return _format(q.highest_gap())
+    if area and not cat and not aud and any(w in ql for w in ("tell me about", "explain", "profile",
+                                                              "overview", "summary", "how vulnerable")):
+        return _format(q.explain_area(area))
 
+    # 3. Area demographics from the census profile, only when the question is about
+    #    the AREA (population / income / immigration / housing), not services for a group.
+    asking_services = any(w in ql for w in ("organization", "orgs", "service", "list", "show me",
+                                            "banks", "clinic", "help"))
+    if not asking_services:
+        if ("demographic" in ql or "census" in ql) and area:
+            return _format(q.area_stats(area))
+        demo = next(((col, lbl) for kw, (col, lbl) in q.INDICATORS.items() if kw in ql), None)
+        if demo:
+            if any(w in ql for w in ("which area", "most", "highest", "lowest", "least", "rank")):
+                asc = any(w in ql for w in ("lowest", "least"))
+                return _format(q.rank_areas_by(demo[0], demo[1], asc))
+            if area:
+                return _format(q.area_stats(area))
 
-def _fmt_drivers(area_id):
-    d = db.vulnerability_drivers(area_id)
-    if "error" in d:
-        return _need_area()
-    top = ", ".join(f"{x['indicator']} ({x['value_pct']}%)" for x in d["drivers"][:3])
-    return f"The main indicators driving vulnerability here are: {top}." + SOURCE
+    # 4. Total number of services.
+    if not cat and not aud and not area and any(w in ql for w in ("in total", "total number",
+                                                                  "how many services", "how many organizations")):
+        return _format(q.total_services())
 
+    # 5. Visit / demand numbers (require a service category).
+    VISIT = ("demand", "visited", "visits", "request", "received", "submitted", "unmet", "additional",
+             "need more", "most visitor", "most client", "most people", "people received",
+             "greatest need", "need the most", "most need")
+    if any(w in ql for w in VISIT) or (cat and ("area" in ql or "region" in ql) and "need" in ql):
+        if cat is None:
+            return ("For visit or demand numbers, please name a category: shelter, food, medical, "
+                    "legal, or translation.")
+        need, label = cat
+        if any(w in ql for w in ("most visitor", "most client", "most people", "receive the most",
+                                 "serve the most")):
+            return _format(q.top_centers(label, need))
+        if any(w in ql for w in ("unmet", "additional", "need more")):
+            return _format(q.unmet(label, need, label))
+        if any(w in ql for w in ("highest demand", "greatest", "most demand", "which area",
+                                 "which region", "highest need", "need the most", "most need", "need")):
+            return _format(q.demand_by_area(label, need))
+        return _format(q.visits_in_area(label, need, area) if area else q.visits_total(label, need))
 
-def _fmt_compare(area_id):
-    d = db.compare_to_city(area_id)
-    if "error" in d:
-        return _need_area()
-    return (f"This area's vulnerability index is {d['area_vulnerability']}, which is "
-            f"{abs(d['difference'])} points {d['reads']} the city average of {d['city_average']}." + SOURCE)
+    # 6. Service catalog: list or count organizations by category / audience / area.
+    if cat or aud or area:
+        service_cat = cat[1] if cat else None
+        if area and not cat and not aud and any(w in ql for w in ("need", "common", "frequent", "top")):
+            return _format(q.top_needs(area))
+        wants_count = any(w in ql for w in ("how many", "number of", "count", "how much"))
+        return _format(q.query_services("count" if wants_count else "list", service_cat, area, aud))
 
-
-def _fmt_category():
-    df = db.services_by_category()
-    lines = [f"{r.service_categories}: {r.centers}" for r in df.itertuples()]
-    return "Services available across the city, by category:\n" + "\n".join(lines) + SOURCE
-
-
-def _fmt_sources():
-    df = db.data_sources()
-    if df.empty:
-        return "Data sources are documented in the project's data inventory."
-    names = df["dataset_name"].head(8).tolist()
-    return ("This uses public data including: Statistics Canada 2021 Census, Montreal Open Data, "
-            "MSSS, OpenStreetMap, and STM transit. Key datasets: " + ", ".join(names) + SOURCE)
-
-
-# ── Intent routing (checked in order) ─────────────────────────────────────────
-INTENTS = [
-    (("data source", "where does the data", "what data", "sources used"), lambda t, a: _fmt_sources()),
-    (("what does the gap", "what is the gap", "gap score mean", "meaning of gap"), lambda t, a: db.gap_score_meaning() + SOURCE),
-    (("highest gap", "top gap", "priority area", "most underserved", "top 10", "top ten", "highest priority"),
-     lambda t, a: _fmt_top_gap(10)),
-    (("which indicator", "drivers", "contribute most", "driving", "what makes"),
-     lambda t, a: _fmt_drivers(a) if a else _need_area()),
-    (("compare", "city average", "vs the city", "versus"), lambda t, a: _fmt_compare(a) if a else _need_area()),
-    (("why", "high-gap", "high gap", "explain"), lambda t, a: _fmt_explain(a) if a else _need_area()),
-    (("what services", "how many services", "service mix", "what's lacking", "whats lacking", "lacking", "available services"),
-     lambda t, a: _fmt_explain(a) if a else _fmt_category()),
-]
-
-CAPABILITIES = ("I can help with: top gap/priority areas, why an area is high-gap, which indicators drive "
-                "vulnerability, comparing an area to the city average, what services exist, and what data "
-                "sources were used. Try naming an area, e.g. 'Why is Parc Extension high-gap?'")
-
-
-def answer(question: str, area_id: str | None = None) -> str:
-    """Return a grounded answer, or a polite decline / capability hint."""
-    t = question.lower().strip()
-    # 1. guardrails
-    for keys, msg in REFUSALS:
-        if any(k in t for k in keys):
-            return msg
-    # 2. resolve an area if one is named (unless the UI passed one)
-    if area_id is None:
-        area_id, _ = _resolve_area(question)
-    # 3. match an intent
-    for keys, handler in INTENTS:
-        if any(k in t for k in keys):
-            return handler(t, area_id)
-    # 4. fallback
-    return CAPABILITIES
+    # 5. Nothing recognized.
+    return ("I can answer questions like:\n"
+            "  - List all shelters in Verdun / organizations for Indigenous people\n"
+            "  - How many food organizations serve immigrants in Cote-des-Neiges?\n"
+            "  - Which areas have the highest demand for legal services?\n"
+            "  - Which areas are most vulnerable / have the highest service gap?\n"
+            "  - Tell me about Hochelaga\n"
+            "Name a category (shelter, food, medical, legal, translation), a group, or an area.")
 
 
 def chat():
-    """Interactive terminal chat. Type a question, or 'quit' to exit."""
-    print("Community Radar assistant (type 'quit' to exit)\n" + CAPABILITIES + "\n")
+    print("Community Radar assistant. Ask about services, demand, or gaps. Type 'quit' to exit.\n")
     while True:
         try:
-            q = input("You: ").strip()
+            question = input("you > ").strip()
         except (EOFError, KeyboardInterrupt):
             break
-        if q.lower() in ("quit", "exit", "q", ""):
+        if question.lower() in ("quit", "exit", "q"):
             break
-        print("Bot:", answer(q), "\n")
+        if question:
+            print("\n" + answer(question) + "\n")
 
 
 if __name__ == "__main__":
-    if "--chat" in sys.argv:
+    args = sys.argv[1:]
+    if args and args[0] == "--chat":
         chat()
-        sys.exit(0)
-    demo = [
-        "Which areas have the highest gap scores?",
-        "Show the top 10 high-gap areas.",
-        "Why is Parc Extension high-gap?",
-        "Which indicators contribute most to the vulnerability score in Cote-des-Neiges?",
-        "What does the gap score mean?",
-        "Compare Saint-Michel to the city average.",
-        "What services are available?",
-        "What data sources were used?",
-        "Am I eligible for these services?",       # should be declined
-        "Recommend how much funding to give.",     # should be declined
-        "What is the weather today?",              # fallback
-    ]
-    for q in demo:
-        print("Q:", q)
-        print("A:", answer(q), "\n")
+    elif args:
+        print(answer(" ".join(args)))
+    else:
+        chat()
