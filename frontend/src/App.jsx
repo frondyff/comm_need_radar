@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useMemo } from "react";
 import { MapContainer, TileLayer, Marker, Popup, useMap, GeoJSON } from "react-leaflet";
 import { useEffect } from "react";
 import L from "leaflet";
@@ -9,6 +9,7 @@ import { FlyerPreview } from "./flyer/FlyerPreview";
 import { flyerPdfExporter } from "./flyer/FlyerPdfExporter";
 import { loadDashboardData } from "./lib/dashboardAdapter.js";
 import { logFlyerDownload, logPageEvent } from "./lib/analytics.js";
+import { haversineKm } from "./lib/supabaseData.js";
 
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -476,7 +477,7 @@ function PlannerView({ lang, setLang, onSwitch, onExit, location, onChangeLocati
               <FitBoundsToPoints points={boroughServices.map(s=>[s.lat,s.lng])}/>
               {boroughServices.map(s=>(
                 <Marker key={s.id} position={[s.lat,s.lng]} icon={createServiceMarker(s.category,false)}>
-                  <Popup><div style={{fontFamily:"system-ui",minWidth:140}}><div style={{fontWeight:700,fontSize:13,color:CATEGORY_COLORS[s.category],display:"flex",alignItems:"center",gap:5}}><CategoryIcon category={s.category} size={14} color={CATEGORY_COLORS[s.category]}/> {s.name}</div><div style={{fontSize:12,color:"#64748B"}}>{s.type} · {s.dist}</div></div></Popup>
+                  <Popup><div style={{fontFamily:"system-ui",minWidth:140}}><div style={{fontWeight:700,fontSize:13,color:CATEGORY_COLORS[s.category],display:"flex",alignItems:"center",gap:5}}><CategoryIcon category={s.category} size={14} color={CATEGORY_COLORS[s.category]}/> {s.name}</div><div style={{fontSize:12,color:"#64748B"}}>{s.type}</div></div></Popup>
                 </Marker>
               ))}
             </MapContainer>
@@ -653,10 +654,28 @@ export default function CommunityRadar() {
     return () => { active = false; };
   }, []);
 
-  const services = dashboardData.services || SERVICES;
+  const rawServices = dashboardData.services || SERVICES;
   const categories = dashboardData.categories || CATEGORIES;
   const boroughScores = dashboardData.boroughScores || BOROUGH_SCORES;
   const areas = dashboardData.areas || [];
+
+  const isEN = lang === "EN";
+  const selectedLocation = distLocation || DEFAULT_DIST_LOCATION;
+  const meta = { group: activeGroup, age: activeAge, location: selectedLocation?.name };
+
+  // Distance was previously baked in at load time from a fixed downtown
+  // point, so it never actually reflected the chosen distribution location.
+  // Recompute it here, reactively, every time the location changes.
+  const services = useMemo(() => {
+    if (!selectedLocation?.lat || !selectedLocation?.lng) return rawServices;
+    return rawServices
+      .map(s => {
+        if (s.lat == null || s.lng == null) return s;
+        const km = haversineKm(selectedLocation.lat, selectedLocation.lng, s.lat, s.lng);
+        return { ...s, dist: `${km.toFixed(1)} km`, distanceKm: Number(km.toFixed(2)) };
+      })
+      .sort((a, b) => (a.distanceKm ?? Infinity) - (b.distanceKm ?? Infinity));
+  }, [rawServices, selectedLocation?.id, selectedLocation?.lat, selectedLocation?.lng]);
 
   useEffect(() => {
     if (services.length > 0 && !services.some(service => service.id === selected?.id)) {
@@ -664,10 +683,6 @@ export default function CommunityRadar() {
       setFlyerDone(false);
     }
   }, [services, selected?.id]);
-
-  const isEN = lang === "EN";
-  const selectedLocation = distLocation || DEFAULT_DIST_LOCATION;
-  const meta = { group: activeGroup, age: activeAge, location: selectedLocation?.name };
 
   const T = {
     title:"Community Radar",
@@ -788,7 +803,7 @@ export default function CommunityRadar() {
       onChangeLocation={()=>handleChangeLocation("v2")}
       onSwitch={()=>{setRole("v1");setStep("main");}}
       onExit={()=>setStep("role")}
-      services={services}
+      services={rawServices}
       categories={categories}
       boroughScores={boroughScores}
       areas={areas}
