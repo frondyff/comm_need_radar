@@ -72,8 +72,23 @@ comm_need_radar/
   frontend/
     README.md
     package.json
+    public/
+      geo/
+        areas.geojson
     src/
+      main.jsx
       App.jsx
+      components/
+        serviceVisuals.jsx
+      flyer/
+        FlyerPreview.jsx
+        FlyerPdfExporter.js
+        flyerData.js
+        flyerStyles.js
+      lib/
+        supabaseData.js
+        dashboardAdapter.js
+        analytics.js
   notebooks/
   scripts/
   src/comm_need_radar/
@@ -96,7 +111,7 @@ deployment files, and full validation are deferred to issue-driven work.
 | Chloe | Product leadership, scope, timeline, proposal coordination, MVP decisions | AI/RAG and dashboard support |
 | Laura | Data engineering for census, boundaries, and service datasets | AI/RAG, geospatial, and dashboard support |
 | Frondy | Geospatial analytics, spatial joins, vulnerability score, service access score, gap score, GitHub documentation | App support |
-| Jessie | React dashboard, two-mode UI, map UX, exports | AI/RAG, geospatial, and GitHub support |
+| Jessie | React dashboard development (Community & Planner views), interactive map UX and data visualization, Supabase integration, flyer generation/export system, usage analytics | AI/RAG, geospatial, and GitHub support |
 | Mariam | AI insights, neighborhood summaries, user testing, presentation story | Methodology wording and final presentation |
 
 ## Documentation Index
