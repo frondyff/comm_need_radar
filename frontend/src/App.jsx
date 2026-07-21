@@ -1,11 +1,96 @@
-import { useState, useRef } from "react";
-import { MapContainer, TileLayer, Marker, Popup, useMap, GeoJSON } from "react-leaflet";
+import { useState, useRef, Fragment } from "react";
+import { MapContainer, TileLayer, Marker, Popup, useMap, Circle, CircleMarker } from "react-leaflet";
 import { useEffect } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import jsPDF from "jspdf";
-import { Radar, LocateFixed, Home, UtensilsCrossed, Stethoscope, Scale, Globe, Search, Phone, QrCode, Bot, ChevronLeft, Layers, Activity, AlertTriangle, TrendingUp } from "lucide-react";
+import { Radar, LocateFixed, Home, UtensilsCrossed, Stethoscope, Scale, Globe, Search, Phone, QrCode, Bot, ChevronLeft, Layers, Activity, AlertTriangle, TrendingUp, X } from "lucide-react";
 import html2canvas from "html2canvas";
+import { createClient } from "@supabase/supabase-js";
+
+const supabase = createClient(
+  "https://nzjpstjiqlwbyxznonss.supabase.co",
+  "sb_publishable_gDeb-sdg02CCgVoN75-IgA__s-yD9Ce"
+);
+
+const SUPABASE_TABLE = "services_master";
+
+// primary_category values from the DB are free text and don't line up 1:1
+// with our 5 chip colors — bucket them by keyword, default to "Other".
+function normalizeCat(...parts) {
+  const r = parts.filter(Boolean).join(" ").toLowerCase();
+  if (!r) return "Other";
+  if (r.includes("shelter") || r.includes("housing") || r.includes("homeless")) return "Shelter";
+  if (r.includes("food") || r.includes("meal") || r.includes("bank") || r.includes("nutrition")) return "Food";
+  if (r.includes("health") || r.includes("medical") || r.includes("clinic") || r.includes("clsc") || r.includes("mental") || r.includes("psycho")) return "Medical";
+  if (r.includes("legal") || r.includes("law") || r.includes("justice") || r.includes("immigration")) return "Legal";
+  if (r.includes("translat") || r.includes("language") || r.includes("interpret") || r.includes("culture")) return "Translation";
+  return "Other";
+}
+
+// Some rows come from the DB in ALL CAPS ("(VILLE-MARIE EST), ÎLE ...") or
+// wrapped in stray parentheses ("(PRAIDA)"). Names that are already
+// mixed-case are left completely untouched — this only fixes the shouty
+// all-caps ones so the list doesn't look like it's yelling.
+function cleanServiceName(raw) {
+  if (!raw) return raw;
+  let name = raw.trim();
+  if (/^\(.*\)$/.test(name)) name = name.slice(1, -1).trim();
+  const hasLower = /[a-zà-ÿ]/.test(name);
+  const hasUpper = /[A-ZÀ-Ÿ]/.test(name);
+  if (hasUpper && !hasLower) {
+    name = name.toLowerCase().replace(/(^|[\s\-'’"(])([a-zà-ÿ])/g, (m, pre, ch) => pre + ch.toUpperCase());
+  }
+  return name;
+}
+function truncateText(str, n) {
+  if (!str) return str;
+  return str.length > n ? str.slice(0, n - 1) + "…" : str;
+}
+
+// Free text that's either "* item.* item.* item." bullet-style, or a plain
+// comma/semicolon separated list. Splits it into a clean, capped array.
+function parseBulletList(raw, maxItems = 6, maxLen = 60) {
+  if (!raw) return [];
+  const parts = raw.includes("*")
+    ? raw.split("*").map(t => t.trim().replace(/\.$/, "").trim())
+    : raw.split(/[,;]/).map(t => t.trim());
+  return parts
+    .filter(Boolean)
+    .slice(0, maxItems)
+    .map(t => (t.length > maxLen ? t.slice(0, maxLen - 3) + "…" : t));
+}
+function parseTags(raw) { return parseBulletList(raw, 6, 60); }
+
+// gap_drivers specifically: same splitting as parseBulletList, but also
+// drops stray numeric/score fragments like "access score 10.59" that are
+// metric readouts, not categorical driver labels.
+function parseDrivers(raw, maxItems = 6, maxLen = 50) {
+  return parseBulletList(raw, 20, maxLen).filter(t => !/\bscore\b.*\d/i.test(t)).slice(0, maxItems);
+}
+
+// Converts one row from the Supabase table into the same shape the rest of
+// the app already expects (same shape as FALLBACK_SERVICES below).
+function rowToService(row, idx) {
+  const category = normalizeCat(row.primary_category, row.service_categories, row.services, row.name);
+  return {
+    id: row.service_id || `db-${idx}`,
+    name: cleanServiceName(row.name) || "Unnamed service",
+    type: row.primary_category || category,
+    dist: row.borough_name || "", // no live distance calc yet — borough as stand-in
+    hours: row.hours || "Hours not listed",
+    address: row.address || "",
+    phone: row.phone || "",
+    tags: parseTags(row.services),
+    langs: [], // not in DB yet
+    group: [], // not in DB yet
+    category,
+    gender: "All", // not in DB yet
+    lat: row.latitude != null ? Number(row.latitude) : null,
+    lng: row.longitude != null ? Number(row.longitude) : null,
+    website: row.website || "",
+  };
+}
 
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -15,7 +100,7 @@ L.Icon.Default.mergeOptions({
 });
 
 const MONO_FONT = "ui-monospace,SFMono-Regular,'JetBrains Mono',Menlo,Consolas,monospace";
-const CAT_COLORS = { Shelter:"#DC2626", Food:"#D97706", Medical:"#2563EB", Legal:"#059669", Translation:"#9333EA" };
+const CAT_COLORS = { Shelter:"#DC2626", Food:"#D97706", Medical:"#2563EB", Legal:"#059669", Translation:"#9333EA", Other:"#64748B" };
 
 function makeIcon(category, isSelected) {
   const color = CAT_COLORS[category] || "#888";
@@ -30,7 +115,25 @@ function FlyTo({ center }) {
   return null;
 }
 
-const SERVICES = [
+// Real service locations can be anywhere across Greater Montreal, so a fixed
+// zoom level breaks as soon as "you are here" and the selected service are
+// far apart. This fits the view to whatever points it's given instead.
+function FitFlyerBounds({ points }) {
+  const map = useMap();
+  useEffect(() => {
+    const valid = (points || []).filter(p => p && p[0] != null && p[1] != null && !Number.isNaN(p[0]) && !Number.isNaN(p[1]));
+    if (valid.length === 0) return;
+    if (valid.length === 1) {
+      map.setView(valid[0], 15);
+    } else {
+      map.fitBounds(L.latLngBounds(valid), { padding: [28, 28], maxZoom: 15 });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [JSON.stringify(points)]);
+  return null;
+}
+
+const FALLBACK_SERVICES = [
   { id:1, name:"Accueil Bonneau", type:"Shelter", dist:"0.4 km", hours:"Open 24h", address:"2050 Rue Bleury, Montréal", phone:"514-866-7222", tags:["Walk-in OK","Free","Wheelchair access","Indigenous services"], langs:["EN","FR","Inuktitut"], group:["Indigenous"], category:"Shelter", gender:"Male", lat:45.5089, lng:-73.5617 },
   { id:2, name:"Maison du Pain", type:"Food bank", dist:"0.9 km", hours:"Mon–Fri 10am–2pm", address:"1420 Rue Beaudry, Montréal", phone:"514-524-3661", tags:["Free"], langs:["EN","FR","Spanish"], group:["Immigrant"], category:"Food", gender:"All", lat:45.5195, lng:-73.5529 },
   { id:3, name:"CLSC des Faubourgs", type:"Clinic", dist:"1.2 km", hours:"Open until 5pm", address:"1705 Rue de la Visitation, Montréal", phone:"514-527-2361", tags:["Walk-in OK"], langs:["EN","FR"], group:["Indigenous","Immigrant"], category:"Medical", gender:"All", lat:45.5210, lng:-73.5480 },
@@ -46,9 +149,10 @@ const CATEGORIES = [
   { label:"Medical", color:"#2563EB", bg:"#EFF6FF" },
   { label:"Legal", color:"#059669", bg:"#ECFDF5" },
   { label:"Translation", color:"#9333EA", bg:"#F5F3FF" },
+  { label:"Other", color:"#64748B", bg:"#F8FAFC" },
 ];
 
-const ICON_MAP = { Shelter:Home, Food:UtensilsCrossed, Medical:Stethoscope, Legal:Scale, Translation:Globe };
+const ICON_MAP = { Shelter:Home, Food:UtensilsCrossed, Medical:Stethoscope, Legal:Scale, Translation:Globe, Other:Layers };
 function CatIcon({ category, size=14, color, style }) {
   const Icon = ICON_MAP[category] || Home;
   return <Icon size={size} color={color} strokeWidth={2.25} style={{flexShrink:0,verticalAlign:"middle",...style}}/>;
@@ -150,23 +254,104 @@ function Chip({ active, color, bg, border, onClick, children }) {
   );
 }
 
-// V2 Planner View 
-const BOROUGH_SCORES = {
-  "Mercier-Hochelaga-Maisonneuve": { score:0.81, income:0.78, housing:0.64, immigration:0.52 },
-  "Villeray-Saint-Michel-Parc-Extension": { score:0.77, income:0.74, housing:0.61, immigration:0.68 },
-  "Montréal-Nord": { score:0.74, income:0.71, housing:0.58, immigration:0.62 },
-  "Côte-des-Neiges--Notre-Dame-de-Grâce": { score:0.69, income:0.65, housing:0.55, immigration:0.71 },
-  "Verdun--Ile-des-Soeurs": { score:0.65, income:0.58, housing:0.52, immigration:0.38 },
-  "Saint-Laurent": { score:0.52, income:0.48, housing:0.44, immigration:0.59 },
-  "Ahuntsic-Cartierville": { score:0.48, income:0.45, housing:0.41, immigration:0.52 },
-  "Rosemont--La-Petite-Patrie": { score:0.45, income:0.42, housing:0.48, immigration:0.31 },
-  "Sud-Ouest": { score:0.43, income:0.41, housing:0.46, immigration:0.29 },
-  "Plateau-Mont-Royal": { score:0.36, income:0.32, housing:0.44, immigration:0.27 },
-  "Ville-Marie": { score:0.34, income:0.38, housing:0.41, immigration:0.33 },
-  "Anjou": { score:0.30, income:0.28, housing:0.31, immigration:0.35 },
-  "LaSalle": { score:0.28, income:0.26, housing:0.29, immigration:0.32 },
-  "Outremont": { score:0.16, income:0.14, housing:0.22, immigration:0.19 },
-};
+// V2 Planner View
+// Real gap_score schema (confirmed from Supabase):
+// area_id, area_name, borough_name, latitude, longitude, vulnerability_score,
+// overall_accessibility_score, gap_score, gap_rank, priority_flag,
+// gap_drivers, summary_en, summary_fr — all at the AREA level (multiple
+// areas share a borough_name).
+
+// Fallback/demo data — only used while the Supabase fetch is loading or if
+// it fails, so the V2 dashboard is never completely blank.
+const FALLBACK_AREAS = [
+  { id:"demo-1", name:"Mercier-Hochelaga-Maisonneuve", borough:"Mercier-Hochelaga-Maisonneuve", lat:null, lng:null, gapScore:0.81, vulnerability:0.78, accessibility:0.22, rank:1, priorityFlag:"High", drivers:[], summaryEn:"Demo data — connect Supabase to see the real area summary.", summaryFr:"Données de démonstration — connectez Supabase pour le vrai résumé." },
+  { id:"demo-2", name:"Villeray-Saint-Michel-Parc-Extension", borough:"Villeray-Saint-Michel-Parc-Extension", lat:null, lng:null, gapScore:0.77, vulnerability:0.74, accessibility:0.28, rank:2, priorityFlag:"High", drivers:[], summaryEn:"Demo data — connect Supabase to see the real area summary.", summaryFr:"Données de démonstration — connectez Supabase pour le vrai résumé." },
+  { id:"demo-3", name:"Montréal-Nord", borough:"Montréal-Nord", lat:null, lng:null, gapScore:0.74, vulnerability:0.71, accessibility:0.31, rank:3, priorityFlag:"High", drivers:[], summaryEn:"Demo data — connect Supabase to see the real area summary.", summaryFr:"Données de démonstration — connectez Supabase pour le vrai résumé." },
+  { id:"demo-4", name:"Ville-Marie", borough:"Ville-Marie", lat:null, lng:null, gapScore:0.34, vulnerability:0.38, accessibility:0.62, rank:12, priorityFlag:"Low", drivers:[], summaryEn:"Demo data — connect Supabase to see the real area summary.", summaryFr:"Données de démonstration — connectez Supabase pour le vrai résumé." },
+];
+
+// vulnerability_score / overall_accessibility_score / gap_score all come
+// back on a 0–100 scale (e.g. 62.87) while the UI (bars, choropleth
+// thresholds) expects 0–1. Anything clearly >1.5 is treated as a 0–100
+// score and divided down; anything else is passed through as-is.
+function norm01(v) {
+  if (v == null) return null;
+  const n = Number(v);
+  if (Number.isNaN(n)) return null;
+  return n > 1.5 ? n / 100 : n;
+}
+
+// Converts one raw gap_score row into a clean shape for the UI.
+function rowToArea(row, idx) {
+  return {
+    id: row.area_id || `area-${idx}`,
+    name: row.area_name || row.area_id || "Unnamed area",
+    borough: row.borough_name || "",
+    lat: row.latitude != null ? Number(row.latitude) : null,
+    lng: row.longitude != null ? Number(row.longitude) : null,
+    gapScore: norm01(row.gap_score),
+    vulnerability: norm01(row.vulnerability_score),
+    accessibility: norm01(row.overall_accessibility_score),
+    rank: row.gap_rank ?? null,
+    priorityFlag: row.priority_flag || "",
+    drivers: parseDrivers(row.gap_drivers, 6, 50),
+    summaryEn: row.summary_en || "",
+    summaryFr: row.summary_fr || "",
+  };
+}
+
+// The geojson's borough names ("Côte-des-Neiges–Notre-Dame-de-Grâce", "Le
+// Plateau-Mont-Royal") don't match the DB's plain-text borough_name
+// ("Cote-des-Neiges-Notre-Dame-de-Grace", "Plateau Mont-Royal") — different
+// accents, articles, dash characters. Normalize both sides before comparing.
+function normalizeBoroughName(name) {
+  if (!name) return "";
+  return name
+    .normalize("NFD").replace(/[\u0300-\u036f]/g, "") // strip accents
+    .toLowerCase()
+    .replace(/^(le|la|les)\s+/, "")                    // strip leading article
+    .replace(/[–—]/g, "-")                             // normalize dash characters
+    .replace(/[^a-z0-9]+/g, "")                         // drop spaces/hyphens/punctuation entirely
+    .trim();
+}
+
+// Beyond accents/casing, official borough names sometimes carry extra
+// suffixes depending on the source ("Verdun" vs "Verdun–Île-des-Soeurs",
+// a short DB name vs the geojson's full compound name). Treat two names as
+// the same borough if either one contains the other after normalizing.
+function boroughNamesMatch(a, b) {
+  const na = normalizeBoroughName(a), nb = normalizeBoroughName(b);
+  if (!na || !nb) return false;
+  return na === nb || na.includes(nb) || nb.includes(na);
+}
+
+// The choropleth colors whole boroughs, so average every area's gap_score
+// into one number per borough (used for the KPI cards' "N boroughs" count —
+// the Area profile panel below uses one specific area's own numbers, since
+// text fields like summary/drivers can't be meaningfully averaged).
+function aggregateBoroughGapScore(areas) {
+  const groups = {};
+  areas.forEach(a => {
+    if (!a.borough || a.gapScore == null) return;
+    const key = normalizeBoroughName(a.borough);
+    if (!groups[key]) groups[key] = { sum:0, n:0, label:a.borough };
+    groups[key].sum += a.gapScore;
+    groups[key].n++;
+  });
+  const out = {};
+  Object.entries(groups).forEach(([key,g]) => { out[key] = { score: g.sum / g.n, label:g.label }; });
+  return out;
+}
+
+
+function priorityFlagColor(flag) {
+  const f = (flag || "").toLowerCase();
+  if (f.includes("high")) return { color:"#9F1239", bg:"#FFF1F2", border:"#FECDD3" };
+  if (f.includes("med")) return { color:"#B45309", bg:"#FFFBEB", border:"#FDE68A" };
+  if (f.includes("low")) return { color:"#065F46", bg:"#ECFDF5", border:"#A7F3D0" };
+  return { color:"#334155", bg:"#F1F5F9", border:"#E2E8F0" };
+}
+
 
 function scoreToColor(score) {
   if (!score) return "#E2E8F0";
@@ -177,72 +362,92 @@ function scoreToColor(score) {
   return "#FFE4E6";
 }
 
-function ChoroplethMap({ selectedBorough, onSelect }) {
-  const [geojson, setGeojson] = useState(null);
-  const mapRef = useRef(null);
-
-  useEffect(() => {
-    fetch("https://raw.githubusercontent.com/blackmad/neighborhoods/master/montreal.geojson")
-      .then(r => r.json())
-      .then(data => setGeojson(data))
-      .catch(() => setGeojson(null));
-  }, []);
-
-  const onEachFeature = (feature, layer) => {
-    const name = feature.properties?.name || "";
-    const data = BOROUGH_SCORES[name];
-    const score = data?.score;
-    layer.setStyle({
-      fillColor: scoreToColor(score),
-      fillOpacity: 0.8,
-      color: name === selectedBorough ? "#0F172A" : "#fff",
-      weight: name === selectedBorough ? 2.5 : 1,
-    });
-    layer.on({
-      click: () => onSelect(name),
-      mouseover: (e) => { e.target.setStyle({ fillOpacity: 1 }); },
-      mouseout: (e) => { e.target.setStyle({ fillOpacity: 0.8 }); },
-    });
-    if (name) {
-      layer.bindTooltip(`<b>${name}</b>${score ? `<br/>Gap Score: <b>${score}</b>` : ""}`, { sticky: true });
-    }
-  };
-
-  const style = (feature) => {
-    const name = feature.properties?.name || "";
-    return {
-      fillColor: scoreToColor(BOROUGH_SCORES[name]?.score),
-      fillOpacity: 0.8,
-      color: name === selectedBorough ? "#0F172A" : "#fff",
-      weight: name === selectedBorough ? 2.5 : 1,
-    };
-  };
+function ChoroplethMap({ areas=FALLBACK_AREAS, onSelectArea, selectedAreaId }) {
+  const validAreas = areas.filter(a => a.lat != null && a.lng != null && !Number.isNaN(a.lat) && !Number.isNaN(a.lng));
 
   return (
     <div style={{height:"100%",width:"100%",position:"relative",zIndex:0}}>
       <MapContainer center={[45.53,-73.65]} zoom={11} style={{height:"100%",width:"100%"}} zoomControl={true}>
-        <TileLayer attribution='© CartoDB' url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png" opacity={0.3}/>
-        {geojson && (
-          <GeoJSON key={selectedBorough} data={geojson} style={style} onEachFeature={onEachFeature}/>
-        )}
-        {!geojson && (
-          <div style={{position:"absolute",inset:0,display:"flex",alignItems:"center",justifyContent:"center",zIndex:1000,background:"rgba(255,255,255,0.7)",fontSize:13,color:"#64748B"}}>
-            Loading map…
-          </div>
-        )}
+        <TileLayer attribution='© CartoDB' url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"/>
+        {validAreas.map(a => {
+          const isSelected = a.id===selectedAreaId;
+          return (
+            <Fragment key={a.id}>
+              {/* soft glow halo */}
+              <Circle center={[a.lat,a.lng]} radius={850} pathOptions={{ fillColor:scoreToColor(a.gapScore), fillOpacity:0.30, stroke:false }} eventHandlers={{ click:()=>onSelectArea?.(a) }}/>
+              {/* solid pin at the exact lat/lng from gap_score — selected one gets a black ring */}
+              <CircleMarker center={[a.lat,a.lng]} radius={isSelected?12:8} pathOptions={{ fillColor:scoreToColor(a.gapScore), fillOpacity:0.95, color:isSelected?"#0F172A":"#fff", weight:isSelected?3:2 }} eventHandlers={{ click:()=>onSelectArea?.(a) }}>
+                <Popup><div style={{fontFamily:"system-ui",minWidth:150}}>
+                  <div style={{fontWeight:700,fontSize:13,color:"#0F172A"}}>{a.name}</div>
+                  {a.borough && a.borough!==a.name && <div style={{fontSize:11,color:"#64748B"}}>{a.borough}</div>}
+                  <div style={{fontSize:12,color:"#334155",marginTop:4}}>Gap Score: <b>{a.gapScore!=null?a.gapScore.toFixed(2):"—"}</b></div>
+                </div></Popup>
+              </CircleMarker>
+            </Fragment>
+          );
+        })}
       </MapContainer>
     </div>
   );
 }
 
-function PlannerView({ lang, setLang, onSwitch }) {
+function PlannerView({ lang, setLang, onSwitch, services=[] }) {
   const [chat, setChat] = useState("");
-  const [selectedBorough, setSelectedBorough] = useState("Mercier-Hochelaga-Maisonneuve");
-  const priorities = Object.entries(BOROUGH_SCORES)
-    .sort((a,b)=>b[1].score-a[1].score)
-    .slice(0,5)
-    .map(([name,d])=>({ name: name.length>18?name.slice(0,16)+"…":name, fullName:name, score:d.score }));
-  const areaData = BOROUGH_SCORES[selectedBorough] || { score:0, income:0, housing:0, immigration:0 };
+  const [chatOpen, setChatOpen] = useState(false);
+  const [selectedArea, setSelectedArea] = useState(null);
+
+  // Live gap_score data from Supabase — one row per area (area_id/area_name),
+  // multiple areas share a borough_name.
+  const [gapAreas, setGapAreas] = useState([]);
+  const [gapLoading, setGapLoading] = useState(true);
+  const [gapError, setGapError] = useState(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    supabase.from("gap_score").select("*").then(({ data, error }) => {
+      if (cancelled) return;
+      if (error) {
+        console.error("Failed to load gap_score:", error);
+        setGapError(error.message);
+      } else {
+        setGapAreas((data || []).map(rowToArea));
+      }
+      setGapLoading(false);
+    });
+    return () => { cancelled = true; };
+  }, []);
+
+  const areas = gapAreas.length > 0 ? gapAreas : FALLBACK_AREAS;
+  const boroughScores = aggregateBoroughGapScore(areas);
+
+  // Default the selected area to the highest gap_score once data arrives
+  useEffect(() => {
+    if (areas.length > 0 && !selectedArea) {
+      const top = [...areas].sort((a,b)=>(b.gapScore||0)-(a.gapScore||0))[0];
+      setSelectedArea(top);
+    }
+  }, [areas, selectedArea]);
+
+  const selectedBorough = selectedArea?.borough || "";
+
+  // Services (from services_master, via the "dist" field which holds
+  // borough_name) filtered down to whichever borough is currently selected.
+  const validServices = services.filter(s=>s.lat!=null && s.lng!=null);
+  const boroughServices = selectedBorough
+    ? validServices.filter(s => boroughNamesMatch(s.dist, selectedBorough))
+    : validServices;
+
+  const priorities = [...areas]
+    .sort((a,b)=>(b.gapScore||0)-(a.gapScore||0))
+    .slice(0,5);
+
+  // Real KPI numbers derived from gap_score (falls back to demo numbers if not loaded yet)
+  const validScores = areas.map(a=>a.gapScore).filter(s=>s!=null);
+  const avgGapScore = validScores.length ? (validScores.reduce((a,b)=>a+b,0)/validScores.length) : 0;
+  const highPriorityCount = areas.filter(a=>(a.priorityFlag||"").toLowerCase().includes("high") || (a.gapScore!=null && a.gapScore>=0.6)).length;
+  const tractsAnalyzed = areas.length;
+  const flagStyle = selectedArea?.priorityFlag ? priorityFlagColor(selectedArea.priorityFlag) : null;
+
   const isEN = lang==="EN";
   return (
     <div style={{minHeight:"100vh",background:"#FFFFFF",fontFamily:"system-ui,sans-serif",fontSize:14}}>
@@ -262,12 +467,17 @@ function PlannerView({ lang, setLang, onSwitch }) {
         </div>
       </div>
       <div style={{padding:"16px 20px"}}>
+        {gapError && (
+          <div style={{background:"#FFFBEB",border:"1px solid #FDE68A",color:"#92400E",borderRadius:8,padding:"8px 14px",marginBottom:14,fontSize:12}}>
+            {isEN?"Couldn't load gap_score from Supabase (":"Impossible de charger gap_score ("}{gapError}{isEN?"). Showing demo data instead.":"). Affichage des données de démonstration."}
+          </div>
+        )}
         {/* KPI cards */}
         <div style={{display:"flex",background:"#fff",border:"1px solid #E2E8F0",borderRadius:8,marginBottom:16,overflow:"hidden"}}>
           {[
-            { label:"Tracts analyzed", val:"512", sub:"of 512 citywide", icon:Layers, color:"#4F46E5", bg:"#EEF2FF" },
-            { label:"Average gap score", val:"0.42", sub:"0.03 vs last quarter", trend:"up", icon:Activity, color:"#E11D48", bg:"#FFF1F2" },
-            { label:"High-priority areas", val:"23", sub:"6 newly flagged", icon:AlertTriangle, color:"#D97706", bg:"#FFFBEB" },
+            { label:"Tracts analyzed", val:gapLoading?"…":String(tractsAnalyzed), sub:gapLoading?"loading…":(isEN?"areas from gap_score":"zones de gap_score"), icon:Layers, color:"#4F46E5", bg:"#EEF2FF" },
+            { label:"Average gap score", val:gapLoading?"…":avgGapScore.toFixed(2), sub:gapLoading?"loading…":(isEN?`across ${Object.keys(boroughScores).length} boroughs`:`sur ${Object.keys(boroughScores).length} arrondissements`), icon:Activity, color:"#E11D48", bg:"#FFF1F2" },
+            { label:"High-priority areas", val:gapLoading?"…":String(highPriorityCount), sub:gapLoading?"loading…":(isEN?"flagged high / gap score ≥ 0.60":"signalées haute priorité / score ≥ 0,60"), icon:AlertTriangle, color:"#D97706", bg:"#FFFBEB" },
           ].map((k,i)=>(
             <div key={k.label} style={{flex:1,padding:"14px 20px",display:"flex",gap:12,alignItems:"flex-start",borderLeft:i>0?"1px solid #E2E8F0":"none"}}>
               <div style={{width:34,height:34,borderRadius:8,background:k.bg,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
@@ -286,15 +496,15 @@ function PlannerView({ lang, setLang, onSwitch }) {
         </div>
 
         {/* Map row */}
-        <div style={{display:"grid",gridTemplateColumns:"1.5fr 1.1fr 240px",gap:12,marginBottom:12}}>
+        <div style={{display:"grid",gridTemplateColumns:"1.15fr 1fr 300px",gap:12,marginBottom:12}}>
           {/* Real choropleth */}
           <div style={{background:"#fff",border:"1px solid #E2E8F0",borderRadius:8,overflow:"hidden",display:"flex",flexDirection:"column"}}>
             <div style={{padding:"12px 16px",borderBottom:"1px solid #E2E8F0",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-              <span style={{fontWeight:600,fontSize:15}}>{isEN?"Vulnerability heatmap — click a borough":"Carte de vulnérabilité — cliquez un arrondissement"}</span>
-              <span style={{fontSize:13,color:"#64748B"}}>{isEN?"by Gap Score":"par Score d'écart"}</span>
+              <span style={{fontWeight:600,fontSize:15}}>{isEN?"Gap Score heatmap — click an area":"Carte de chaleur du Gap Score — cliquez une zone"}</span>
+           
             </div>
             <div style={{flex:1,minHeight:460}}>
-              <ChoroplethMap selectedBorough={selectedBorough} onSelect={setSelectedBorough}/>
+              <ChoroplethMap areas={areas} onSelectArea={setSelectedArea} selectedAreaId={selectedArea?.id}/>
             </div>
             <div style={{padding:"10px 16px",borderTop:"1px solid #E2E8F0",display:"flex",alignItems:"center",gap:8,fontSize:13,color:"#334155"}}>
               <span>{isEN?"Low":"Faible"}</span>
@@ -303,19 +513,25 @@ function PlannerView({ lang, setLang, onSwitch }) {
             </div>
           </div>
 
-          {/* Street map */}
+          {/* Street map — filtered to whichever borough is selected */}
           <div style={{borderRadius:8,overflow:"hidden",border:"1px solid #E2E8F0",position:"relative",zIndex:0,minHeight:460}}>
-            <div style={{position:"absolute",top:8,left:8,zIndex:1001,background:"rgba(255,255,255,0.95)",borderRadius:6,padding:"5px 12px",fontSize:14,fontWeight:600,color:"#0F172A",border:"1px solid #E2E8F0"}}>
-              {isEN?"Service locations":"Emplacements des services"}
+            <div style={{position:"absolute",top:8,left:8,zIndex:1001,background:"rgba(255,255,255,0.95)",borderRadius:6,padding:"5px 12px",fontSize:14,fontWeight:600,color:"#0F172A",border:"1px solid #E2E8F0",maxWidth:"70%"}}>
+              {isEN?"Service locations":"Emplacements des services"}{selectedBorough?` — ${selectedBorough}`:""} <span style={{fontWeight:400,color:"#64748B"}}>({boroughServices.length})</span>
             </div>
             <MapContainer center={[45.5188,-73.5878]} zoom={12} style={{height:"100%",width:"100%"}} zoomControl={true}>
               <TileLayer attribution='© CartoDB' url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"/>
-              {SERVICES.map(s=>(
+              <FitFlyerBounds points={boroughServices.map(s=>[s.lat,s.lng])}/>
+              {boroughServices.map(s=>(
                 <Marker key={s.id} position={[s.lat,s.lng]} icon={makeIcon(s.category,false)}>
                   <Popup><div style={{fontFamily:"system-ui",minWidth:140}}><div style={{fontWeight:700,fontSize:13,color:CAT_COLORS[s.category],display:"flex",alignItems:"center",gap:5}}><CatIcon category={s.category} size={14} color={CAT_COLORS[s.category]}/> {s.name}</div><div style={{fontSize:12,color:"#64748B"}}>{s.type} · {s.dist}</div></div></Popup>
                 </Marker>
               ))}
             </MapContainer>
+            {boroughServices.length===0 && (
+              <div style={{position:"absolute",inset:0,display:"flex",alignItems:"center",justifyContent:"center",zIndex:1000,background:"rgba(255,255,255,0.6)",fontSize:13,color:"#64748B",textAlign:"center",padding:20}}>
+                {isEN?"No services_master rows matched to this borough yet.":"Aucun service de services_master associé à cet arrondissement pour l'instant."}
+              </div>
+            )}
             <div style={{position:"absolute",bottom:8,left:8,zIndex:1000,background:"rgba(255,255,255,0.95)",borderRadius:6,padding:"5px 10px",border:"1px solid #E2E8F0",fontSize:12,display:"flex",gap:10,flexWrap:"wrap"}}>
               {CATEGORIES.map(c=><span key={c.label} style={{display:"flex",alignItems:"center",gap:4}}><span style={{width:9,height:9,borderRadius:"50%",background:c.color,display:"inline-block"}}/>{c.label}</span>)}
             </div>
@@ -325,39 +541,93 @@ function PlannerView({ lang, setLang, onSwitch }) {
           <div style={{background:"#fff",border:"1px solid #E2E8F0",borderRadius:8,padding:"16px",display:"flex",flexDirection:"column"}}>
             <div style={{fontWeight:600,fontSize:15,marginBottom:12}}>{isEN?"Top priority areas (by Gap Score)":"Zones prioritaires (par Score d'écart)"}</div>
             <div style={{display:"flex",flexDirection:"column",gap:8,flex:1}}>
-              {priorities.map((p,i)=>(
-                <div key={p.name} onClick={()=>setSelectedBorough(p.fullName)}
-                  style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"10px 12px",borderRadius:8,cursor:"pointer",background:selectedBorough===p.fullName?"#EFF6FF":"#F1F5F9",border:`1px solid ${selectedBorough===p.fullName?"#2563EB":"#E2E8F0"}`,transition:"all 0.15s"}}>
-                  <span style={{fontSize:13,fontWeight:selectedBorough===p.fullName?600:400,color:selectedBorough===p.fullName?"#2563EB":"#0F172A"}}>{p.name}</span>
-                  <span style={{fontSize:13,fontWeight:700,color:"#2563EB",background:"#EFF6FF",padding:"3px 8px",borderRadius:4,fontFamily:MONO_FONT}}>{p.score}</span>
+              {priorities.map((a)=>(
+                <div key={a.id} onClick={()=>setSelectedArea(a)}
+                  style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"10px 12px",borderRadius:8,cursor:"pointer",background:selectedArea?.id===a.id?"#EFF6FF":"#F1F5F9",border:`1px solid ${selectedArea?.id===a.id?"#2563EB":"#E2E8F0"}`,transition:"all 0.15s"}}>
+                  <div style={{minWidth:0}}>
+                    <div style={{fontSize:13,fontWeight:selectedArea?.id===a.id?600:400,color:selectedArea?.id===a.id?"#2563EB":"#0F172A",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{a.name}</div>
+                    {a.borough && a.borough!==a.name && <div style={{fontSize:11,color:"#94A3B8",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{a.borough}</div>}
+                  </div>
+                  <span style={{fontSize:13,fontWeight:700,color:"#2563EB",background:"#EFF6FF",padding:"3px 8px",borderRadius:4,fontFamily:MONO_FONT,flexShrink:0,marginLeft:8}}>{a.gapScore!=null?a.gapScore.toFixed(2):"—"}</span>
                 </div>
               ))}
             </div>
           </div>
         </div>
 
-        {/* Area profile — updates when borough clicked */}
+        {/* Area profile — updates when an area/borough is clicked */}
         <div style={{background:"#fff",border:"1px solid #E2E8F0",borderRadius:8,padding:"16px",marginBottom:12}}>
-          <div style={{fontWeight:600,fontSize:15,marginBottom:12}}>
-            {isEN?"Area profile":"Profil de la zone"} — <span style={{color:"#2563EB"}}>{selectedBorough}</span>
-            <span style={{marginLeft:10,fontSize:13,color:"#64748B",fontWeight:400}}>Gap Score: <b style={{fontFamily:MONO_FONT}}>{areaData.score}</b></span>
-          </div>
-          <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:20}}>
-            {[
-              [isEN?"Low income":"Faible revenu", areaData.income],
-              [isEN?"Housing burden":"Charge logement", areaData.housing],
-              [isEN?"Recent immigration":"Immigration récente", areaData.immigration],
-            ].map(([label,pct])=>(
-              <div key={label}>
-                <div style={{display:"flex",justifyContent:"space-between",fontSize:13,marginBottom:5}}><span>{label}</span><span style={{fontWeight:600,fontFamily:MONO_FONT}}>{pct.toFixed(2)}</span></div>
-                <div style={{height:8,borderRadius:4,background:"#F1F5F9"}}>
-                  <div style={{height:8,width:`${pct*100}%`,borderRadius:4,background:"#2563EB",transition:"width 0.4s"}}/>
+          {selectedArea && (<>
+            <div style={{display:"flex",alignItems:"center",flexWrap:"wrap",gap:10,marginBottom:14}}>
+              <div style={{fontWeight:600,fontSize:15}}>
+                {isEN?"Area profile":"Profil de la zone"} — <span style={{color:"#2563EB"}}>{selectedArea.name}</span>
+                {selectedArea.borough && selectedArea.borough!==selectedArea.name && <span style={{color:"#94A3B8",fontWeight:400}}> ({selectedArea.borough})</span>}
+              </div>
+              <span style={{fontSize:13,color:"#64748B"}}>Gap Score: <b style={{fontFamily:MONO_FONT,color:"#0F172A"}}>{selectedArea.gapScore!=null?selectedArea.gapScore.toFixed(2):"—"}</b></span>
+              {selectedArea.priorityFlag && (
+                <span style={{fontSize:11,fontWeight:600,padding:"3px 10px",borderRadius:20,color:flagStyle.color,background:flagStyle.bg,border:`1px solid ${flagStyle.border}`}}>{selectedArea.priorityFlag}</span>
+              )}
+              {selectedArea.rank!=null && (
+                <span style={{fontSize:12,color:"#94A3B8"}}>{isEN?`Rank #${selectedArea.rank} of ${tractsAnalyzed} areas`:`Rang n°${selectedArea.rank} sur ${tractsAnalyzed} zones`}</span>
+              )}
+            </div>
+
+            <div style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:20,marginBottom:selectedArea.summaryEn||selectedArea.summaryFr||(isEN&&selectedArea.drivers.length>0)?16:0}}>
+              {[
+                [isEN?"Vulnerability score":"Score de vulnérabilité", selectedArea.vulnerability],
+                [isEN?"Service accessibility":"Accessibilité aux services", selectedArea.accessibility],
+              ].map(([label,pct])=>(
+                <div key={label}>
+                  <div style={{display:"flex",justifyContent:"space-between",fontSize:13,marginBottom:5}}><span>{label}</span><span style={{fontWeight:600,fontFamily:MONO_FONT}}>{pct!=null?pct.toFixed(2):"—"}</span></div>
+                  <div style={{height:8,borderRadius:4,background:"#F1F5F9"}}>
+                    <div style={{height:8,width:`${(pct||0)*100}%`,borderRadius:4,background:"#2563EB",transition:"width 0.4s"}}/>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {(selectedArea.summaryEn || selectedArea.summaryFr) && (
+              <div style={{fontSize:13,color:"#1E3A8A",lineHeight:1.5,background:"#EFF6FF",borderLeft:"3px solid #2563EB",borderRadius:6,padding:"12px 14px",marginBottom:(isEN&&selectedArea.drivers.length>0)?12:0}}>
+                {(isEN ? (selectedArea.summaryEn || selectedArea.summaryFr) : (selectedArea.summaryFr || selectedArea.summaryEn))}
+              </div>
+            )}
+
+            {/* gap_drivers has no French column in the DB yet, so only show
+                this in EN mode rather than mixing untranslated English chips
+                into the French UI. The summary paragraph above is fully
+                bilingual (summary_en / summary_fr) and already covers the
+                "why" in French. */}
+            {isEN && selectedArea.drivers.length>0 && (
+              <div>
+                <div style={{fontSize:11,fontWeight:600,color:"#94A3B8",textTransform:"uppercase",letterSpacing:0.6,marginBottom:8}}>Key drivers</div>
+                <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
+                  {selectedArea.drivers.map(d=>(
+                    <span key={d} style={{padding:"4px 10px",borderRadius:20,background:"#EFF6FF",color:"#1E3A8A",fontSize:12,fontWeight:500,border:"1px solid #BFDBFE"}}>{d}</span>
+                  ))}
                 </div>
               </div>
-            ))}
-          </div>
+            )}
+          </>)}
         </div>
       </div>
+
+      {/* Chatbot — floating widget, bottom-right corner (UI placeholder until the real chatbot is built) */}
+      {chatOpen ? (
+        <div style={{position:"fixed",bottom:20,right:20,zIndex:2000,display:"flex",alignItems:"center",gap:8,background:"#fff",border:"1px solid #E2E8F0",borderRadius:24,padding:"10px 10px 10px 16px",boxShadow:"0 6px 24px rgba(15,23,42,0.15)",width:340,maxWidth:"calc(100vw - 40px)"}}>
+          <Bot size={18} color="#2563EB" style={{flexShrink:0}}/>
+          <input autoFocus value={chat} onChange={e=>setChat(e.target.value)} placeholder={isEN?`Ask about ${selectedArea?.name||selectedBorough||"an area"}…`:`Poser une question sur ${selectedArea?.name||selectedBorough||"une zone"}…`}
+            style={{flex:1,border:"none",outline:"none",fontSize:14,background:"transparent",minWidth:0}}/>
+          <button onClick={()=>setChatOpen(false)} aria-label={isEN?"Close chat":"Fermer le chat"}
+            style={{flexShrink:0,width:26,height:26,borderRadius:"50%",border:"none",background:"#F1F5F9",color:"#64748B",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>
+            <X size={14}/>
+          </button>
+        </div>
+      ) : (
+        <button onClick={()=>setChatOpen(true)} aria-label={isEN?"Open chat":"Ouvrir le chat"}
+          style={{position:"fixed",bottom:20,right:20,zIndex:2000,width:52,height:52,borderRadius:"50%",border:"none",background:"#2563EB",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",boxShadow:"0 6px 20px rgba(37,99,235,0.4)"}}>
+          <Bot size={24} color="#fff"/>
+        </button>
+      )}
     </div>
   );
 }
@@ -387,12 +657,45 @@ export default function CommunityRadar() {
   const [activeAge, setActiveAge] = useState([]);
   const [activeCategory, setActiveCategory] = useState([]);
   const [search, setSearch] = useState("");
-  const [selected, setSelected] = useState(SERVICES[0]);
+  const [selected, setSelected] = useState(null);
   const [showMap, setShowMap] = useState(false);
   const [flyerDone, setFlyerDone] = useState(false);
   const [mapCenter, setMapCenter] = useState(null);
   const [viewMode, setViewMode] = useState("list"); // "list" | "grid"
   const [rightTab, setRightTab] = useState("info"); // "info" | "flyer"
+
+  // Live data from Supabase
+  const [services, setServices] = useState(FALLBACK_SERVICES);
+  const [servicesLoading, setServicesLoading] = useState(true);
+  const [servicesError, setServicesError] = useState(null);
+  const [listPage, setListPage] = useState(0);
+  const PAGE_SIZE = 8;
+
+  useEffect(() => {
+    let cancelled = false;
+    supabase
+      .from(SUPABASE_TABLE)
+      .select("service_id,name,primary_category,service_categories,address,latitude,longitude,phone,hours,services,borough_name,website")
+      .eq("mappable", 1)
+      .limit(2000)
+      .then(({ data, error }) => {
+        if (cancelled) return;
+        if (error) {
+          console.error("Failed to load services from Supabase:", error);
+          setServicesError(error.message);
+          setServices(FALLBACK_SERVICES);
+        } else {
+          const mapped = (data || [])
+            .map(rowToService)
+            .filter(s => s.lat != null && s.lng != null && !Number.isNaN(s.lat) && !Number.isNaN(s.lng));
+          setServices(mapped.length ? mapped : FALLBACK_SERVICES);
+        }
+        setServicesLoading(false);
+      });
+    return () => { cancelled = true; };
+  }, []);
+
+  useEffect(() => { if (services.length > 0 && !selected) setSelected(services[0]); }, [services, selected]);
 
   const meta = { group: activeGroup, age: activeAge };
   const isEN = lang === "EN";
@@ -423,7 +726,7 @@ export default function CommunityRadar() {
 
   const toggleArr = (arr, setArr, val) => setArr(p => p.includes(val) ? p.filter(x=>x!==val) : [...p, val]);
 
-  const filtered = SERVICES.filter(s => {
+  const filtered = services.filter(s => {
     const mg = activeGroup.length===0 || s.group.some(g=>activeGroup.includes(g));
     const mge = !activeGender || s.gender===activeGender || s.gender==="All";
     const mc = activeCategory.length===0 || activeCategory.includes(s.category);
@@ -431,10 +734,15 @@ export default function CommunityRadar() {
     return mg && mge && mc && ms;
   });
 
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const pagedFiltered = filtered.slice(listPage * PAGE_SIZE, (listPage + 1) * PAGE_SIZE);
+
+  useEffect(() => { setListPage(0); }, [activeGroup, activeGender, activeAge, activeCategory, search]);
+
   const handleSelect = s => { setSelected(s); setFlyerDone(false); setMapCenter([s.lat,s.lng]); setRightTab("info"); logEvent("service_card_opened",s.name,meta); };
 
   const handleDownload = () => {
-    const others = SERVICES.filter(s=>s.id!==selected.id);
+    const others = services.filter(s=>s.id!==selected.id);
     generatePDF(selected, lang, others);
     logFlyer(selected,{group:activeGroup,gender:activeGender,location:distLocation?.name||"unknown"},meta);
     setFlyerDone(true);
@@ -472,7 +780,7 @@ export default function CommunityRadar() {
   );
 
   // V2 
-  if (step==="v2") return <PlannerView lang={lang} setLang={setLang} onSwitch={()=>{setRole("v1");setStep("main");}}/>;
+  if (step==="v2") return <PlannerView lang={lang} setLang={setLang} services={services} onSwitch={()=>{setRole("v1");setStep("main");}}/>;
 
   // LOCATION SELECTION (V1 only)
   if (step==="location") return (
@@ -613,37 +921,47 @@ export default function CommunityRadar() {
             ) : (
               <>
                 <div style={{padding:"10px 16px",borderBottom:"1px solid #E2E8F0",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
-                  <span style={{fontWeight:700,fontSize:16}}>{T.nearby} <span style={{fontWeight:400,color:"#64748B",fontSize:13}}>({filtered.length})</span></span>
-                  <div style={{display:"flex",border:"1px solid #E2E8F0",borderRadius:6,overflow:"hidden"}}>
-                    <button onClick={()=>setViewMode("list")} style={{padding:"4px 9px",border:"none",background:viewMode==="list"?"#2563EB":"#fff",color:viewMode==="list"?"#fff":"#64748B",cursor:"pointer",fontSize:12,display:"flex",alignItems:"center",gap:4}}>
-                      ☰ List
-                    </button>
-                    <button onClick={()=>setViewMode("grid")} style={{padding:"4px 9px",border:"none",background:viewMode==="grid"?"#2563EB":"#fff",color:viewMode==="grid"?"#fff":"#64748B",cursor:"pointer",fontSize:12,display:"flex",alignItems:"center",gap:4}}>
-                      ⊞ Grid
-                    </button>
+                  <span style={{fontWeight:700,fontSize:16}}>{T.nearby} <span style={{fontWeight:400,color:"#64748B",fontSize:13}}>({servicesLoading?"…":filtered.length})</span></span>
+                  <div style={{display:"flex",alignItems:"center",gap:10}}>
+                    {!servicesLoading && filtered.length>0 && (
+                      <span style={{fontSize:12,color:"#94A3B8"}}>{isEN?"Page":"Page"} {listPage+1}/{totalPages}</span>
+                    )}
+                    <div style={{display:"flex",border:"1px solid #E2E8F0",borderRadius:6,overflow:"hidden"}}>
+                      <button onClick={()=>setViewMode("list")} style={{padding:"4px 9px",border:"none",background:viewMode==="list"?"#2563EB":"#fff",color:viewMode==="list"?"#fff":"#64748B",cursor:"pointer",fontSize:12,display:"flex",alignItems:"center",gap:4}}>
+                        ☰ List
+                      </button>
+                      <button onClick={()=>setViewMode("grid")} style={{padding:"4px 9px",border:"none",background:viewMode==="grid"?"#2563EB":"#fff",color:viewMode==="grid"?"#fff":"#64748B",cursor:"pointer",fontSize:12,display:"flex",alignItems:"center",gap:4}}>
+                        ⊞ Grid
+                      </button>
+                    </div>
                   </div>
                 </div>
+                {servicesError && (
+                  <div style={{padding:"8px 16px",background:"#FFFBEB",borderBottom:"1px solid #FDE68A",color:"#92400E",fontSize:11}}>
+                    {isEN?"Couldn't load live data — showing demo data.":"Impossible de charger les données — affichage des données de démonstration."}
+                  </div>
+                )}
                 <div style={{overflowY:"auto",flex:1,padding:viewMode==="grid"?"10px":"0"}}>
                   {filtered.length===0
-                    ? <div style={{padding:20,color:"#64748B",textAlign:"center",fontSize:14}}>No services match.</div>
+                    ? <div style={{padding:20,color:"#64748B",textAlign:"center",fontSize:14}}>{servicesLoading?(isEN?"Loading services…":"Chargement des services…"):(isEN?"No services match.":"Aucun service trouvé.")}</div>
                     : viewMode==="list"
-                      ? filtered.map((s,i)=>(
+                      ? pagedFiltered.map((s,i)=>(
                           <div key={s.id} onClick={()=>handleSelect(s)}
-                            style={{padding:"12px 16px",borderBottom:i<filtered.length-1?"1px solid #E2E8F0":"none",cursor:"pointer",background:selected?.id===s.id?"#EFF6FF":"transparent",borderLeft:selected?.id===s.id?"3px solid #2563EB":"3px solid transparent",transition:"background 0.15s"}}>
+                            style={{padding:"12px 16px",borderBottom:i<pagedFiltered.length-1?"1px solid #E2E8F0":"none",cursor:"pointer",background:selected?.id===s.id?"#EFF6FF":"transparent",borderLeft:selected?.id===s.id?"3px solid #2563EB":"3px solid transparent",transition:"background 0.15s"}}>
                             <div style={{display:"flex",gap:10,alignItems:"flex-start"}}>
                               <div style={{width:38,height:38,borderRadius:"50%",background:selected?.id===s.id?"#2563EB":"#F1F5F9",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><CatIcon category={s.category} size={19} color={selected?.id===s.id?"#fff":CAT_COLORS[s.category]}/></div>
                               <div style={{flex:1,minWidth:0}}>
                                 <div style={{fontWeight:600,color:selected?.id===s.id?"#2563EB":"#0F172A",fontSize:15,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{s.name}</div>
                                 <div style={{color:"#64748B",fontSize:13,margin:"3px 0 6px"}}>{s.dist} · {s.hours}{s.gender!=="All"?` · ${s.gender} only`:""}</div>
                                 <div style={{display:"flex",gap:4,flexWrap:"wrap"}}>
-                                  {s.tags.slice(0,2).map(t=><span key={t} style={{padding:"2px 8px",borderRadius:4,border:`1px solid ${selected?.id===s.id?"#2563EB":"#E2E8F0"}`,color:selected?.id===s.id?"#2563EB":"#334155",fontSize:12}}>{t}</span>)}
+                                  {s.tags.slice(0,1).map(t=><span key={t} style={{padding:"2px 8px",borderRadius:4,border:`1px solid ${selected?.id===s.id?"#2563EB":"#E2E8F0"}`,color:selected?.id===s.id?"#2563EB":"#334155",fontSize:12}}>{truncateText(t,44)}</span>)}
                                 </div>
                               </div>
                             </div>
                           </div>
                         ))
                       : <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
-                          {filtered.map(s=>(
+                          {pagedFiltered.map(s=>(
                             <div key={s.id} onClick={()=>handleSelect(s)}
                               style={{padding:"12px",borderRadius:8,border:`1.5px solid ${selected?.id===s.id?"#2563EB":"#E2E8F0"}`,background:selected?.id===s.id?"#EFF6FF":"#fff",cursor:"pointer",transition:"all 0.15s"}}>
                               <div style={{width:36,height:36,borderRadius:"50%",background:selected?.id===s.id?"#2563EB":"#F1F5F9",display:"flex",alignItems:"center",justifyContent:"center",marginBottom:8}}><CatIcon category={s.category} size={18} color={selected?.id===s.id?"#fff":CAT_COLORS[s.category]}/></div>
@@ -651,14 +969,26 @@ export default function CommunityRadar() {
                               <div style={{fontSize:11,color:"#64748B",marginBottom:6}}>{s.type}</div>
                               <div style={{fontSize:11,color:"#64748B",marginBottom:6}}>{s.dist} · {s.hours}</div>
                               <div style={{display:"flex",gap:3,flexWrap:"wrap"}}>
-                                {s.tags.slice(0,1).map(t=><span key={t} style={{padding:"2px 6px",borderRadius:3,border:`1px solid ${selected?.id===s.id?"#2563EB":"#E2E8F0"}`,color:selected?.id===s.id?"#2563EB":"#334155",fontSize:10}}>{t}</span>)}
+                                {s.tags.slice(0,1).map(t=><span key={t} style={{padding:"2px 6px",borderRadius:3,border:`1px solid ${selected?.id===s.id?"#2563EB":"#E2E8F0"}`,color:selected?.id===s.id?"#2563EB":"#334155",fontSize:10}}>{truncateText(t,30)}</span>)}
                               </div>
                             </div>
                           ))}
                         </div>
                   }
                 </div>
-                <div style={{padding:"12px 16px",borderTop:"1px solid #E2E8F0"}}>
+                <div style={{padding:"12px 16px",borderTop:"1px solid #E2E8F0",display:"flex",flexDirection:"column",gap:8}}>
+                  {totalPages > 1 && (
+                    <div style={{display:"flex",gap:8}}>
+                      <button onClick={()=>setListPage(p=>Math.max(0,p-1))} disabled={listPage===0}
+                        style={{flex:1,padding:"7px",borderRadius:8,border:"1px solid #E2E8F0",background:listPage===0?"#F8FAFC":"#fff",color:listPage===0?"#CBD5E1":"#334155",cursor:listPage===0?"default":"pointer",fontSize:13}}>
+                        ← {isEN?"Prev":"Précédent"}
+                      </button>
+                      <button onClick={()=>setListPage(p=>Math.min(totalPages-1,p+1))} disabled={listPage>=totalPages-1}
+                        style={{flex:1,padding:"7px",borderRadius:8,border:"1px solid #E2E8F0",background:listPage>=totalPages-1?"#F8FAFC":"#fff",color:listPage>=totalPages-1?"#CBD5E1":"#334155",cursor:listPage>=totalPages-1?"default":"pointer",fontSize:13}}>
+                        {isEN?"Next":"Suivant"} →
+                      </button>
+                    </div>
+                  )}
                   <button onClick={()=>{setShowMap(true);logEvent("map_opened","view_on_map",meta);}}
                     style={{width:"100%",padding:"10px",borderRadius:8,border:"1px solid #E2E8F0",background:"#F1F5F9",color:"#0F172A",cursor:"pointer",fontSize:14,fontWeight:500}}>
                     {T.viewMap}
@@ -758,8 +1088,9 @@ export default function CommunityRadar() {
 
                       {/* Map */}
                       <div style={{height:160,position:"relative",zIndex:0}}>
-                        <MapContainer key={selected.id+"-"+(distLocation?.id||"gps")} center={distLocation?[(distLocation.lat+selected.lat)/2,(distLocation.lng+selected.lng)/2]:[selected.lat,selected.lng]} zoom={distLocation?14:15} style={{height:"100%",width:"100%"}} zoomControl={false} dragging={false} scrollWheelZoom={false} doubleClickZoom={false}>
+                        <MapContainer key={selected.id+"-"+(distLocation?.id||"gps")} center={[selected.lat,selected.lng]} zoom={15} style={{height:"100%",width:"100%"}} zoomControl={false} dragging={false} scrollWheelZoom={false} doubleClickZoom={false}>
                           <TileLayer attribution="" url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"/>
+                          <FitFlyerBounds points={distLocation ? [[distLocation.lat,distLocation.lng],[selected.lat,selected.lng]] : [[selected.lat,selected.lng]]}/>
                           {distLocation && <Marker position={[distLocation.lat,distLocation.lng]} icon={makeYouIcon()}/>}
                           <Marker position={[selected.lat,selected.lng]} icon={makeIcon(selected.category,true)}/>
                         </MapContainer>
@@ -784,10 +1115,10 @@ export default function CommunityRadar() {
                         {selected.langs?.length>0 && <div style={{fontSize:10,color:"#94A3B8",marginBottom:10}}>🌐 {selected.langs.join(" · ")}</div>}
 
                         {/* Other nearby */}
-                        {SERVICES.filter(s=>s.id!==selected.id).length>0 && (
+                        {services.filter(s=>s.id!==selected.id).length>0 && (
                           <div style={{borderTop:"1px solid #F1F5F9",paddingTop:8,marginTop:4}}>
                             <div style={{fontSize:9,fontWeight:600,color:"#94A3B8",textTransform:"uppercase",letterSpacing:0.6,marginBottom:6}}>{isEN?"Also nearby":"Aussi à proximité"}</div>
-                            {SERVICES.filter(s=>s.id!==selected.id).slice(0,2).map(s=>(
+                            {services.filter(s=>s.id!==selected.id).slice(0,2).map(s=>(
                               <div key={s.id} style={{display:"flex",alignItems:"center",gap:6,marginBottom:4}}>
                                 <span style={{width:6,height:6,borderRadius:"50%",background:CAT_COLORS[s.category],flexShrink:0}}/>
                                 <span style={{fontSize:11,color:"#334155"}}>{s.name}</span>
