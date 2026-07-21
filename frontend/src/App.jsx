@@ -1,96 +1,14 @@
-import { useState, useRef, Fragment } from "react";
-import { MapContainer, TileLayer, Marker, Popup, useMap, Circle, CircleMarker } from "react-leaflet";
+import { useState, useRef } from "react";
+import { MapContainer, TileLayer, Marker, Popup, useMap, GeoJSON } from "react-leaflet";
 import { useEffect } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import jsPDF from "jspdf";
-import { Radar, LocateFixed, Home, UtensilsCrossed, Stethoscope, Scale, Globe, Search, Phone, QrCode, Bot, ChevronLeft, Layers, Activity, AlertTriangle, TrendingUp, X } from "lucide-react";
-import html2canvas from "html2canvas";
-import { createClient } from "@supabase/supabase-js";
-
-const supabase = createClient(
-  "https://nzjpstjiqlwbyxznonss.supabase.co",
-  "sb_publishable_gDeb-sdg02CCgVoN75-IgA__s-yD9Ce"
-);
-
-const SUPABASE_TABLE = "services_master";
-
-// primary_category values from the DB are free text and don't line up 1:1
-// with our 5 chip colors — bucket them by keyword, default to "Other".
-function normalizeCat(...parts) {
-  const r = parts.filter(Boolean).join(" ").toLowerCase();
-  if (!r) return "Other";
-  if (r.includes("shelter") || r.includes("housing") || r.includes("homeless")) return "Shelter";
-  if (r.includes("food") || r.includes("meal") || r.includes("bank") || r.includes("nutrition")) return "Food";
-  if (r.includes("health") || r.includes("medical") || r.includes("clinic") || r.includes("clsc") || r.includes("mental") || r.includes("psycho")) return "Medical";
-  if (r.includes("legal") || r.includes("law") || r.includes("justice") || r.includes("immigration")) return "Legal";
-  if (r.includes("translat") || r.includes("language") || r.includes("interpret") || r.includes("culture")) return "Translation";
-  return "Other";
-}
-
-// Some rows come from the DB in ALL CAPS ("(VILLE-MARIE EST), ÎLE ...") or
-// wrapped in stray parentheses ("(PRAIDA)"). Names that are already
-// mixed-case are left completely untouched — this only fixes the shouty
-// all-caps ones so the list doesn't look like it's yelling.
-function cleanServiceName(raw) {
-  if (!raw) return raw;
-  let name = raw.trim();
-  if (/^\(.*\)$/.test(name)) name = name.slice(1, -1).trim();
-  const hasLower = /[a-zà-ÿ]/.test(name);
-  const hasUpper = /[A-ZÀ-Ÿ]/.test(name);
-  if (hasUpper && !hasLower) {
-    name = name.toLowerCase().replace(/(^|[\s\-'’"(])([a-zà-ÿ])/g, (m, pre, ch) => pre + ch.toUpperCase());
-  }
-  return name;
-}
-function truncateText(str, n) {
-  if (!str) return str;
-  return str.length > n ? str.slice(0, n - 1) + "…" : str;
-}
-
-// Free text that's either "* item.* item.* item." bullet-style, or a plain
-// comma/semicolon separated list. Splits it into a clean, capped array.
-function parseBulletList(raw, maxItems = 6, maxLen = 60) {
-  if (!raw) return [];
-  const parts = raw.includes("*")
-    ? raw.split("*").map(t => t.trim().replace(/\.$/, "").trim())
-    : raw.split(/[,;]/).map(t => t.trim());
-  return parts
-    .filter(Boolean)
-    .slice(0, maxItems)
-    .map(t => (t.length > maxLen ? t.slice(0, maxLen - 3) + "…" : t));
-}
-function parseTags(raw) { return parseBulletList(raw, 6, 60); }
-
-// gap_drivers specifically: same splitting as parseBulletList, but also
-// drops stray numeric/score fragments like "access score 10.59" that are
-// metric readouts, not categorical driver labels.
-function parseDrivers(raw, maxItems = 6, maxLen = 50) {
-  return parseBulletList(raw, 20, maxLen).filter(t => !/\bscore\b.*\d/i.test(t)).slice(0, maxItems);
-}
-
-// Converts one row from the Supabase table into the same shape the rest of
-// the app already expects (same shape as FALLBACK_SERVICES below).
-function rowToService(row, idx) {
-  const category = normalizeCat(row.primary_category, row.service_categories, row.services, row.name);
-  return {
-    id: row.service_id || `db-${idx}`,
-    name: cleanServiceName(row.name) || "Unnamed service",
-    type: row.primary_category || category,
-    dist: row.borough_name || "", // no live distance calc yet — borough as stand-in
-    hours: row.hours || "Hours not listed",
-    address: row.address || "",
-    phone: row.phone || "",
-    tags: parseTags(row.services),
-    langs: [], // not in DB yet
-    group: [], // not in DB yet
-    category,
-    gender: "All", // not in DB yet
-    lat: row.latitude != null ? Number(row.latitude) : null,
-    lng: row.longitude != null ? Number(row.longitude) : null,
-    website: row.website || "",
-  };
-}
+import { Radar, LocateFixed, Search, Bot, ChevronLeft, Layers, Activity, AlertTriangle, TrendingUp } from "lucide-react";
+import { CategoryIcon, CATEGORY_COLORS, createServiceMarker, createUserLocationMarker } from "./components/serviceVisuals";
+import { FlyerPreview } from "./flyer/FlyerPreview";
+import { flyerPdfExporter } from "./flyer/FlyerPdfExporter";
+import { loadDashboardData } from "./lib/dashboardAdapter.js";
+import { logFlyerDownload, logPageEvent } from "./lib/analytics.js";
 
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -100,40 +18,37 @@ L.Icon.Default.mergeOptions({
 });
 
 const MONO_FONT = "ui-monospace,SFMono-Regular,'JetBrains Mono',Menlo,Consolas,monospace";
-const CAT_COLORS = { Shelter:"#DC2626", Food:"#D97706", Medical:"#2563EB", Legal:"#059669", Translation:"#9333EA", Other:"#64748B" };
-
-function makeIcon(category, isSelected) {
-  const color = CAT_COLORS[category] || "#888";
-  const size = isSelected ? 36 : 26;
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="${color}" stroke="white" stroke-width="${isSelected?2.5:2}"/><circle cx="12" cy="12" r="${isSelected?5:3.5}" fill="white"/></svg>`;
-  return L.divIcon({ html: svg, className: "", iconSize:[size,size], iconAnchor:[size/2,size/2], popupAnchor:[0,-size/2] });
-}
-
 function FlyTo({ center }) {
   const map = useMap();
   useEffect(() => { if (center) map.flyTo(center, 15, { duration: 1 }); }, [center]);
   return null;
 }
 
-// Real service locations can be anywhere across Greater Montreal, so a fixed
-// zoom level breaks as soon as "you are here" and the selected service are
-// far apart. This fits the view to whatever points it's given instead.
-function FitFlyerBounds({ points }) {
+// Tolerates minor spelling/accent differences between borough_name as
+// stored on services_master vs. on gap_score.
+function boroughNamesMatch(a, b) {
+  const norm = s => String(s||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[^a-z0-9]+/g,"");
+  const na = norm(a), nb = norm(b);
+  if (!na || !nb) return false;
+  return na === nb || na.includes(nb) || nb.includes(na);
+}
+
+// Fits the map view to whichever points it's given — used so the "Service
+// locations" panel always frames the selected area's pins instead of a
+// fixed zoom that breaks once it's filtered down to a handful of points.
+function FitBoundsToPoints({ points }) {
   const map = useMap();
   useEffect(() => {
     const valid = (points || []).filter(p => p && p[0] != null && p[1] != null && !Number.isNaN(p[0]) && !Number.isNaN(p[1]));
     if (valid.length === 0) return;
-    if (valid.length === 1) {
-      map.setView(valid[0], 15);
-    } else {
-      map.fitBounds(L.latLngBounds(valid), { padding: [28, 28], maxZoom: 15 });
-    }
+    if (valid.length === 1) { map.setView(valid[0], 14); return; }
+    map.fitBounds(L.latLngBounds(valid), { padding: [30,30], maxZoom: 14 });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [JSON.stringify(points)]);
   return null;
 }
 
-const FALLBACK_SERVICES = [
+const SERVICES = [
   { id:1, name:"Accueil Bonneau", type:"Shelter", dist:"0.4 km", hours:"Open 24h", address:"2050 Rue Bleury, Montréal", phone:"514-866-7222", tags:["Walk-in OK","Free","Wheelchair access","Indigenous services"], langs:["EN","FR","Inuktitut"], group:["Indigenous"], category:"Shelter", gender:"Male", lat:45.5089, lng:-73.5617 },
   { id:2, name:"Maison du Pain", type:"Food bank", dist:"0.9 km", hours:"Mon–Fri 10am–2pm", address:"1420 Rue Beaudry, Montréal", phone:"514-524-3661", tags:["Free"], langs:["EN","FR","Spanish"], group:["Immigrant"], category:"Food", gender:"All", lat:45.5195, lng:-73.5529 },
   { id:3, name:"CLSC des Faubourgs", type:"Clinic", dist:"1.2 km", hours:"Open until 5pm", address:"1705 Rue de la Visitation, Montréal", phone:"514-527-2361", tags:["Walk-in OK"], langs:["EN","FR"], group:["Indigenous","Immigrant"], category:"Medical", gender:"All", lat:45.5210, lng:-73.5480 },
@@ -144,19 +59,13 @@ const FALLBACK_SERVICES = [
 ];
 
 const CATEGORIES = [
-  { label:"Shelter", color:"#DC2626", bg:"#FEF2F2" },
-  { label:"Food", color:"#D97706", bg:"#FFFBEB" },
-  { label:"Medical", color:"#2563EB", bg:"#EFF6FF" },
-  { label:"Legal", color:"#059669", bg:"#ECFDF5" },
-  { label:"Translation", color:"#9333EA", bg:"#F5F3FF" },
-  { label:"Other", color:"#64748B", bg:"#F8FAFC" },
+  { label:"Shelter", color:CATEGORY_COLORS.Shelter, bg:"#FEF2F2" },
+  { label:"Food", color:CATEGORY_COLORS.Food, bg:"#FFFBEB" },
+  { label:"Medical", color:CATEGORY_COLORS.Medical, bg:"#EFF6FF" },
+  { label:"Legal", color:CATEGORY_COLORS.Legal, bg:"#ECFDF5" },
+  { label:"Translation", color:CATEGORY_COLORS.Translation, bg:"#F5F3FF" },
 ];
 
-const ICON_MAP = { Shelter:Home, Food:UtensilsCrossed, Medical:Stethoscope, Legal:Scale, Translation:Globe, Other:Layers };
-function CatIcon({ category, size=14, color, style }) {
-  const Icon = ICON_MAP[category] || Home;
-  return <Icon size={size} color={color} strokeWidth={2.25} style={{flexShrink:0,verticalAlign:"middle",...style}}/>;
-}
 const AGE_RANGES = ["Under 25","25–44","45–64","65+"];
 const GENDER_OPTS = [{val:"Male",label:"Male",icon:"♂"},{val:"Female",label:"Female",icon:"♀"},{val:"All",label:"All",icon:"⚥"}];
 
@@ -164,86 +73,27 @@ const BACKEND = "http://localhost:8000";
 async function logEvent(type, detail, meta={}) {
   try { await fetch(`${BACKEND}/log/event`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({event_type:type,detail:String(detail||""),user_group:meta.group||null,user_age_range:meta.age||null})}); }
   catch(e) { console.log("📊",type,detail); }
+  // Real analytics: write a row to the passive-events table in Supabase.
+  logPageEvent({ eventType: type, detail, location: meta.location });
 }
 async function logFlyer(service, filters, meta={}) {
-  try { await fetch(`${BACKEND}/log/flyer`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({service_name:service.name,service_type:service.type,service_category:service.category,group_filter:filters.group||null,gender_filter:filters.gender||null,user_group:meta.group||null,user_age_range:meta.age||null,location:"fixed-point"})}); }
+  try { await fetch(`${BACKEND}/log/flyer`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({service_name:service.name,service_type:service.type,service_category:service.category,group_filter:filters.group||null,gender_filter:filters.gender||null,user_group:meta.group||null,user_age_range:meta.age||null,location:filters.location||null})}); }
   catch(e) { console.log("📊 flyer",service.name); }
+  // Real analytics: write a row to Supabase so the team can see which
+  // filters social workers had active when they downloaded a flyer.
+  logFlyerDownload({ service, filters, location: filters.locationObj, language: filters.language });
 }
 
-function generatePDF(service, lang, otherServices) {
-  const isEN = lang === "EN";
-  const doc = new jsPDF({ unit:"mm", format:"a5" });
-  const W = 148, pad = 10;
-  let y = pad;
-
-  // Header
-  doc.setFillColor(239,246,255); doc.rect(0,0,W,18,"F");
-  doc.setFont("helvetica","bold"); doc.setFontSize(14); doc.setTextColor(15,23,42);
-  doc.text("Community Radar", pad, 8);
-  doc.setFont("helvetica","normal"); doc.setFontSize(8); doc.setTextColor(100,116,139);
-  doc.text(isEN?"Services near this location":"Services près de cet endroit", pad, 14);
-  doc.setFont("helvetica","bold"); doc.setFontSize(9); doc.setTextColor(30,58,138);
-  doc.text(lang, W-pad, 8, {align:"right"});
-  y = 24;
-
-  // Map placeholder box
-  doc.setDrawColor(37,99,235); doc.setFillColor(239,246,255);
-  doc.roundedRect(pad, y, W-2*pad, 40, 3,3,"FD");
-  doc.setFontSize(20); doc.text("🗺", W/2, y+18, {align:"center"});
-  doc.setFont("helvetica","normal"); doc.setFontSize(8); doc.setTextColor(37,99,235);
-  doc.text(`${service.name} — ${service.dist}`, W/2, y+26, {align:"center"});
-  doc.setFillColor(239,246,255); doc.roundedRect(W-pad-28, y+32, 28, 5, 2,2,"F");
-  doc.setFontSize(7); doc.setTextColor(30,58,138);
-  doc.text(isEN?"📍 You are here":"📍 Vous êtes ici", W-pad-14, y+35.5, {align:"center"});
-  y += 46;
-
-  // Featured service card
-  doc.setFillColor(239,246,255); doc.setDrawColor(37,99,235);
-  doc.roundedRect(pad, y, W-2*pad, 38, 3,3,"FD");
-  doc.setFont("helvetica","bold"); doc.setFontSize(11); doc.setTextColor(30,58,138);
-  doc.text(`${service.type} — ${service.name}`, pad+4, y+8);
-  doc.setFont("helvetica","normal"); doc.setFontSize(8); doc.setTextColor(71,85,105);
-  doc.text(`${service.dist} · ${service.hours}`, pad+4, y+14);
-  doc.text(service.address, pad+4, y+19);
-  // tags
-  let tx = pad+4; const ty = y+25;
-  service.tags.forEach(tag => {
-    const tw = doc.getTextWidth(tag)+4;
-    doc.setDrawColor(37,99,235); doc.setFillColor(255,255,255);
-    doc.roundedRect(tx, ty-3.5, tw, 5.5, 1.5,1.5,"FD");
-    doc.setFontSize(7); doc.setTextColor(30,58,138); doc.text(tag, tx+2, ty+0.5);
-    tx += tw+3;
-  });
-  doc.setFontSize(7); doc.setTextColor(71,85,105);
-  doc.text(`${isEN?"Languages":"Langues"}: ${service.langs.join(" / ")}`, pad+4, y+33);
-  y += 44;
-
-  // Other nearby services
-  otherServices.slice(0,3).forEach(s => {
-    doc.setDrawColor(226,232,240); doc.line(pad, y, W-pad, y);
-    doc.setFont("helvetica","normal"); doc.setFontSize(8); doc.setTextColor(15,23,42);
-    doc.text(`${s.type} — ${s.name}`, pad+2, y+5);
-    doc.setTextColor(100,116,139);
-    doc.text(`${s.dist} · ${s.hours}`, W-pad-2, y+5, {align:"right"});
-    y += 9;
-  });
-
-  // Freshness
-  y += 3;
-  doc.setFontSize(7); doc.setTextColor(100,116,139); doc.setFont("helvetica","italic");
-  doc.text(isEN?"Info updated June 2026":"Info mise à jour juin 2026 — confirmer en appelant le 211", pad, y);
-  y += 8;
-
-  // Footer
-  const fw = (W-2*pad-4)/2;
-  doc.setFont("helvetica","normal"); doc.setTextColor(15,23,42);
-  doc.setDrawColor(226,232,240); doc.setFillColor(255,255,255);
-  doc.roundedRect(pad, y, fw, 8, 2,2,"FD");
-  doc.setFontSize(8); doc.text(isEN?"📞 211 or other":"📞 211 ou autre", pad+fw/2, y+5, {align:"center"});
-  doc.roundedRect(pad+fw+4, y, fw, 8, 2,2,"FD");
-  doc.text(isEN?"QR code (our app)":"Code QR (appli)", pad+fw+4+fw/2, y+5, {align:"center"});
-
-  doc.save(`flyer-${service.name.replace(/\s+/g,"-").toLowerCase()}.pdf`);
+// The underlying data (service descriptions, gap_drivers, etc.) only exists
+// in English in the DB — this flags that clearly instead of silently
+// showing English text under French labels.
+function EnglishOnlyNote({ isEN }) {
+  if (isEN) return null;
+  return (
+    <div style={{fontSize:11,fontStyle:"italic",color:"#B45309",background:"#FFFBEB",border:"1px solid #FDE68A",borderRadius:6,padding:"5px 9px",marginBottom:8,display:"inline-block"}}>
+      Version anglaise seulement — traduction française à venir. (English version only — French translation coming soon.)
+    </div>
+  );
 }
 
 function Chip({ active, color, bg, border, onClick, children }) {
@@ -254,104 +104,92 @@ function Chip({ active, color, bg, border, onClick, children }) {
   );
 }
 
-// V2 Planner View
-// Real gap_score schema (confirmed from Supabase):
-// area_id, area_name, borough_name, latitude, longitude, vulnerability_score,
-// overall_accessibility_score, gap_score, gap_rank, priority_flag,
-// gap_drivers, summary_en, summary_fr — all at the AREA level (multiple
-// areas share a borough_name).
-
-// Fallback/demo data — only used while the Supabase fetch is loading or if
-// it fails, so the V2 dashboard is never completely blank.
-const FALLBACK_AREAS = [
-  { id:"demo-1", name:"Mercier-Hochelaga-Maisonneuve", borough:"Mercier-Hochelaga-Maisonneuve", lat:null, lng:null, gapScore:0.81, vulnerability:0.78, accessibility:0.22, rank:1, priorityFlag:"High", drivers:[], summaryEn:"Demo data — connect Supabase to see the real area summary.", summaryFr:"Données de démonstration — connectez Supabase pour le vrai résumé." },
-  { id:"demo-2", name:"Villeray-Saint-Michel-Parc-Extension", borough:"Villeray-Saint-Michel-Parc-Extension", lat:null, lng:null, gapScore:0.77, vulnerability:0.74, accessibility:0.28, rank:2, priorityFlag:"High", drivers:[], summaryEn:"Demo data — connect Supabase to see the real area summary.", summaryFr:"Données de démonstration — connectez Supabase pour le vrai résumé." },
-  { id:"demo-3", name:"Montréal-Nord", borough:"Montréal-Nord", lat:null, lng:null, gapScore:0.74, vulnerability:0.71, accessibility:0.31, rank:3, priorityFlag:"High", drivers:[], summaryEn:"Demo data — connect Supabase to see the real area summary.", summaryFr:"Données de démonstration — connectez Supabase pour le vrai résumé." },
-  { id:"demo-4", name:"Ville-Marie", borough:"Ville-Marie", lat:null, lng:null, gapScore:0.34, vulnerability:0.38, accessibility:0.62, rank:12, priorityFlag:"Low", drivers:[], summaryEn:"Demo data — connect Supabase to see the real area summary.", summaryFr:"Données de démonstration — connectez Supabase pour le vrai résumé." },
-];
-
-// vulnerability_score / overall_accessibility_score / gap_score all come
-// back on a 0–100 scale (e.g. 62.87) while the UI (bars, choropleth
-// thresholds) expects 0–1. Anything clearly >1.5 is treated as a 0–100
-// score and divided down; anything else is passed through as-is.
-function norm01(v) {
-  if (v == null) return null;
-  const n = Number(v);
-  if (Number.isNaN(n)) return null;
-  return n > 1.5 ? n / 100 : n;
+// Checkbox-based multi-select dropdown — used for the real ~20 category
+// values, which are too many to lay out as a row of chips. Includes a
+// search box once there are enough options that scrolling alone gets tedious.
+function MultiSelectDropdown({ label, options, selected, onChange }) {
+  const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState("");
+  const ref = useRef(null);
+  useEffect(() => {
+    function onOutside(e) { if (ref.current && !ref.current.contains(e.target)) setOpen(false); }
+    document.addEventListener("mousedown", onOutside);
+    return () => document.removeEventListener("mousedown", onOutside);
+  }, []);
+  useEffect(() => { if (!open) setQuery(""); }, [open]);
+  const toggleVal = (val) => onChange(selected.includes(val) ? selected.filter(v=>v!==val) : [...selected, val]);
+  const active = selected.length > 0;
+  const visibleOptions = query ? options.filter(o=>o.toLowerCase().includes(query.toLowerCase())) : options;
+  return (
+    <div ref={ref} style={{position:"relative"}}>
+      <button onClick={()=>setOpen(o=>!o)}
+        style={{padding:"5px 10px",borderRadius:8,border:`1.5px solid ${active?"#2563EB":"#E2E8F0"}`,background:active?"#EFF6FF":"#fff",color:active?"#2563EB":"#334155",fontWeight:active?600:400,cursor:"pointer",fontSize:13,display:"flex",alignItems:"center",gap:5,whiteSpace:"nowrap"}}>
+        {label}{active?` (${selected.length})`:""} <span style={{fontSize:10}}>▾</span>
+      </button>
+      {open && (
+        <div style={{position:"absolute",top:"calc(100% + 4px)",left:0,background:"#fff",border:"1px solid #E2E8F0",borderRadius:8,boxShadow:"0 8px 24px rgba(15,23,42,0.12)",padding:8,minWidth:230,zIndex:100}}>
+          {options.length>8 && (
+            <input autoFocus value={query} onChange={e=>setQuery(e.target.value)} placeholder={label==="Autre"?"Rechercher…":"Search…"}
+              style={{width:"100%",boxSizing:"border-box",padding:"6px 8px",marginBottom:6,border:"1px solid #E2E8F0",borderRadius:6,fontSize:13,outline:"none"}}/>
+          )}
+          <div style={{maxHeight:260,overflowY:"auto"}}>
+            {visibleOptions.length===0 && <div style={{fontSize:12,color:"#94A3B8",padding:6}}>—</div>}
+            {visibleOptions.map(opt=>(
+              <label key={opt} style={{display:"flex",alignItems:"center",gap:8,padding:"6px 6px",fontSize:13,cursor:"pointer",borderRadius:6,color:"#334155"}}
+                onMouseOver={e=>e.currentTarget.style.background="#F8FAFC"} onMouseOut={e=>e.currentTarget.style.background="transparent"}>
+                <input type="checkbox" checked={selected.includes(opt)} onChange={()=>toggleVal(opt)}/>
+                {opt}
+              </label>
+            ))}
+          </div>
+          {active && (
+            <button onClick={()=>onChange([])}
+              style={{marginTop:6,width:"100%",padding:"6px",fontSize:12,color:"#64748B",background:"#F8FAFC",border:"1px solid #E2E8F0",borderRadius:6,cursor:"pointer"}}>
+              Clear
+            </button>
+          )}
+        </div>
+      )}
+    </div>
+  );
 }
 
-// Converts one raw gap_score row into a clean shape for the UI.
-function rowToArea(row, idx) {
-  return {
-    id: row.area_id || `area-${idx}`,
-    name: row.area_name || row.area_id || "Unnamed area",
-    borough: row.borough_name || "",
-    lat: row.latitude != null ? Number(row.latitude) : null,
-    lng: row.longitude != null ? Number(row.longitude) : null,
-    gapScore: norm01(row.gap_score),
-    vulnerability: norm01(row.vulnerability_score),
-    accessibility: norm01(row.overall_accessibility_score),
-    rank: row.gap_rank ?? null,
-    priorityFlag: row.priority_flag || "",
-    drivers: parseDrivers(row.gap_drivers, 6, 50),
-    summaryEn: row.summary_en || "",
-    summaryFr: row.summary_fr || "",
-  };
+function LocationBadge({ location, onChange, changeLabel="change" }) {
+  if (!location) return null;
+
+  return (
+    <div style={{fontSize:12,color:"#fff",background:"rgba(255,255,255,0.1)",padding:"4px 10px",borderRadius:6,display:"flex",alignItems:"center",gap:5}}>
+      <span style={{width:6,height:6,borderRadius:"50%",background:"#059669",display:"inline-block",flexShrink:0}}/>
+      <span style={{fontWeight:600,whiteSpace:"nowrap"}}>{location.name}</span>
+      <button
+        type="button"
+        onClick={onChange}
+        aria-label={`Change distribution location from ${location.name}`}
+        style={{background:"none",border:"none",color:"#60A5FA",cursor:"pointer",fontSize:11,padding:"0 2px",fontWeight:600}}
+      >
+        {changeLabel}
+      </button>
+    </div>
+  );
 }
 
-// The geojson's borough names ("Côte-des-Neiges–Notre-Dame-de-Grâce", "Le
-// Plateau-Mont-Royal") don't match the DB's plain-text borough_name
-// ("Cote-des-Neiges-Notre-Dame-de-Grace", "Plateau Mont-Royal") — different
-// accents, articles, dash characters. Normalize both sides before comparing.
-function normalizeBoroughName(name) {
-  if (!name) return "";
-  return name
-    .normalize("NFD").replace(/[\u0300-\u036f]/g, "") // strip accents
-    .toLowerCase()
-    .replace(/^(le|la|les)\s+/, "")                    // strip leading article
-    .replace(/[–—]/g, "-")                             // normalize dash characters
-    .replace(/[^a-z0-9]+/g, "")                         // drop spaces/hyphens/punctuation entirely
-    .trim();
-}
-
-// Beyond accents/casing, official borough names sometimes carry extra
-// suffixes depending on the source ("Verdun" vs "Verdun–Île-des-Soeurs",
-// a short DB name vs the geojson's full compound name). Treat two names as
-// the same borough if either one contains the other after normalizing.
-function boroughNamesMatch(a, b) {
-  const na = normalizeBoroughName(a), nb = normalizeBoroughName(b);
-  if (!na || !nb) return false;
-  return na === nb || na.includes(nb) || nb.includes(na);
-}
-
-// The choropleth colors whole boroughs, so average every area's gap_score
-// into one number per borough (used for the KPI cards' "N boroughs" count —
-// the Area profile panel below uses one specific area's own numbers, since
-// text fields like summary/drivers can't be meaningfully averaged).
-function aggregateBoroughGapScore(areas) {
-  const groups = {};
-  areas.forEach(a => {
-    if (!a.borough || a.gapScore == null) return;
-    const key = normalizeBoroughName(a.borough);
-    if (!groups[key]) groups[key] = { sum:0, n:0, label:a.borough };
-    groups[key].sum += a.gapScore;
-    groups[key].n++;
-  });
-  const out = {};
-  Object.entries(groups).forEach(([key,g]) => { out[key] = { score: g.sum / g.n, label:g.label }; });
-  return out;
-}
-
-
-function priorityFlagColor(flag) {
-  const f = (flag || "").toLowerCase();
-  if (f.includes("high")) return { color:"#9F1239", bg:"#FFF1F2", border:"#FECDD3" };
-  if (f.includes("med")) return { color:"#B45309", bg:"#FFFBEB", border:"#FDE68A" };
-  if (f.includes("low")) return { color:"#065F46", bg:"#ECFDF5", border:"#A7F3D0" };
-  return { color:"#334155", bg:"#F1F5F9", border:"#E2E8F0" };
-}
-
+// V2 Planner View 
+const BOROUGH_SCORES = {
+  "Mercier-Hochelaga-Maisonneuve": { score:0.81, income:0.78, housing:0.64, immigration:0.52 },
+  "Villeray-Saint-Michel-Parc-Extension": { score:0.77, income:0.74, housing:0.61, immigration:0.68 },
+  "Montréal-Nord": { score:0.74, income:0.71, housing:0.58, immigration:0.62 },
+  "Côte-des-Neiges--Notre-Dame-de-Grâce": { score:0.69, income:0.65, housing:0.55, immigration:0.71 },
+  "Verdun--Ile-des-Soeurs": { score:0.65, income:0.58, housing:0.52, immigration:0.38 },
+  "Saint-Laurent": { score:0.52, income:0.48, housing:0.44, immigration:0.59 },
+  "Ahuntsic-Cartierville": { score:0.48, income:0.45, housing:0.41, immigration:0.52 },
+  "Rosemont--La-Petite-Patrie": { score:0.45, income:0.42, housing:0.48, immigration:0.31 },
+  "Sud-Ouest": { score:0.43, income:0.41, housing:0.46, immigration:0.29 },
+  "Plateau-Mont-Royal": { score:0.36, income:0.32, housing:0.44, immigration:0.27 },
+  "Ville-Marie": { score:0.34, income:0.38, housing:0.41, immigration:0.33 },
+  "Anjou": { score:0.30, income:0.28, housing:0.31, immigration:0.35 },
+  "LaSalle": { score:0.28, income:0.26, housing:0.29, immigration:0.32 },
+  "Outremont": { score:0.16, income:0.14, housing:0.22, immigration:0.19 },
+};
 
 function scoreToColor(score) {
   if (!score) return "#E2E8F0";
@@ -362,93 +200,198 @@ function scoreToColor(score) {
   return "#FFE4E6";
 }
 
-function ChoroplethMap({ areas=FALLBACK_AREAS, onSelectArea, selectedAreaId }) {
-  const validAreas = areas.filter(a => a.lat != null && a.lng != null && !Number.isNaN(a.lat) && !Number.isNaN(a.lng));
+function priorityFlagStyle(flag) {
+  const f = (flag || "").toLowerCase();
+  if (f.includes("high")) return { color:"#9F1239", background:"#FFF1F2", border:"1px solid #FECDD3" };
+  if (f.includes("med")) return { color:"#B45309", background:"#FFFBEB", border:"1px solid #FDE68A" };
+  if (f.includes("low")) return { color:"#065F46", background:"#ECFDF5", border:"1px solid #A7F3D0" };
+  return { color:"#334155", background:"#F1F5F9", border:"1px solid #E2E8F0" };
+}
+
+const BOUNDARY_SCORE_ALIASES = {
+  "Montreal-Nord": "Montréal-Nord",
+  "Cote-des-Neiges-Notre-Dame-de-Grace": "Côte-des-Neiges--Notre-Dame-de-Grâce",
+  "Verdun": "Verdun--Ile-des-Soeurs",
+  "Le Sud-Ouest": "Sud-Ouest",
+  "Le Plateau-Mont-Royal": "Plateau-Mont-Royal",
+};
+
+function boundaryScoreKey(feature, boroughScores) {
+  const boroughName = feature.properties?.borough_name || "";
+  const alias = BOUNDARY_SCORE_ALIASES[boroughName];
+  return [boroughName, alias].find(name => name && boroughScores[name]) || alias || boroughName || null;
+}
+
+function ChoroplethMap({ selectedBorough, selectedAreaId, onSelect, boroughScores, areas=[] }) {
+  const [geojson, setGeojson] = useState(null);
+  const [mapStatus, setMapStatus] = useState("loading");
+  const mapRef = useRef(null);
+  const areaById = new Map(areas.map(a => [a.id, a]));
+
+  useEffect(() => {
+    const controller = new AbortController();
+    fetch("/geo/areas.geojson", { signal: controller.signal })
+      .then(r => {
+        if (!r.ok) throw new Error(`Boundary request failed: ${r.status}`);
+        return r.json();
+      })
+      .then(data => {
+        if (!Array.isArray(data.features) || data.features.length === 0) {
+          throw new Error("Boundary artifact has no features");
+        }
+        setGeojson(data);
+        setMapStatus("ready");
+      })
+      .catch(error => {
+        if (error.name !== "AbortError") {
+          console.error("Unable to load local area boundaries", error);
+          setGeojson(null);
+          setMapStatus("error");
+        }
+      });
+    return () => controller.abort();
+  }, []);
+
+  // Prefer this exact area's own gap_score (same number the Area profile
+  // card shows) — only fall back to the borough-level relative average for
+  // polygons whose area_id isn't in the loaded areas array yet.
+  const scoreForFeature = (feature) => {
+    const areaId = feature.properties?.area_id || "";
+    const areaMatch = areaId ? areaById.get(areaId) : null;
+    if (areaMatch?.gapScore != null) return areaMatch.gapScore;
+    const name = boundaryScoreKey(feature, boroughScores);
+    return name ? boroughScores[name]?.score : null;
+  };
+
+  const onEachFeature = (feature, layer) => {
+    const name = boundaryScoreKey(feature, boroughScores);
+    const label = feature.properties?.area_name || feature.properties?.borough_name || "";
+    const boroughLabel = feature.properties?.borough_name || "";
+    const areaId = feature.properties?.area_id || "";
+    const score = scoreForFeature(feature);
+    const isSelected = selectedAreaId ? areaId === selectedAreaId : name === selectedBorough;
+    layer.setStyle({
+      fillColor: scoreToColor(score),
+      fillOpacity: 0.8,
+      color: isSelected ? "#0F172A" : "#fff",
+      weight: isSelected ? 2.5 : 1,
+    });
+    layer.on({
+      click: () => {
+        if (name && areaId) onSelect({ scoreKey: name, areaId, areaName: label });
+      },
+      mouseover: (e) => { e.target.setStyle({ fillOpacity: 1 }); },
+      mouseout: (e) => { e.target.setStyle({ fillOpacity: 0.8 }); },
+    });
+    if (label) {
+      layer.bindTooltip(
+        `<b>${label}</b><br/>${boroughLabel}${areaId ? ` · ${areaId}` : ""}${score != null ? `<br/>Gap Score: <b>${score.toFixed(2)}</b>` : ""}`,
+        { sticky: true }
+      );
+    }
+  };
+
+  const style = (feature) => {
+    const name = boundaryScoreKey(feature, boroughScores);
+    const areaId = feature.properties?.area_id || "";
+    const isSelected = selectedAreaId ? areaId === selectedAreaId : name === selectedBorough;
+    return {
+      fillColor: scoreToColor(scoreForFeature(feature)),
+      fillOpacity: 0.8,
+      color: isSelected ? "#0F172A" : "#fff",
+      weight: isSelected ? 2.5 : 1,
+    };
+  };
 
   return (
     <div style={{height:"100%",width:"100%",position:"relative",zIndex:0}}>
       <MapContainer center={[45.53,-73.65]} zoom={11} style={{height:"100%",width:"100%"}} zoomControl={true}>
-        <TileLayer attribution='© CartoDB' url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"/>
-        {validAreas.map(a => {
-          const isSelected = a.id===selectedAreaId;
-          return (
-            <Fragment key={a.id}>
-              {/* soft glow halo */}
-              <Circle center={[a.lat,a.lng]} radius={850} pathOptions={{ fillColor:scoreToColor(a.gapScore), fillOpacity:0.30, stroke:false }} eventHandlers={{ click:()=>onSelectArea?.(a) }}/>
-              {/* solid pin at the exact lat/lng from gap_score — selected one gets a black ring */}
-              <CircleMarker center={[a.lat,a.lng]} radius={isSelected?12:8} pathOptions={{ fillColor:scoreToColor(a.gapScore), fillOpacity:0.95, color:isSelected?"#0F172A":"#fff", weight:isSelected?3:2 }} eventHandlers={{ click:()=>onSelectArea?.(a) }}>
-                <Popup><div style={{fontFamily:"system-ui",minWidth:150}}>
-                  <div style={{fontWeight:700,fontSize:13,color:"#0F172A"}}>{a.name}</div>
-                  {a.borough && a.borough!==a.name && <div style={{fontSize:11,color:"#64748B"}}>{a.borough}</div>}
-                  <div style={{fontSize:12,color:"#334155",marginTop:4}}>Gap Score: <b>{a.gapScore!=null?a.gapScore.toFixed(2):"—"}</b></div>
-                </div></Popup>
-              </CircleMarker>
-            </Fragment>
-          );
-        })}
+        <TileLayer attribution='© CartoDB · Boundaries © Ville de Montréal, CC BY 4.0' url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png" opacity={0.3}/>
+        {geojson && (
+          <GeoJSON key={`${selectedBorough}:${selectedAreaId || "ranked"}`} data={geojson} style={style} onEachFeature={onEachFeature}/>
+        )}
+        {mapStatus === "loading" && (
+          <div style={{position:"absolute",inset:0,display:"flex",alignItems:"center",justifyContent:"center",zIndex:1000,background:"rgba(255,255,255,0.7)",fontSize:13,color:"#64748B"}}>
+            Loading map…
+          </div>
+        )}
+        {mapStatus === "error" && (
+          <div style={{position:"absolute",inset:0,display:"flex",alignItems:"center",justifyContent:"center",zIndex:1000,background:"rgba(255,255,255,0.9)",fontSize:13,color:"#9F1239"}}>
+            Boundary map unavailable
+          </div>
+        )}
       </MapContainer>
     </div>
   );
 }
 
-function PlannerView({ lang, setLang, onSwitch, services=[] }) {
+function PlannerView({ lang, setLang, onSwitch, onExit, location, onChangeLocation, services, categories, boroughScores, areas=[], sourceStatus }) {
   const [chat, setChat] = useState("");
   const [chatOpen, setChatOpen] = useState(false);
-  const [selectedArea, setSelectedArea] = useState(null);
-
-  // Live gap_score data from Supabase — one row per area (area_id/area_name),
-  // multiple areas share a borough_name.
-  const [gapAreas, setGapAreas] = useState([]);
-  const [gapLoading, setGapLoading] = useState(true);
-  const [gapError, setGapError] = useState(null);
-
+  const [selectedBorough, setSelectedBorough] = useState("Mercier-Hochelaga-Maisonneuve");
+  const [selectedAreaId, setSelectedAreaId] = useState("A005");
+  const [selectedAreaLabel, setSelectedAreaLabel] = useState("Mercier-Hochelaga-Maisonneuve");
+  const boroughEntries = Object.entries(boroughScores);
   useEffect(() => {
-    let cancelled = false;
-    supabase.from("gap_score").select("*").then(({ data, error }) => {
-      if (cancelled) return;
-      if (error) {
-        console.error("Failed to load gap_score:", error);
-        setGapError(error.message);
-      } else {
-        setGapAreas((data || []).map(rowToArea));
-      }
-      setGapLoading(false);
-    });
-    return () => { cancelled = true; };
-  }, []);
-
-  const areas = gapAreas.length > 0 ? gapAreas : FALLBACK_AREAS;
-  const boroughScores = aggregateBoroughGapScore(areas);
-
-  // Default the selected area to the highest gap_score once data arrives
-  useEffect(() => {
-    if (areas.length > 0 && !selectedArea) {
-      const top = [...areas].sort((a,b)=>(b.gapScore||0)-(a.gapScore||0))[0];
-      setSelectedArea(top);
+    if (boroughEntries.length > 0 && !boroughScores[selectedBorough]) {
+      setSelectedBorough(boroughEntries[0][0]);
+      setSelectedAreaId(null);
+      setSelectedAreaLabel(boroughEntries[0][0]);
     }
-  }, [areas, selectedArea]);
+  }, [boroughScores, selectedBorough]);
+  // If real areas are loaded, default the selection to the highest gap_score area
+  useEffect(() => {
+    if (areas.length > 0 && (!selectedAreaId || !areas.some(a=>a.id===selectedAreaId))) {
+      const top = areas[0]; // areas is already sorted by gapScore desc
+      setSelectedBorough(top.borough);
+      setSelectedAreaId(top.id);
+      setSelectedAreaLabel(top.name);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [areas]);
 
-  const selectedBorough = selectedArea?.borough || "";
+  // Area-level richness (rank, priority flag, bilingual summary, key
+  // drivers) for whichever area is currently selected — falls back to just
+  // the borough-level 3-metric breakdown below if no matching area row.
+  const selectedAreaData = areas.find(a => a.id === selectedAreaId) || null;
 
-  // Services (from services_master, via the "dist" field which holds
-  // borough_name) filtered down to whichever borough is currently selected.
-  const validServices = services.filter(s=>s.lat!=null && s.lng!=null);
-  const boroughServices = selectedBorough
-    ? validServices.filter(s => boroughNamesMatch(s.dist, selectedBorough))
-    : validServices;
-
-  const priorities = [...areas]
-    .sort((a,b)=>(b.gapScore||0)-(a.gapScore||0))
-    .slice(0,5);
-
-  // Real KPI numbers derived from gap_score (falls back to demo numbers if not loaded yet)
-  const validScores = areas.map(a=>a.gapScore).filter(s=>s!=null);
-  const avgGapScore = validScores.length ? (validScores.reduce((a,b)=>a+b,0)/validScores.length) : 0;
-  const highPriorityCount = areas.filter(a=>(a.priorityFlag||"").toLowerCase().includes("high") || (a.gapScore!=null && a.gapScore>=0.6)).length;
-  const tractsAnalyzed = areas.length;
-  const flagStyle = selectedArea?.priorityFlag ? priorityFlagColor(selectedArea.priorityFlag) : null;
-
+  const priorities = areas.length > 0
+    ? areas.slice(0,5)
+    : boroughEntries
+        .sort((a,b)=>b[1].score-a[1].score)
+        .slice(0,5)
+        .map(([name,d])=>({ id:name, name: name.length>18?name.slice(0,16)+"…":name, borough:name, gapScore:d.score }));
+  const areaData = boroughScores[selectedBorough] || { score:0, income:0, housing:0, immigration:0 };
   const isEN = lang==="EN";
+  const selectMapArea = ({ scoreKey, areaId, areaName }) => {
+    setSelectedBorough(scoreKey);
+    setSelectedAreaId(areaId);
+    setSelectedAreaLabel(areaName);
+  };
+  const selectRankedBorough = (boroughName) => {
+    setSelectedBorough(boroughName);
+    setSelectedAreaId(null);
+    setSelectedAreaLabel(boroughName);
+  };
+  // Real KPI numbers derived from the areas array (falls back to the old
+  // static placeholders only if no real area rows have loaded yet)
+  const validGapScores = areas.map(a=>a.gapScore).filter(s=>s!=null);
+  const avgGapScore = validGapScores.length ? (validGapScores.reduce((a,b)=>a+b,0)/validGapScores.length) : null;
+  const highPriorityCount = areas.filter(a=>(a.priorityFlag||"").toLowerCase().includes("high") || (a.gapScore!=null && a.gapScore>=0.6)).length;
+
+  // Only show the selected area's own services on the street map, instead
+  // of all of them at once (with real data that's 1000+ overlapping pins).
+  // Prefer an exact area_id match (precise, e.g. Saint-Michel vs Parc
+  // Extension even though they share a borough) — falls back to matching
+  // the whole borough if this specific area has no services tagged with
+  // its area_id yet.
+  const validServices = services.filter(s=>s.lat!=null && s.lng!=null);
+  const areaLevelServices = selectedAreaId ? validServices.filter(s => s.areaId === selectedAreaId) : [];
+  const boroughServices = areaLevelServices.length > 0
+    ? areaLevelServices
+    : selectedBorough
+      ? validServices.filter(s => boroughNamesMatch(s.borough, selectedBorough))
+      : validServices;
   return (
     <div style={{minHeight:"100vh",background:"#FFFFFF",fontFamily:"system-ui,sans-serif",fontSize:14}}>
       <div style={{background:"#0B1220",padding:"10px 20px",display:"flex",alignItems:"center",justifyContent:"space-between",position:"sticky",top:0,zIndex:1000,borderBottom:"1px solid #1E293B"}}>
@@ -459,25 +402,23 @@ function PlannerView({ lang, setLang, onSwitch, services=[] }) {
           <div style={{fontSize:12,color:"#60A5FA",fontWeight:600,textTransform:"uppercase",letterSpacing:0.6}}>Planner View (V2)</div>
         </div>
         <div style={{display:"flex",gap:6,alignItems:"center"}}>
+          <span style={{fontSize:11,color:sourceStatus==="supabase"?"#6EE7B7":"#FCD34D",fontWeight:600}}>
+            {sourceStatus==="supabase"?"Supabase":"Demo data"}
+          </span>
           <div style={{display:"flex",background:"rgba(255,255,255,0.08)",borderRadius:6,overflow:"hidden"}}>
             {["EN","FR"].map(l=><button key={l} onClick={()=>setLang(l)} style={{padding:"4px 10px",border:"none",background:lang===l?"#2563EB":"transparent",color:"#fff",fontWeight:lang===l?700:400,cursor:"pointer",fontSize:12}}>{l}</button>)}
           </div>
           <button onClick={onSwitch} style={{padding:"4px 12px",borderRadius:6,border:"1px solid #334155",color:"#CBD5E1",background:"transparent",cursor:"pointer",fontSize:12}}>Community View (V1)</button>
-          <button onClick={()=>setStep("role")} style={{display:"flex",alignItems:"center",gap:3,padding:"4px 10px",borderRadius:6,border:"none",color:"#CBD5E1",background:"transparent",cursor:"pointer",fontSize:11}}><ChevronLeft size={12}/> Exit</button>
+          <button onClick={onExit} style={{display:"flex",alignItems:"center",gap:3,padding:"4px 10px",borderRadius:6,border:"none",color:"#CBD5E1",background:"transparent",cursor:"pointer",fontSize:11}}><ChevronLeft size={12}/> Exit</button>
         </div>
       </div>
       <div style={{padding:"16px 20px"}}>
-        {gapError && (
-          <div style={{background:"#FFFBEB",border:"1px solid #FDE68A",color:"#92400E",borderRadius:8,padding:"8px 14px",marginBottom:14,fontSize:12}}>
-            {isEN?"Couldn't load gap_score from Supabase (":"Impossible de charger gap_score ("}{gapError}{isEN?"). Showing demo data instead.":"). Affichage des données de démonstration."}
-          </div>
-        )}
         {/* KPI cards */}
         <div style={{display:"flex",background:"#fff",border:"1px solid #E2E8F0",borderRadius:8,marginBottom:16,overflow:"hidden"}}>
           {[
-            { label:"Tracts analyzed", val:gapLoading?"…":String(tractsAnalyzed), sub:gapLoading?"loading…":(isEN?"areas from gap_score":"zones de gap_score"), icon:Layers, color:"#4F46E5", bg:"#EEF2FF" },
-            { label:"Average gap score", val:gapLoading?"…":avgGapScore.toFixed(2), sub:gapLoading?"loading…":(isEN?`across ${Object.keys(boroughScores).length} boroughs`:`sur ${Object.keys(boroughScores).length} arrondissements`), icon:Activity, color:"#E11D48", bg:"#FFF1F2" },
-            { label:"High-priority areas", val:gapLoading?"…":String(highPriorityCount), sub:gapLoading?"loading…":(isEN?"flagged high / gap score ≥ 0.60":"signalées haute priorité / score ≥ 0,60"), icon:AlertTriangle, color:"#D97706", bg:"#FFFBEB" },
+            { label:"Tracts analyzed", val: areas.length>0 ? String(areas.length) : "512", sub: areas.length>0 ? `${boroughEntries.length} boroughs` : "of 512 citywide", icon:Layers, color:"#4F46E5", bg:"#EEF2FF" },
+            { label:"Average gap score", val: avgGapScore!=null ? avgGapScore.toFixed(2) : "0.42", sub: avgGapScore!=null ? `across ${areas.length} areas` : "0.03 vs last quarter", icon:Activity, color:"#E11D48", bg:"#FFF1F2" },
+            { label:"High-priority areas", val: areas.length>0 ? String(highPriorityCount) : "23", sub: areas.length>0 ? "flagged high / gap score ≥ 0.60" : "6 newly flagged", icon:AlertTriangle, color:"#D97706", bg:"#FFFBEB" },
           ].map((k,i)=>(
             <div key={k.label} style={{flex:1,padding:"14px 20px",display:"flex",gap:12,alignItems:"flex-start",borderLeft:i>0?"1px solid #E2E8F0":"none"}}>
               <div style={{width:34,height:34,borderRadius:8,background:k.bg,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
@@ -496,15 +437,15 @@ function PlannerView({ lang, setLang, onSwitch, services=[] }) {
         </div>
 
         {/* Map row */}
-        <div style={{display:"grid",gridTemplateColumns:"1.15fr 1fr 300px",gap:12,marginBottom:12}}>
+        <div style={{display:"grid",gridTemplateColumns:"1.1fr 1fr 340px",gap:12,marginBottom:12}}>
           {/* Real choropleth */}
           <div style={{background:"#fff",border:"1px solid #E2E8F0",borderRadius:8,overflow:"hidden",display:"flex",flexDirection:"column"}}>
             <div style={{padding:"12px 16px",borderBottom:"1px solid #E2E8F0",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-              <span style={{fontWeight:600,fontSize:15}}>{isEN?"Gap Score heatmap — click an area":"Carte de chaleur du Gap Score — cliquez une zone"}</span>
-           
+              <span style={{fontWeight:600,fontSize:15}}>{isEN?"Gap Score heatmap — click a borough":"Carte de chaleur du Gap Score — cliquez un arrondissement"}</span>
+              <span style={{fontSize:13,color:"#64748B"}}>{isEN?"by Gap Score":"par Score d'écart"}</span>
             </div>
             <div style={{flex:1,minHeight:460}}>
-              <ChoroplethMap areas={areas} onSelectArea={setSelectedArea} selectedAreaId={selectedArea?.id}/>
+              <ChoroplethMap selectedBorough={selectedBorough} selectedAreaId={selectedAreaId} onSelect={selectMapArea} boroughScores={boroughScores} areas={areas}/>
             </div>
             <div style={{padding:"10px 16px",borderTop:"1px solid #E2E8F0",display:"flex",alignItems:"center",gap:8,fontSize:13,color:"#334155"}}>
               <span>{isEN?"Low":"Faible"}</span>
@@ -513,27 +454,39 @@ function PlannerView({ lang, setLang, onSwitch, services=[] }) {
             </div>
           </div>
 
-          {/* Street map — filtered to whichever borough is selected */}
+          {/* Street map — filtered to whichever area/borough is selected */}
           <div style={{borderRadius:8,overflow:"hidden",border:"1px solid #E2E8F0",position:"relative",zIndex:0,minHeight:460}}>
             <div style={{position:"absolute",top:8,left:8,zIndex:1001,background:"rgba(255,255,255,0.95)",borderRadius:6,padding:"5px 12px",fontSize:14,fontWeight:600,color:"#0F172A",border:"1px solid #E2E8F0",maxWidth:"70%"}}>
-              {isEN?"Service locations":"Emplacements des services"}{selectedBorough?` — ${selectedBorough}`:""} <span style={{fontWeight:400,color:"#64748B"}}>({boroughServices.length})</span>
+              {isEN?"Service locations":"Emplacements des services"}{areaLevelServices.length>0?` — ${selectedAreaLabel}`:(selectedBorough?` — ${selectedBorough}`:"")} <span style={{fontWeight:400,color:"#64748B"}}>({boroughServices.length})</span>
+            </div>
+            <div style={{position:"absolute",top:8,right:8,zIndex:1001,background:"rgba(255,255,255,0.95)",borderRadius:6,padding:"8px 12px",border:"1px solid #E2E8F0",fontSize:12,minWidth:130}}>
+              <div style={{fontWeight:600,marginBottom:5,color:"#0F172A"}}>{isEN?"Breakdown":"Répartition"}</div>
+              {categories.map(c=>{
+                const count = boroughServices.filter(s=>s.category===c.label).length;
+                return (
+                  <div key={c.label} style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:12,padding:"2px 0"}}>
+                    <span style={{display:"flex",alignItems:"center",gap:5,color:"#334155"}}><span style={{width:8,height:8,borderRadius:"50%",background:c.color,display:"inline-block",flexShrink:0}}/>{c.label}</span>
+                    <span style={{fontWeight:600,color:"#0F172A",fontFamily:MONO_FONT}}>{count}</span>
+                  </div>
+                );
+              })}
             </div>
             <MapContainer center={[45.5188,-73.5878]} zoom={12} style={{height:"100%",width:"100%"}} zoomControl={true}>
               <TileLayer attribution='© CartoDB' url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"/>
-              <FitFlyerBounds points={boroughServices.map(s=>[s.lat,s.lng])}/>
+              <FitBoundsToPoints points={boroughServices.map(s=>[s.lat,s.lng])}/>
               {boroughServices.map(s=>(
-                <Marker key={s.id} position={[s.lat,s.lng]} icon={makeIcon(s.category,false)}>
-                  <Popup><div style={{fontFamily:"system-ui",minWidth:140}}><div style={{fontWeight:700,fontSize:13,color:CAT_COLORS[s.category],display:"flex",alignItems:"center",gap:5}}><CatIcon category={s.category} size={14} color={CAT_COLORS[s.category]}/> {s.name}</div><div style={{fontSize:12,color:"#64748B"}}>{s.type} · {s.dist}</div></div></Popup>
+                <Marker key={s.id} position={[s.lat,s.lng]} icon={createServiceMarker(s.category,false)}>
+                  <Popup><div style={{fontFamily:"system-ui",minWidth:140}}><div style={{fontWeight:700,fontSize:13,color:CATEGORY_COLORS[s.category],display:"flex",alignItems:"center",gap:5}}><CategoryIcon category={s.category} size={14} color={CATEGORY_COLORS[s.category]}/> {s.name}</div><div style={{fontSize:12,color:"#64748B"}}>{s.type} · {s.dist}</div></div></Popup>
                 </Marker>
               ))}
             </MapContainer>
             {boroughServices.length===0 && (
               <div style={{position:"absolute",inset:0,display:"flex",alignItems:"center",justifyContent:"center",zIndex:1000,background:"rgba(255,255,255,0.6)",fontSize:13,color:"#64748B",textAlign:"center",padding:20}}>
-                {isEN?"No services_master rows matched to this borough yet.":"Aucun service de services_master associé à cet arrondissement pour l'instant."}
+                {isEN?"No services matched to this borough yet.":"Aucun service associé à cet arrondissement pour l'instant."}
               </div>
             )}
             <div style={{position:"absolute",bottom:8,left:8,zIndex:1000,background:"rgba(255,255,255,0.95)",borderRadius:6,padding:"5px 10px",border:"1px solid #E2E8F0",fontSize:12,display:"flex",gap:10,flexWrap:"wrap"}}>
-              {CATEGORIES.map(c=><span key={c.label} style={{display:"flex",alignItems:"center",gap:4}}><span style={{width:9,height:9,borderRadius:"50%",background:c.color,display:"inline-block"}}/>{c.label}</span>)}
+              {categories.map(c=><span key={c.label} style={{display:"flex",alignItems:"center",gap:4}}><span style={{width:9,height:9,borderRadius:"50%",background:c.color,display:"inline-block"}}/>{c.label}</span>)}
             </div>
           </div>
 
@@ -541,108 +494,117 @@ function PlannerView({ lang, setLang, onSwitch, services=[] }) {
           <div style={{background:"#fff",border:"1px solid #E2E8F0",borderRadius:8,padding:"16px",display:"flex",flexDirection:"column"}}>
             <div style={{fontWeight:600,fontSize:15,marginBottom:12}}>{isEN?"Top priority areas (by Gap Score)":"Zones prioritaires (par Score d'écart)"}</div>
             <div style={{display:"flex",flexDirection:"column",gap:8,flex:1}}>
-              {priorities.map((a)=>(
-                <div key={a.id} onClick={()=>setSelectedArea(a)}
-                  style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"10px 12px",borderRadius:8,cursor:"pointer",background:selectedArea?.id===a.id?"#EFF6FF":"#F1F5F9",border:`1px solid ${selectedArea?.id===a.id?"#2563EB":"#E2E8F0"}`,transition:"all 0.15s"}}>
-                  <div style={{minWidth:0}}>
-                    <div style={{fontSize:13,fontWeight:selectedArea?.id===a.id?600:400,color:selectedArea?.id===a.id?"#2563EB":"#0F172A",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{a.name}</div>
-                    {a.borough && a.borough!==a.name && <div style={{fontSize:11,color:"#94A3B8",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{a.borough}</div>}
+              {priorities.map((p)=>{
+                const isSelected = areas.length>0 ? selectedAreaId===p.id : selectedBorough===p.borough;
+                const onClick = () => areas.length>0
+                  ? selectMapArea({ scoreKey:p.borough, areaId:p.id, areaName:p.name })
+                  : selectRankedBorough(p.borough);
+                return (
+                  <div key={p.id} onClick={onClick}
+                    style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"10px 12px",borderRadius:8,cursor:"pointer",background:isSelected?"#EFF6FF":"#F1F5F9",border:`1px solid ${isSelected?"#2563EB":"#E2E8F0"}`,transition:"all 0.15s"}}>
+                    <div style={{minWidth:0}}>
+                      <div style={{fontSize:13,fontWeight:isSelected?600:400,color:isSelected?"#2563EB":"#0F172A",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{p.name}</div>
+                      {p.borough && p.borough!==p.name && <div style={{fontSize:11,color:"#94A3B8",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{p.borough}</div>}
+                    </div>
+                    <span style={{fontSize:13,fontWeight:700,color:"#2563EB",background:"#EFF6FF",padding:"3px 8px",borderRadius:4,fontFamily:MONO_FONT,flexShrink:0,marginLeft:8}}>{p.gapScore!=null?p.gapScore.toFixed(2):"—"}</span>
                   </div>
-                  <span style={{fontSize:13,fontWeight:700,color:"#2563EB",background:"#EFF6FF",padding:"3px 8px",borderRadius:4,fontFamily:MONO_FONT,flexShrink:0,marginLeft:8}}>{a.gapScore!=null?a.gapScore.toFixed(2):"—"}</span>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         </div>
 
-        {/* Area profile — updates when an area/borough is clicked */}
+        {/* Area profile — updates when a borough/area is clicked */}
         <div style={{background:"#fff",border:"1px solid #E2E8F0",borderRadius:8,padding:"16px",marginBottom:12}}>
-          {selectedArea && (<>
-            <div style={{display:"flex",alignItems:"center",flexWrap:"wrap",gap:10,marginBottom:14}}>
-              <div style={{fontWeight:600,fontSize:15}}>
-                {isEN?"Area profile":"Profil de la zone"} — <span style={{color:"#2563EB"}}>{selectedArea.name}</span>
-                {selectedArea.borough && selectedArea.borough!==selectedArea.name && <span style={{color:"#94A3B8",fontWeight:400}}> ({selectedArea.borough})</span>}
-              </div>
-              <span style={{fontSize:13,color:"#64748B"}}>Gap Score: <b style={{fontFamily:MONO_FONT,color:"#0F172A"}}>{selectedArea.gapScore!=null?selectedArea.gapScore.toFixed(2):"—"}</b></span>
-              {selectedArea.priorityFlag && (
-                <span style={{fontSize:11,fontWeight:600,padding:"3px 10px",borderRadius:20,color:flagStyle.color,background:flagStyle.bg,border:`1px solid ${flagStyle.border}`}}>{selectedArea.priorityFlag}</span>
-              )}
-              {selectedArea.rank!=null && (
-                <span style={{fontSize:12,color:"#94A3B8"}}>{isEN?`Rank #${selectedArea.rank} of ${tractsAnalyzed} areas`:`Rang n°${selectedArea.rank} sur ${tractsAnalyzed} zones`}</span>
-              )}
+          <div style={{display:"flex",alignItems:"center",flexWrap:"wrap",gap:10,marginBottom:12}}>
+            <div style={{fontWeight:600,fontSize:15}}>
+              {isEN?"Area profile":"Profil de la zone"} — <span style={{color:"#2563EB"}}>{selectedAreaLabel}</span>
             </div>
-
-            <div style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:20,marginBottom:selectedArea.summaryEn||selectedArea.summaryFr||(isEN&&selectedArea.drivers.length>0)?16:0}}>
-              {[
-                [isEN?"Vulnerability score":"Score de vulnérabilité", selectedArea.vulnerability],
-                [isEN?"Service accessibility":"Accessibilité aux services", selectedArea.accessibility],
-              ].map(([label,pct])=>(
-                <div key={label}>
-                  <div style={{display:"flex",justifyContent:"space-between",fontSize:13,marginBottom:5}}><span>{label}</span><span style={{fontWeight:600,fontFamily:MONO_FONT}}>{pct!=null?pct.toFixed(2):"—"}</span></div>
-                  <div style={{height:8,borderRadius:4,background:"#F1F5F9"}}>
-                    <div style={{height:8,width:`${(pct||0)*100}%`,borderRadius:4,background:"#2563EB",transition:"width 0.4s"}}/>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {(selectedArea.summaryEn || selectedArea.summaryFr) && (
-              <div style={{fontSize:13,color:"#1E3A8A",lineHeight:1.5,background:"#EFF6FF",borderLeft:"3px solid #2563EB",borderRadius:6,padding:"12px 14px",marginBottom:(isEN&&selectedArea.drivers.length>0)?12:0}}>
-                {(isEN ? (selectedArea.summaryEn || selectedArea.summaryFr) : (selectedArea.summaryFr || selectedArea.summaryEn))}
-              </div>
+            <span style={{fontSize:13,color:"#64748B"}}>Gap Score: <b style={{fontFamily:MONO_FONT,color:"#0F172A"}}>{(selectedAreaData?.gapScore ?? areaData.score).toFixed(2)}</b></span>
+            {selectedAreaData?.priorityFlag && (
+              <span style={{fontSize:11,fontWeight:600,padding:"3px 10px",borderRadius:20,...priorityFlagStyle(selectedAreaData.priorityFlag)}}>{selectedAreaData.priorityFlag}</span>
             )}
+            {selectedAreaData?.rank!=null && (
+              <span style={{fontSize:12,color:"#94A3B8"}}>{isEN?`Rank #${selectedAreaData.rank} of ${areas.length} areas`:`Rang n°${selectedAreaData.rank} sur ${areas.length} zones`}</span>
+            )}
+          </div>
 
-            {/* gap_drivers has no French column in the DB yet, so only show
-                this in EN mode rather than mixing untranslated English chips
-                into the French UI. The summary paragraph above is fully
-                bilingual (summary_en / summary_fr) and already covers the
-                "why" in French. */}
-            {isEN && selectedArea.drivers.length>0 && (
-              <div>
-                <div style={{fontSize:11,fontWeight:600,color:"#94A3B8",textTransform:"uppercase",letterSpacing:0.6,marginBottom:8}}>Key drivers</div>
-                <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
-                  {selectedArea.drivers.map(d=>(
-                    <span key={d} style={{padding:"4px 10px",borderRadius:20,background:"#EFF6FF",color:"#1E3A8A",fontSize:12,fontWeight:500,border:"1px solid #BFDBFE"}}>{d}</span>
-                  ))}
+          <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:20,marginBottom:selectedAreaData?.summaryEn||selectedAreaData?.summaryFr||selectedAreaData?.drivers?.length>0?16:0}}>
+            {[
+              [isEN?"Low income":"Faible revenu", areaData.income],
+              [isEN?"Housing burden":"Charge logement", areaData.housing],
+              [isEN?"Recent immigration":"Immigration récente", areaData.immigration],
+            ].map(([label,pct])=>(
+              <div key={label}>
+                <div style={{display:"flex",justifyContent:"space-between",fontSize:13,marginBottom:5}}><span>{label}</span><span style={{fontWeight:600,fontFamily:MONO_FONT}}>{pct.toFixed(2)}</span></div>
+                <div style={{height:8,borderRadius:4,background:"#F1F5F9"}}>
+                  <div style={{height:8,width:`${pct*100}%`,borderRadius:4,background:"#2563EB",transition:"width 0.4s"}}/>
                 </div>
               </div>
-            )}
-          </>)}
+            ))}
+          </div>
+
+          {selectedAreaData && (selectedAreaData.summaryEn || selectedAreaData.summaryFr) && (
+            <div style={{fontSize:13,color:"#1E3A8A",lineHeight:1.5,background:"#EFF6FF",borderLeft:"3px solid #2563EB",borderRadius:6,padding:"12px 14px",marginBottom:selectedAreaData.drivers?.length>0?12:0}}>
+              {isEN ? (selectedAreaData.summaryEn || selectedAreaData.summaryFr) : (selectedAreaData.summaryFr || selectedAreaData.summaryEn)}
+            </div>
+          )}
+
+          {/* gap_drivers has no French column in the DB yet — shown in both
+              languages, but flagged with a notice in FR mode instead of
+              silently hiding it (the summary above is fully bilingual). */}
+          {selectedAreaData?.drivers?.length>0 && (
+            <div>
+              <div style={{fontSize:11,fontWeight:600,color:"#94A3B8",textTransform:"uppercase",letterSpacing:0.6,marginBottom:8}}>{isEN?"Key drivers":"Facteurs clés"}</div>
+              <EnglishOnlyNote isEN={isEN}/>
+              <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
+                {selectedAreaData.drivers.map(d=>(
+                  <span key={d} style={{padding:"4px 10px",borderRadius:20,background:"#EFF6FF",color:"#1E3A8A",fontSize:12,fontWeight:500,border:"1px solid #BFDBFE"}}>{d}</span>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
-      </div>
 
-      {/* Chatbot — floating widget, bottom-right corner (UI placeholder until the real chatbot is built) */}
-      {chatOpen ? (
-        <div style={{position:"fixed",bottom:20,right:20,zIndex:2000,display:"flex",alignItems:"center",gap:8,background:"#fff",border:"1px solid #E2E8F0",borderRadius:24,padding:"10px 10px 10px 16px",boxShadow:"0 6px 24px rgba(15,23,42,0.15)",width:340,maxWidth:"calc(100vw - 40px)"}}>
-          <Bot size={18} color="#2563EB" style={{flexShrink:0}}/>
-          <input autoFocus value={chat} onChange={e=>setChat(e.target.value)} placeholder={isEN?`Ask about ${selectedArea?.name||selectedBorough||"an area"}…`:`Poser une question sur ${selectedArea?.name||selectedBorough||"une zone"}…`}
-            style={{flex:1,border:"none",outline:"none",fontSize:14,background:"transparent",minWidth:0}}/>
-          <button onClick={()=>setChatOpen(false)} aria-label={isEN?"Close chat":"Fermer le chat"}
-            style={{flexShrink:0,width:26,height:26,borderRadius:"50%",border:"none",background:"#F1F5F9",color:"#64748B",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>
-            <X size={14}/>
+        {/* Chatbot — floating widget, bottom-right corner (UI placeholder until the real chatbot is built) */}
+        {chatOpen ? (
+          <div style={{position:"fixed",bottom:20,right:20,zIndex:2000,display:"flex",alignItems:"center",gap:8,background:"#fff",border:"1px solid #E2E8F0",borderRadius:24,padding:"10px 10px 10px 16px",boxShadow:"0 6px 24px rgba(15,23,42,0.15)",width:340,maxWidth:"calc(100vw - 40px)"}}>
+            <Bot size={18} color="#2563EB" style={{flexShrink:0}}/>
+            <input autoFocus value={chat} onChange={e=>setChat(e.target.value)} placeholder={isEN?`Ask about ${selectedAreaLabel}…`:`Poser une question sur ${selectedAreaLabel}…`}
+              style={{flex:1,border:"none",outline:"none",fontSize:14,background:"transparent",minWidth:0}}/>
+            <button onClick={()=>setChatOpen(false)} aria-label={isEN?"Close chat":"Fermer le chat"}
+              style={{flexShrink:0,width:26,height:26,borderRadius:"50%",border:"none",background:"#F1F5F9",color:"#64748B",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>
+              ✕
+            </button>
+          </div>
+        ) : (
+          <button onClick={()=>setChatOpen(true)} aria-label={isEN?"Open chat":"Ouvrir le chat"}
+            style={{position:"fixed",bottom:20,right:20,zIndex:2000,width:52,height:52,borderRadius:"50%",border:"none",background:"#2563EB",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",boxShadow:"0 6px 20px rgba(37,99,235,0.4)"}}>
+            <Bot size={24} color="#fff"/>
           </button>
-        </div>
-      ) : (
-        <button onClick={()=>setChatOpen(true)} aria-label={isEN?"Open chat":"Ouvrir le chat"}
-          style={{position:"fixed",bottom:20,right:20,zIndex:2000,width:52,height:52,borderRadius:"50%",border:"none",background:"#2563EB",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",boxShadow:"0 6px 20px rgba(37,99,235,0.4)"}}>
-          <Bot size={24} color="#fff"/>
-        </button>
-      )}
+        )}
+      </div>
     </div>
   );
 }
 
 const DIST_LOCATIONS = [
-  { id:"cabot",   name:"Cabot Square",           org:"Resilience Montreal",  lat:45.4943, lng:-73.5779 },
-  { id:"milton",  name:"Milton Park",             org:"PAQ Office",           lat:45.5106, lng:-73.5783 },
-  { id:"cdn",     name:"CLSC Côte-des-Neiges",   org:"CLSC",                 lat:45.4889, lng:-73.6241 },
-  { id:"parcext", name:"Parc-Extension",          org:"BIPE",                 lat:45.5356, lng:-73.6219 },
+  // Côte-des-Neiges
+  { id:"cdn-clsc",      name:"CLSC de Côte-des-Neiges",                      org:"CLSC (CIUSSS Centre-Ouest)", address:"5700 Chemin de la Côte-des-Neiges, Montréal, QC H3T 2A8", lat:45.498972169117216, lng:-73.62763851847538},
+  { id:"cdn-outremont",  name:"CLSC Côte-des-Neiges — point de service Outremont", org:"CLSC (CIUSSS Centre-Ouest)", address:"1271 Avenue Van Horne, Outremont, QC H2V 1K5", lat:45.52199594741187, lng:-73.6136466819675},
+  // Saint-Michel
+  { id:"stmichel-carrefour", name:"Carrefour populaire de Saint-Michel",     org:"Community organization",     address:"3565 Rue Jarry Est, Montréal, QC H1Z 4K6 — TODO: confirm current address", lat:45.56699091388918, lng:-73.60718973778876 },
+  // Parc-Extension
+  { id:"parcext-culture", name:"Maison de la culture de Parc-Extension",     org:"Ville de Montréal",           address:"421 Rue Saint-Roch, Montréal, QC", lat:45.531417679703004, lng:-73.62885597550589},
+  { id:"parcext-servicecanada", name:"Service Canada Centre — Parc-Extension", org:"Government of Canada",      address:"540 Avenue Beaumont, Montréal, QC H3N 1T7", lat:45.52748454540594, lng:-73.61950720285138},
+  // Montréal-Nord
+  { id:"mtlnord-clsc",   name:"CLSC de Montréal-Nord (Nord-Est)",            org:"CLSC (CIUSSS Nord-de-l'Île)", address:"11441 Boulevard Lacordaire, Montréal, QC H1G 4J9", lat:45.624572414872546, lng:-73.61696075999262},
+  { id:"mtlnord-cje",    name:"Carrefour jeunesse-emploi Bourassa-Sauvé",     org:"Community organization (employment)", address:"11000 Boul. Saint-Vital, Montréal, QC", lat:45.58894664834177, lng:-73.64531317401347 },
+  // Westmount
+  { id:"westmount-contactivity", name:"Contactivity Centre",                 org:"Community organization (seniors)", address:"310 Victoria Ave, Suite 102, Westmount, QC H3Z 2M9", lat:45.477901003996365, lng:-73.60079137401802},
+  { id:"westmount-library", name:"Westmount Public Library",                 org:"City of Westmount",           address:"4574 Sherbrooke Street West, Westmount, QC H3Z 1G1", lat:45.48157716401339, lng: -73.59931083168857 },
 ];
-
-function makeYouIcon() {
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="#059669" stroke="white" stroke-width="2.5"/><circle cx="12" cy="12" r="4" fill="white"/></svg>`;
-  return L.divIcon({ html: svg, className: "", iconSize:[32,32], iconAnchor:[16,16], popupAnchor:[0,-16] });
-}
+const DEFAULT_DIST_LOCATION = DIST_LOCATIONS[0];
 
 // Main App 
 export default function CommunityRadar() {
@@ -650,55 +612,62 @@ export default function CommunityRadar() {
   const [step, setStep] = useState("role");
   const [role, setRole] = useState(null);
   const [distLocation, setDistLocation] = useState(null);
+  const [locationReturnStep, setLocationReturnStep] = useState("main");
+  const [locationBackStep, setLocationBackStep] = useState("role");
+  const [dashboardData, setDashboardData] = useState({
+    services: SERVICES,
+    categories: CATEGORIES,
+    boroughScores: BOROUGH_SCORES,
+    areas: [],
+    sourceStatus: "demo",
+    warnings: [],
+  });
+
+  // Passive analytics: one row the moment someone opens the app, before
+  // they've clicked anything (captures browse-only / screenshot users).
+  useEffect(() => { logEvent("page_view", "app_opened", {}); }, []);
 
   // V1 filters
   const [activeGroup, setActiveGroup] = useState([]);
   const [activeGender, setActiveGender] = useState(null);
   const [activeAge, setActiveAge] = useState([]);
   const [activeCategory, setActiveCategory] = useState([]);
+  const [activeOtherCategory, setActiveOtherCategory] = useState([]);
   const [search, setSearch] = useState("");
-  const [selected, setSelected] = useState(null);
+  const [selected, setSelected] = useState(SERVICES[0]);
   const [showMap, setShowMap] = useState(false);
   const [flyerDone, setFlyerDone] = useState(false);
+  const [isDownloadingFlyer, setIsDownloadingFlyer] = useState(false);
+  const [flyerDownloadError, setFlyerDownloadError] = useState("");
   const [mapCenter, setMapCenter] = useState(null);
   const [viewMode, setViewMode] = useState("list"); // "list" | "grid"
-  const [rightTab, setRightTab] = useState("info"); // "info" | "flyer"
-
-  // Live data from Supabase
-  const [services, setServices] = useState(FALLBACK_SERVICES);
-  const [servicesLoading, setServicesLoading] = useState(true);
-  const [servicesError, setServicesError] = useState(null);
   const [listPage, setListPage] = useState(0);
   const PAGE_SIZE = 8;
+  const [rightTab, setRightTab] = useState("info"); // "info" | "flyer"
 
   useEffect(() => {
-    let cancelled = false;
-    supabase
-      .from(SUPABASE_TABLE)
-      .select("service_id,name,primary_category,service_categories,address,latitude,longitude,phone,hours,services,borough_name,website")
-      .eq("mappable", 1)
-      .limit(2000)
-      .then(({ data, error }) => {
-        if (cancelled) return;
-        if (error) {
-          console.error("Failed to load services from Supabase:", error);
-          setServicesError(error.message);
-          setServices(FALLBACK_SERVICES);
-        } else {
-          const mapped = (data || [])
-            .map(rowToService)
-            .filter(s => s.lat != null && s.lng != null && !Number.isNaN(s.lat) && !Number.isNaN(s.lng));
-          setServices(mapped.length ? mapped : FALLBACK_SERVICES);
-        }
-        setServicesLoading(false);
-      });
-    return () => { cancelled = true; };
+    let active = true;
+    loadDashboardData({ demoServices: SERVICES, demoBoroughScores: BOROUGH_SCORES }).then(data => {
+      if (active) setDashboardData(data);
+    });
+    return () => { active = false; };
   }, []);
 
-  useEffect(() => { if (services.length > 0 && !selected) setSelected(services[0]); }, [services, selected]);
+  const services = dashboardData.services || SERVICES;
+  const categories = dashboardData.categories || CATEGORIES;
+  const boroughScores = dashboardData.boroughScores || BOROUGH_SCORES;
+  const areas = dashboardData.areas || [];
 
-  const meta = { group: activeGroup, age: activeAge };
+  useEffect(() => {
+    if (services.length > 0 && !services.some(service => service.id === selected?.id)) {
+      setSelected(services[0]);
+      setFlyerDone(false);
+    }
+  }, [services, selected?.id]);
+
   const isEN = lang === "EN";
+  const selectedLocation = distLocation || DEFAULT_DIST_LOCATION;
+  const meta = { group: activeGroup, age: activeAge, location: selectedLocation?.name };
 
   const T = {
     title:"Community Radar",
@@ -726,26 +695,57 @@ export default function CommunityRadar() {
 
   const toggleArr = (arr, setArr, val) => setArr(p => p.includes(val) ? p.filter(x=>x!==val) : [...p, val]);
 
+  // "Other" isn't one bucket — it's whatever real primary_category values
+  // don't match Shelter/Food/Medical/Legal/Translation. Computed live from
+  // the loaded data, so it adapts automatically as new values show up.
+  const otherCategoryOptions = [...new Set(services.filter(s=>s.category==="Other").map(s=>s.type).filter(Boolean))].sort();
+
   const filtered = services.filter(s => {
     const mg = activeGroup.length===0 || s.group.some(g=>activeGroup.includes(g));
     const mge = !activeGender || s.gender===activeGender || s.gender==="All";
-    const mc = activeCategory.length===0 || activeCategory.includes(s.category);
+    const ma = activeAge.length===0 || (s.ageGroups||[]).some(a=>activeAge.includes(a));
+    const mc = (activeCategory.length===0 && activeOtherCategory.length===0)
+      || activeCategory.includes(s.category)
+      || activeOtherCategory.includes(s.type);
     const ms = !search || s.name.toLowerCase().includes(search.toLowerCase()) || s.type.toLowerCase().includes(search.toLowerCase());
-    return mg && mge && mc && ms;
+    return mg && mge && ma && mc && ms;
   });
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const pagedFiltered = filtered.slice(listPage * PAGE_SIZE, (listPage + 1) * PAGE_SIZE);
+  useEffect(() => { setListPage(0); }, [activeGroup, activeGender, activeAge, activeCategory, activeOtherCategory, search]);
 
-  useEffect(() => { setListPage(0); }, [activeGroup, activeGender, activeAge, activeCategory, search]);
+  const handleSelect = s => { setSelected(s); setFlyerDone(false); setFlyerDownloadError(""); setMapCenter([s.lat,s.lng]); setRightTab("info"); logEvent("service_card_opened",s.name,meta); };
 
-  const handleSelect = s => { setSelected(s); setFlyerDone(false); setMapCenter([s.lat,s.lng]); setRightTab("info"); logEvent("service_card_opened",s.name,meta); };
+  const handleChangeLocation = (returnStep, backStep=returnStep) => {
+    setLocationReturnStep(returnStep);
+    setLocationBackStep(backStep);
+    setStep("location");
+  };
 
-  const handleDownload = () => {
-    const others = services.filter(s=>s.id!==selected.id);
-    generatePDF(selected, lang, others);
-    logFlyer(selected,{group:activeGroup,gender:activeGender,location:distLocation?.name||"unknown"},meta);
-    setFlyerDone(true);
+  const handleLocationSelected = (location) => {
+    setDistLocation(location);
+    logEvent("dist_location_selected", location.name, {});
+    setStep(locationReturnStep);
+  };
+
+  const handleDownload = async () => {
+    if (!selected || isDownloadingFlyer) return;
+
+    setFlyerDone(false);
+    setFlyerDownloadError("");
+    setIsDownloadingFlyer(true);
+
+    try {
+      await flyerPdfExporter.export(selected);
+      setFlyerDone(true);
+      logFlyer(selected,{group:activeGroup,gender:activeGender,age:activeAge,category:[...activeCategory,...activeOtherCategory],location:selectedLocation.name,locationObj:selectedLocation,language:lang},meta);
+    } catch (error) {
+      console.error("Could not download the flyer PDF", error);
+      setFlyerDownloadError(isEN ? "The flyer could not be downloaded. Please try again." : "Le dépliant n'a pas pu être téléchargé. Veuillez réessayer.");
+    } finally {
+      setIsDownloadingFlyer(false);
+    }
   };
 
   // ROLE SELECTION 
@@ -764,7 +764,7 @@ export default function CommunityRadar() {
         </div>
         <p style={{fontWeight:600,fontSize:17,color:"#0F172A",marginBottom:16}}>{T.chooseRole}</p>
         <div style={{display:"flex",flexDirection:"column",gap:12}}>
-          <button onClick={()=>{setRole("v1");logEvent("role_selected","v1",{});setStep("location");}}
+          <button onClick={()=>{setRole("v1");logEvent("role_selected","v1",{});handleChangeLocation("main","role");}}
             style={{padding:"20px 24px",borderRadius:8,border:"1.5px solid #0891B2",background:"#ECFEFF",color:"#164E63",textAlign:"left",cursor:"pointer"}}>
             <div style={{fontWeight:700,fontSize:16,marginBottom:4}}>V1 — {T.roleV1}</div>
             <div style={{fontSize:13,opacity:0.8}}>{T.roleV1sub}</div>
@@ -780,9 +780,23 @@ export default function CommunityRadar() {
   );
 
   // V2 
-  if (step==="v2") return <PlannerView lang={lang} setLang={setLang} services={services} onSwitch={()=>{setRole("v1");setStep("main");}}/>;
+  if (step==="v2") return (
+    <PlannerView
+      lang={lang}
+      setLang={setLang}
+      location={selectedLocation}
+      onChangeLocation={()=>handleChangeLocation("v2")}
+      onSwitch={()=>{setRole("v1");setStep("main");}}
+      onExit={()=>setStep("role")}
+      services={services}
+      categories={categories}
+      boroughScores={boroughScores}
+      areas={areas}
+      sourceStatus={dashboardData.sourceStatus}
+    />
+  );
 
-  // LOCATION SELECTION (V1 only)
+  // LOCATION SELECTION
   if (step==="location") return (
     <div style={{minHeight:"100vh",background:"#FFFFFF",display:"flex",alignItems:"center",justifyContent:"center",fontFamily:"system-ui,sans-serif",padding:"2rem"}}>
       <div style={{maxWidth:520,width:"100%",textAlign:"center"}}>
@@ -801,8 +815,8 @@ export default function CommunityRadar() {
           </p>
           <div style={{display:"flex",flexDirection:"column",gap:10}}>
             {DIST_LOCATIONS.map(loc=>(
-              <button key={loc.id} onClick={()=>{setDistLocation(loc);logEvent("dist_location_selected",loc.name,{});setStep("main");}}
-                style={{padding:"14px 18px",borderRadius:8,border:`1.5px solid ${distLocation?.id===loc.id?"#2563EB":"#E2E8F0"}`,background:distLocation?.id===loc.id?"#EFF6FF":"#fff",color:"#0F172A",textAlign:"left",cursor:"pointer",display:"flex",alignItems:"center",gap:12}}>
+              <button key={loc.id} onClick={()=>handleLocationSelected(loc)}
+                style={{padding:"14px 18px",borderRadius:8,border:`1.5px solid ${selectedLocation.id===loc.id?"#2563EB":"#E2E8F0"}`,background:selectedLocation.id===loc.id?"#EFF6FF":"#fff",color:"#0F172A",textAlign:"left",cursor:"pointer",display:"flex",alignItems:"center",gap:12}}>
                 <div style={{width:10,height:10,borderRadius:"50%",background:"#059669",flexShrink:0}}/>
                 <div>
                   <div style={{fontWeight:600,fontSize:14}}>{loc.name}</div>
@@ -812,7 +826,7 @@ export default function CommunityRadar() {
             ))}
           </div>
         </div>
-        <button onClick={()=>setStep("role")} style={{marginTop:16,background:"transparent",border:"none",color:"#64748B",fontSize:13,cursor:"pointer"}}>
+        <button onClick={()=>setStep(locationBackStep)} style={{marginTop:16,background:"transparent",border:"none",color:"#64748B",fontSize:13,cursor:"pointer"}}>
           ← {isEN?"Back":"Retour"}
         </button>
       </div>
@@ -831,13 +845,7 @@ export default function CommunityRadar() {
           <div style={{fontSize:12,color:"#60A5FA",fontWeight:600,textTransform:"uppercase",letterSpacing:0.6}}>Community View (V1)</div>
         </div>
         <div style={{display:"flex",gap:6,alignItems:"center"}}>
-          {distLocation && (
-            <div style={{fontSize:12,color:"#fff",background:"rgba(255,255,255,0.1)",padding:"4px 10px",borderRadius:6,display:"flex",alignItems:"center",gap:5}}>
-              <span style={{width:6,height:6,borderRadius:"50%",background:"#059669",display:"inline-block"}}/>
-              {distLocation.name}
-              <button onClick={()=>setStep("location")} style={{background:"none",border:"none",color:"#60A5FA",cursor:"pointer",fontSize:11,padding:"0 2px"}}>change</button>
-            </div>
-          )}
+          <LocationBadge location={selectedLocation} onChange={()=>handleChangeLocation("main")}/>
           <div style={{display:"flex",background:"rgba(255,255,255,0.1)",borderRadius:6,overflow:"hidden"}}>
             {["EN","FR"].map(l=><button key={l} onClick={()=>setLang(l)} style={{padding:"4px 10px",border:"none",background:lang===l?"#2563EB":"transparent",color:"#fff",fontWeight:lang===l?700:400,cursor:"pointer",fontSize:12}}>{l}</button>)}
           </div>
@@ -886,14 +894,15 @@ export default function CommunityRadar() {
               </Chip>
             ))}
           </div>
-          {/* Category */}
+          {/* Category — original 5 chips untouched, plus an "Other" dropdown for everything else */}
           <div style={{display:"flex",alignItems:"center",gap:6}}>
             <span style={{color:"#64748B",fontSize:12,fontWeight:600,whiteSpace:"nowrap"}}>{T.filterCat}</span>
-            {CATEGORIES.map(c=>(
+            {categories.filter(c=>c.label!=="Other").map(c=>(
               <Chip key={c.label} active={activeCategory.includes(c.label)} color={c.color} bg={c.bg} border={c.color} onClick={()=>{toggleArr(activeCategory,setActiveCategory,c.label);logEvent("category_filter",c.label,meta);}}>
-                <CatIcon category={c.label} size={13} color={c.color}/> {c.label}
+                <CategoryIcon category={c.label} size={13} color={c.color}/> {c.label}
               </Chip>
             ))}
+            <MultiSelectDropdown label={isEN?"Other":"Autre"} options={otherCategoryOptions} selected={activeOtherCategory} onChange={vals=>{setActiveOtherCategory(vals);logEvent("other_category_filter",vals.join(","),meta);}}/>
           </div>
           </div>
         </div>
@@ -908,22 +917,28 @@ export default function CommunityRadar() {
                 <MapContainer center={[45.5088,-73.5878]} zoom={14} style={{height:"100%",width:"100%"}} zoomControl={true}>
                   <TileLayer attribution='© CartoDB' url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"/>
                   {mapCenter && <FlyTo center={mapCenter}/>}
+                  {selectedLocation?.lat!=null && selectedLocation?.lng!=null && (
+                    <Marker position={[selectedLocation.lat,selectedLocation.lng]} icon={createUserLocationMarker()}>
+                      <Popup><div style={{fontFamily:"system-ui",fontSize:12,fontWeight:600}}>{isEN?"You are here":"Vous êtes ici"}</div><div style={{fontFamily:"system-ui",fontSize:11,color:"#64748B"}}>{selectedLocation.name}</div></Popup>
+                    </Marker>
+                  )}
                   {filtered.map(s=>(
-                    <Marker key={s.id} position={[s.lat,s.lng]} icon={makeIcon(s.category,selected?.id===s.id)} eventHandlers={{click:()=>handleSelect(s)}}>
-                      <Popup><div style={{fontFamily:"system-ui",minWidth:150}}><div style={{fontWeight:700,fontSize:12,color:CAT_COLORS[s.category],display:"flex",alignItems:"center",gap:5}}><CatIcon category={s.category} size={13} color={CAT_COLORS[s.category]}/> {s.name}</div><div style={{fontSize:11,color:"#64748B"}}>{s.type} · {s.dist}</div><div style={{fontSize:11,color:"#64748B"}}>{s.hours}</div></div></Popup>
+                    <Marker key={s.id} position={[s.lat,s.lng]} icon={createServiceMarker(s.category,selected?.id===s.id)} eventHandlers={{click:()=>handleSelect(s)}}>
+                      <Popup><div style={{fontFamily:"system-ui",minWidth:150}}><div style={{fontWeight:700,fontSize:12,color:CATEGORY_COLORS[s.category],display:"flex",alignItems:"center",gap:5}}><CategoryIcon category={s.category} size={13} color={CATEGORY_COLORS[s.category]}/> {s.name}</div><div style={{fontSize:11,color:"#64748B"}}>{s.type} · {s.dist}</div><div style={{fontSize:11,color:"#64748B"}}>{s.hours}</div></div></Popup>
                     </Marker>
                   ))}
                 </MapContainer>
                 <div style={{position:"absolute",bottom:10,left:10,zIndex:1000,background:"rgba(255,255,255,0.95)",borderRadius:6,padding:"4px 8px",border:"1px solid #E2E8F0",display:"flex",flexDirection:"column",gap:3}}>
-                  {CATEGORIES.map(c=><div key={c.label} style={{display:"flex",alignItems:"center",gap:4,fontSize:11}}><div style={{width:8,height:8,borderRadius:"50%",background:c.color}}/>{c.label}</div>)}
+                  <div style={{display:"flex",alignItems:"center",gap:4,fontSize:11}}><div style={{width:8,height:8,borderRadius:"50%",background:"#0F172A"}}/>{isEN?"You are here":"Vous êtes ici"}</div>
+                  {categories.map(c=><div key={c.label} style={{display:"flex",alignItems:"center",gap:4,fontSize:11}}><div style={{width:8,height:8,borderRadius:"50%",background:c.color}}/>{c.label}</div>)}
                 </div>
               </div>
             ) : (
               <>
                 <div style={{padding:"10px 16px",borderBottom:"1px solid #E2E8F0",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
-                  <span style={{fontWeight:700,fontSize:16}}>{T.nearby} <span style={{fontWeight:400,color:"#64748B",fontSize:13}}>({servicesLoading?"…":filtered.length})</span></span>
+                  <span style={{fontWeight:700,fontSize:16}}>{T.nearby} <span style={{fontWeight:400,color:"#64748B",fontSize:13}}>({filtered.length})</span></span>
                   <div style={{display:"flex",alignItems:"center",gap:10}}>
-                    {!servicesLoading && filtered.length>0 && (
+                    {filtered.length>0 && (
                       <span style={{fontSize:12,color:"#94A3B8"}}>{isEN?"Page":"Page"} {listPage+1}/{totalPages}</span>
                     )}
                     <div style={{display:"flex",border:"1px solid #E2E8F0",borderRadius:6,overflow:"hidden"}}>
@@ -936,25 +951,20 @@ export default function CommunityRadar() {
                     </div>
                   </div>
                 </div>
-                {servicesError && (
-                  <div style={{padding:"8px 16px",background:"#FFFBEB",borderBottom:"1px solid #FDE68A",color:"#92400E",fontSize:11}}>
-                    {isEN?"Couldn't load live data — showing demo data.":"Impossible de charger les données — affichage des données de démonstration."}
-                  </div>
-                )}
                 <div style={{overflowY:"auto",flex:1,padding:viewMode==="grid"?"10px":"0"}}>
                   {filtered.length===0
-                    ? <div style={{padding:20,color:"#64748B",textAlign:"center",fontSize:14}}>{servicesLoading?(isEN?"Loading services…":"Chargement des services…"):(isEN?"No services match.":"Aucun service trouvé.")}</div>
+                    ? <div style={{padding:20,color:"#64748B",textAlign:"center",fontSize:14}}>No services match.</div>
                     : viewMode==="list"
                       ? pagedFiltered.map((s,i)=>(
                           <div key={s.id} onClick={()=>handleSelect(s)}
                             style={{padding:"12px 16px",borderBottom:i<pagedFiltered.length-1?"1px solid #E2E8F0":"none",cursor:"pointer",background:selected?.id===s.id?"#EFF6FF":"transparent",borderLeft:selected?.id===s.id?"3px solid #2563EB":"3px solid transparent",transition:"background 0.15s"}}>
                             <div style={{display:"flex",gap:10,alignItems:"flex-start"}}>
-                              <div style={{width:38,height:38,borderRadius:"50%",background:selected?.id===s.id?"#2563EB":"#F1F5F9",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><CatIcon category={s.category} size={19} color={selected?.id===s.id?"#fff":CAT_COLORS[s.category]}/></div>
+                              <div style={{width:38,height:38,borderRadius:"50%",background:selected?.id===s.id?"#2563EB":"#F1F5F9",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><CategoryIcon category={s.category} size={19} color={selected?.id===s.id?"#fff":CATEGORY_COLORS[s.category]}/></div>
                               <div style={{flex:1,minWidth:0}}>
                                 <div style={{fontWeight:600,color:selected?.id===s.id?"#2563EB":"#0F172A",fontSize:15,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{s.name}</div>
                                 <div style={{color:"#64748B",fontSize:13,margin:"3px 0 6px"}}>{s.dist} · {s.hours}{s.gender!=="All"?` · ${s.gender} only`:""}</div>
                                 <div style={{display:"flex",gap:4,flexWrap:"wrap"}}>
-                                  {s.tags.slice(0,1).map(t=><span key={t} style={{padding:"2px 8px",borderRadius:4,border:`1px solid ${selected?.id===s.id?"#2563EB":"#E2E8F0"}`,color:selected?.id===s.id?"#2563EB":"#334155",fontSize:12}}>{truncateText(t,44)}</span>)}
+                                  {s.tags.slice(0,1).map(t=><span key={t} style={{padding:"2px 8px",borderRadius:4,border:`1px solid ${selected?.id===s.id?"#2563EB":"#E2E8F0"}`,color:selected?.id===s.id?"#2563EB":"#334155",fontSize:12}}>{t.length>44?t.slice(0,43)+"…":t}</span>)}
                                 </div>
                               </div>
                             </div>
@@ -964,12 +974,12 @@ export default function CommunityRadar() {
                           {pagedFiltered.map(s=>(
                             <div key={s.id} onClick={()=>handleSelect(s)}
                               style={{padding:"12px",borderRadius:8,border:`1.5px solid ${selected?.id===s.id?"#2563EB":"#E2E8F0"}`,background:selected?.id===s.id?"#EFF6FF":"#fff",cursor:"pointer",transition:"all 0.15s"}}>
-                              <div style={{width:36,height:36,borderRadius:"50%",background:selected?.id===s.id?"#2563EB":"#F1F5F9",display:"flex",alignItems:"center",justifyContent:"center",marginBottom:8}}><CatIcon category={s.category} size={18} color={selected?.id===s.id?"#fff":CAT_COLORS[s.category]}/></div>
+                              <div style={{width:36,height:36,borderRadius:"50%",background:selected?.id===s.id?"#2563EB":"#F1F5F9",display:"flex",alignItems:"center",justifyContent:"center",marginBottom:8}}><CategoryIcon category={s.category} size={18} color={selected?.id===s.id?"#fff":CATEGORY_COLORS[s.category]}/></div>
                               <div style={{fontWeight:600,fontSize:13,color:selected?.id===s.id?"#2563EB":"#0F172A",marginBottom:3,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{s.name}</div>
                               <div style={{fontSize:11,color:"#64748B",marginBottom:6}}>{s.type}</div>
                               <div style={{fontSize:11,color:"#64748B",marginBottom:6}}>{s.dist} · {s.hours}</div>
                               <div style={{display:"flex",gap:3,flexWrap:"wrap"}}>
-                                {s.tags.slice(0,1).map(t=><span key={t} style={{padding:"2px 6px",borderRadius:3,border:`1px solid ${selected?.id===s.id?"#2563EB":"#E2E8F0"}`,color:selected?.id===s.id?"#2563EB":"#334155",fontSize:10}}>{truncateText(t,30)}</span>)}
+                                {s.tags.slice(0,1).map(t=><span key={t} style={{padding:"2px 6px",borderRadius:3,border:`1px solid ${selected?.id===s.id?"#2563EB":"#E2E8F0"}`,color:selected?.id===s.id?"#2563EB":"#334155",fontSize:10}}>{t.length>30?t.slice(0,29)+"…":t}</span>)}
                               </div>
                             </div>
                           ))}
@@ -1021,7 +1031,7 @@ export default function CommunityRadar() {
                     {/* Dark header band */}
                     <div style={{background:"#F8FAFC",padding:"18px 20px",display:"flex",alignItems:"center",gap:14,borderBottom:"1px solid #E2E8F0"}}>
                       <div style={{width:46,height:46,borderRadius:10,background:"rgba(5,150,105,0.2)",border:"1.5px solid rgba(5,150,105,0.4)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
-                        <CatIcon category={selected.category} size={22} color="#34D399"/>
+                        <CategoryIcon category={selected.category} size={22} color="#34D399"/>
                       </div>
                       <div>
                         <div style={{fontWeight:700,fontSize:16,color:"#0F172A",lineHeight:1.3}}>{selected.name}</div>
@@ -1033,13 +1043,19 @@ export default function CommunityRadar() {
                     <div style={{padding:"4px 20px",flex:1}}>
                       {[
                         selected.address && { icon:"📍", label: isEN?"Address":"Adresse", value: selected.address },
+                        selected.borough && { icon:"🏙️", label: isEN?"Borough":"Arrondissement", value: selected.borough },
                         selected.hours   && { icon:"🕐", label: isEN?"Hours":"Horaires",  value: selected.hours },
                         selected.phone   && { icon:"📞", label: isEN?"Phone":"Téléphone",  value: selected.phone },
+                        selected.website && { icon:"🔗", label: isEN?"Website":"Site web", value: <a href={/^https?:\/\//i.test(selected.website)?selected.website:`https://${selected.website}`} target="_blank" rel="noreferrer" style={{color:"#2563EB",wordBreak:"break-all"}}>{selected.website}</a> },
+                        selected.email   && { icon:"✉️", label: isEN?"Email":"Courriel", value: <a href={`mailto:${selected.email}`} style={{color:"#2563EB",wordBreak:"break-all"}}>{selected.email}</a> },
+                        selected.gender && selected.gender!=="All" && { icon:"⚥", label: isEN?"Gender focus":"Genre ciblé", value: selected.gender },
+                        selected.ageGroups?.length>0 && { icon:"🎂", label: isEN?"Age groups":"Groupes d'âge", value: selected.ageGroups.join(" · ") },
+                        selected.group?.length>0 && { icon:"🤝", label: isEN?"Community focus":"Communauté ciblée", value: selected.group.join(" · ") },
                         selected.langs?.length>0 && { icon:"🌐", label: isEN?"Languages":"Langues", value: selected.langs.join(" · ") },
                       ].filter(Boolean).map((row,i,arr)=>(
                         <div key={row.label} style={{display:"flex",gap:12,padding:"11px 0",borderBottom:i<arr.length-1?"1px solid #F1F5F9":"none",alignItems:"flex-start"}}>
                           <span style={{fontSize:16,flexShrink:0,marginTop:1}}>{row.icon}</span>
-                          <div>
+                          <div style={{minWidth:0}}>
                             <div style={{fontSize:10,fontWeight:600,color:"#94A3B8",textTransform:"uppercase",letterSpacing:0.6,marginBottom:2}}>{row.label}</div>
                             <div style={{fontSize:13,color:"#1E293B",lineHeight:1.4}}>{row.value}</div>
                           </div>
@@ -1049,11 +1065,12 @@ export default function CommunityRadar() {
                       {selected.tags?.length > 0 && (
                         <div style={{paddingTop:12,paddingBottom:12}}>
                           <div style={{fontSize:10,fontWeight:600,color:"#94A3B8",textTransform:"uppercase",letterSpacing:0.6,marginBottom:8}}>{isEN?"Services offered":"Services offerts"}</div>
-                          <div style={{display:"flex",gap:5,flexWrap:"wrap"}}>
+                          <EnglishOnlyNote isEN={isEN}/>
+                          <ul style={{margin:0,paddingLeft:18,display:"flex",flexDirection:"column",gap:7}}>
                             {selected.tags.map(t=>(
-                              <span key={t} style={{padding:"4px 10px",borderRadius:20,background:"#ECFDF5",color:"#059669",fontSize:12,fontWeight:500,border:"1px solid #A7F3D0"}}>{t}</span>
+                              <li key={t} style={{fontSize:13,color:"#1E293B",lineHeight:1.5}}>{t}</li>
                             ))}
-                          </div>
+                          </ul>
                         </div>
                       )}
                     </div>
@@ -1069,82 +1086,17 @@ export default function CommunityRadar() {
                   </div>
                 )}
 
-                {/* Flyer preview tab — A5 flyer layout */}
+                {/* Flyer preview tab */}
                 {rightTab==="flyer" && (
                   <div style={{flex:1,overflowY:"auto",background:"#F1F5F9",padding:"16px",display:"flex",flexDirection:"column",gap:12}}>
-                    {/* The actual flyer — this is what gets screenshot-ed for PDF */}
-                    <div id="flyer-preview-content" style={{background:"#fff",borderRadius:10,overflow:"hidden",boxShadow:"0 4px 20px rgba(0,0,0,0.10)",fontFamily:"system-ui,sans-serif"}}>
-                      {/* Flyer header */}
-                      <div style={{background:CAT_COLORS[selected.category]||"#2563EB",padding:"14px 16px",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
-                        <div>
-                          <div style={{fontSize:9,color:"rgba(255,255,255,0.7)",textTransform:"uppercase",letterSpacing:1,marginBottom:2}}>Community Radar · {isEN?"Community Services":"Services communautaires"}</div>
-                          <div style={{fontSize:16,fontWeight:700,color:"#fff"}}>{selected.name}</div>
-                          <div style={{fontSize:11,color:"rgba(255,255,255,0.85)",marginTop:2}}>{selected.type}</div>
-                        </div>
-                        <div style={{width:36,height:36,borderRadius:8,background:"rgba(255,255,255,0.2)",display:"flex",alignItems:"center",justifyContent:"center"}}>
-                          <CatIcon category={selected.category} size={20} color="#fff"/>
-                        </div>
-                      </div>
+                    <FlyerPreview service={selected} location={selectedLocation} services={services} language={lang} updatedLabel={T.updated}/>
 
-                      {/* Map */}
-                      <div style={{height:160,position:"relative",zIndex:0}}>
-                        <MapContainer key={selected.id+"-"+(distLocation?.id||"gps")} center={[selected.lat,selected.lng]} zoom={15} style={{height:"100%",width:"100%"}} zoomControl={false} dragging={false} scrollWheelZoom={false} doubleClickZoom={false}>
-                          <TileLayer attribution="" url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"/>
-                          <FitFlyerBounds points={distLocation ? [[distLocation.lat,distLocation.lng],[selected.lat,selected.lng]] : [[selected.lat,selected.lng]]}/>
-                          {distLocation && <Marker position={[distLocation.lat,distLocation.lng]} icon={makeYouIcon()}/>}
-                          <Marker position={[selected.lat,selected.lng]} icon={makeIcon(selected.category,true)}/>
-                        </MapContainer>
-                        {distLocation && (
-                          <div style={{position:"absolute",bottom:6,left:6,zIndex:1000,background:"rgba(255,255,255,0.95)",borderRadius:4,padding:"3px 7px",fontSize:10,border:"1px solid #E2E8F0",display:"flex",gap:8}}>
-                            <span style={{display:"flex",alignItems:"center",gap:3}}><span style={{width:7,height:7,borderRadius:"50%",background:"#059669",display:"inline-block"}}/>{isEN?"You are here":"Vous êtes ici"}</span>
-                            <span style={{display:"flex",alignItems:"center",gap:3}}><span style={{width:7,height:7,borderRadius:"50%",background:CAT_COLORS[selected.category],display:"inline-block"}}/>{selected.type}</span>
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Service details */}
-                      <div style={{padding:"12px 16px"}}>
-                        {selected.address && <div style={{display:"flex",gap:8,marginBottom:6,alignItems:"flex-start"}}><span style={{fontSize:13}}>📍</span><span style={{fontSize:12,color:"#334155",lineHeight:1.4}}>{selected.address}</span></div>}
-                        {selected.hours   && <div style={{display:"flex",gap:8,marginBottom:6,alignItems:"flex-start"}}><span style={{fontSize:13}}>🕐</span><span style={{fontSize:12,color:"#334155"}}>{selected.hours}</span></div>}
-                        {selected.phone   && <div style={{display:"flex",gap:8,marginBottom:8,alignItems:"flex-start"}}><span style={{fontSize:13}}>📞</span><span style={{fontSize:12,color:"#334155"}}>{selected.phone}</span></div>}
-                        {selected.tags?.length>0 && (
-                          <div style={{display:"flex",gap:4,flexWrap:"wrap",marginBottom:8}}>
-                            {selected.tags.slice(0,4).map(t=><span key={t} style={{padding:"2px 8px",borderRadius:10,background:`${CAT_COLORS[selected.category]}15`,color:CAT_COLORS[selected.category],fontSize:10,fontWeight:600,border:`1px solid ${CAT_COLORS[selected.category]}40`}}>{t}</span>)}
-                          </div>
-                        )}
-                        {selected.langs?.length>0 && <div style={{fontSize:10,color:"#94A3B8",marginBottom:10}}>🌐 {selected.langs.join(" · ")}</div>}
-
-                        {/* Other nearby */}
-                        {services.filter(s=>s.id!==selected.id).length>0 && (
-                          <div style={{borderTop:"1px solid #F1F5F9",paddingTop:8,marginTop:4}}>
-                            <div style={{fontSize:9,fontWeight:600,color:"#94A3B8",textTransform:"uppercase",letterSpacing:0.6,marginBottom:6}}>{isEN?"Also nearby":"Aussi à proximité"}</div>
-                            {services.filter(s=>s.id!==selected.id).slice(0,2).map(s=>(
-                              <div key={s.id} style={{display:"flex",alignItems:"center",gap:6,marginBottom:4}}>
-                                <span style={{width:6,height:6,borderRadius:"50%",background:CAT_COLORS[s.category],flexShrink:0}}/>
-                                <span style={{fontSize:11,color:"#334155"}}>{s.name}</span>
-                                {s.dist && <span style={{fontSize:10,color:"#94A3B8"}}>· {s.dist}</span>}
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Flyer footer */}
-                      <div style={{background:"#F8FAFC",borderTop:"1px solid #E2E8F0",padding:"10px 16px",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-                        <div style={{fontSize:10,color:"#64748B",fontStyle:"italic"}}>{T.updated}</div>
-                        <div style={{display:"flex",gap:8}}>
-                          <div style={{padding:"4px 10px",borderRadius:5,border:"1px solid #E2E8F0",background:"#fff",fontSize:10,color:"#334155",display:"flex",alignItems:"center",gap:4}}><Phone size={10} color="#64748B"/> 211</div>
-                          <div style={{padding:"4px 10px",borderRadius:5,border:"1px solid #E2E8F0",background:"#fff",fontSize:10,color:"#334155",display:"flex",alignItems:"center",gap:4}}><QrCode size={10} color="#64748B"/> App</div>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Generate button outside the flyer */}
                     <div>
                       {flyerDone && <div style={{marginBottom:8,padding:"7px 10px",background:"#ECFDF5",borderRadius:6,color:"#059669",fontSize:12}}>✓ PDF downloaded successfully</div>}
-                      <button onClick={handleDownload}
-                        style={{width:"100%",padding:"12px",borderRadius:8,border:"none",background:"#059669",color:"#fff",fontWeight:600,cursor:"pointer",fontSize:15}}>
-                        {T.generate}
+                      {flyerDownloadError && <div style={{marginBottom:8,padding:"7px 10px",background:"#FEF2F2",borderRadius:6,color:"#B91C1C",fontSize:12}}>{flyerDownloadError}</div>}
+                      <button onClick={handleDownload} disabled={isDownloadingFlyer}
+                        style={{width:"100%",padding:"12px",borderRadius:8,border:"none",background:isDownloadingFlyer?"#94A3B8":"#059669",color:"#fff",fontWeight:600,cursor:isDownloadingFlyer?"wait":"pointer",fontSize:15}}>
+                        {isDownloadingFlyer ? (isEN ? "Preparing flyer..." : "Préparation du dépliant...") : T.generate}
                       </button>
                     </div>
                   </div>
