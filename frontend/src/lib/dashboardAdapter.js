@@ -174,18 +174,18 @@ export function mapAreaRowsToBoroughScores(gapRows, areaRows) {
     immigration: values.immigration / values.count,
     sourceAreaIds: values.sourceAreaIds,
   }));
-  const maxScore = Math.max(...averages.map(row => row.score), 0);
-  const maxIncome = Math.max(...averages.map(row => row.income), 0);
-  const maxHousing = Math.max(...averages.map(row => row.housing), 0);
-  const maxImmigration = Math.max(...averages.map(row => row.immigration), 0);
 
+  // income_indicator / housing_indicator / immigration_indicator are 0-100
+  // (confirmed against real area_profile rows: values like 82, 76, 91), the
+  // same scale as gap_score — so use the same direct /100 conversion as the
+  // primary Gap Score, not a relative-to-max rescale.
   return Object.fromEntries(averages.map(row => [
     row.name,
     {
-      score: normalizeMetric(row.score, maxScore),
-      income: normalizeMetric(row.income, maxIncome),
-      housing: normalizeMetric(row.housing, maxHousing),
-      immigration: normalizeMetric(row.immigration, maxImmigration),
+      score: normalizeMetric(row.score, 100),
+      income: normalizeMetric(row.income, 100),
+      housing: normalizeMetric(row.housing, 100),
+      immigration: normalizeMetric(row.immigration, 100),
       sourceAreaIds: row.sourceAreaIds,
     },
   ]));
@@ -231,9 +231,9 @@ export function mapAreaRowsToAreas(gapRows, areaRows, accessibilityRows = []) {
         drivers: parseDrivers(row.gap_drivers),
         summaryEn: normalizeText(row.summary_en),
         summaryFr: normalizeText(row.summary_fr),
-        income: profile?.income_indicator != null ? Number(profile.income_indicator) : null,
-        housing: profile?.housing_indicator != null ? Number(profile.housing_indicator) : null,
-        immigration: profile?.immigration_indicator != null ? Number(profile.immigration_indicator) : null,
+        income: profile?.income_indicator != null ? normalizeMetric(profile.income_indicator, 100) : null,
+        housing: profile?.housing_indicator != null ? normalizeMetric(profile.housing_indicator, 100) : null,
+        immigration: profile?.immigration_indicator != null ? normalizeMetric(profile.immigration_indicator, 100) : null,
         nearestServiceKm: access?.nearest_service_distance_km != null ? Number(access.nearest_service_distance_km) : null,
         serviceCountWithinThreshold: access?.service_count_within_threshold != null ? Number(access.service_count_within_threshold) : null,
       };

@@ -532,9 +532,9 @@ function PlannerView({ lang, setLang, onSwitch, onExit, location, onChangeLocati
 
           <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:20,marginBottom:selectedAreaData?.summaryEn||selectedAreaData?.summaryFr||selectedAreaData?.drivers?.length>0?16:0}}>
             {[
-              [isEN?"Low income":"Faible revenu", areaData.income],
-              [isEN?"Housing burden":"Charge logement", areaData.housing],
-              [isEN?"Recent immigration":"Immigration récente", areaData.immigration],
+              [isEN?"Low income":"Faible revenu", selectedAreaData?.income ?? areaData.income],
+              [isEN?"Housing burden":"Charge logement", selectedAreaData?.housing ?? areaData.housing],
+              [isEN?"Recent immigration":"Immigration récente", selectedAreaData?.immigration ?? areaData.immigration],
             ].map(([label,pct])=>(
               <div key={label}>
                 <div style={{display:"flex",justifyContent:"space-between",fontSize:13,marginBottom:5}}><span>{label}</span><span style={{fontWeight:600,fontFamily:MONO_FONT}}>{pct.toFixed(2)}</span></div>
