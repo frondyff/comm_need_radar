@@ -3,8 +3,9 @@ import { MapContainer, TileLayer, Marker, Popup, useMap, GeoJSON } from "react-l
 import { useEffect } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import { Radar, LocateFixed, Search, Bot, ChevronLeft, Layers, Activity, AlertTriangle, TrendingUp } from "lucide-react";
+import { Radar, LocateFixed, Search, ChevronLeft, Layers, Activity, AlertTriangle, TrendingUp } from "lucide-react";
 import { CategoryIcon, CATEGORY_COLORS, createServiceMarker, createUserLocationMarker } from "./components/serviceVisuals";
+import { ChatbotWidget } from "./chatbot/ChatbotWidget.jsx";
 import { FlyerPreview } from "./flyer/FlyerPreview";
 import { flyerPdfExporter } from "./flyer/FlyerPdfExporter";
 import { loadDashboardData } from "./lib/dashboardAdapter.js";
@@ -327,8 +328,6 @@ function ChoroplethMap({ selectedBorough, selectedAreaId, onSelect, boroughScore
 }
 
 function PlannerView({ lang, setLang, onSwitch, onExit, location, onChangeLocation, services, categories, boroughScores, areas=[], sourceStatus }) {
-  const [chat, setChat] = useState("");
-  const [chatOpen, setChatOpen] = useState(false);
   const [selectedBorough, setSelectedBorough] = useState("Mercier-Hochelaga-Maisonneuve");
   const [selectedAreaId, setSelectedAreaId] = useState("A005");
   const [selectedAreaLabel, setSelectedAreaLabel] = useState("Mercier-Hochelaga-Maisonneuve");
@@ -567,23 +566,7 @@ function PlannerView({ lang, setLang, onSwitch, onExit, location, onChangeLocati
           )}
         </div>
 
-        {/* Chatbot — floating widget, bottom-right corner (UI placeholder until the real chatbot is built) */}
-        {chatOpen ? (
-          <div style={{position:"fixed",bottom:20,right:20,zIndex:2000,display:"flex",alignItems:"center",gap:8,background:"#fff",border:"1px solid #E2E8F0",borderRadius:24,padding:"10px 10px 10px 16px",boxShadow:"0 6px 24px rgba(15,23,42,0.15)",width:340,maxWidth:"calc(100vw - 40px)"}}>
-            <Bot size={18} color="#2563EB" style={{flexShrink:0}}/>
-            <input autoFocus value={chat} onChange={e=>setChat(e.target.value)} placeholder={isEN?`Ask about ${selectedAreaLabel}…`:`Poser une question sur ${selectedAreaLabel}…`}
-              style={{flex:1,border:"none",outline:"none",fontSize:14,background:"transparent",minWidth:0}}/>
-            <button onClick={()=>setChatOpen(false)} aria-label={isEN?"Close chat":"Fermer le chat"}
-              style={{flexShrink:0,width:26,height:26,borderRadius:"50%",border:"none",background:"#F1F5F9",color:"#64748B",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>
-              ✕
-            </button>
-          </div>
-        ) : (
-          <button onClick={()=>setChatOpen(true)} aria-label={isEN?"Open chat":"Ouvrir le chat"}
-            style={{position:"fixed",bottom:20,right:20,zIndex:2000,width:52,height:52,borderRadius:"50%",border:"none",background:"#2563EB",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",boxShadow:"0 6px 20px rgba(37,99,235,0.4)"}}>
-            <Bot size={24} color="#fff"/>
-          </button>
-        )}
+        <ChatbotWidget isEN={isEN} selectedAreaLabel={selectedAreaLabel} />
       </div>
     </div>
   );
