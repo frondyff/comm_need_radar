@@ -1,0 +1,1409 @@
+visit_group_id,center_id,period_start,period_end,key_need,k_anon_count,severity,population_group,language_need_flag,settlement_need_flag,indigenous_specific_need_flag
+VG_000001,CTR_38f79979,2026-04-01,2026-06-30,Mental Health,14,low,immigrant_newcomer,True,True,False
+VG_000002,CTR_38f79979,2026-04-01,2026-06-30,Housing & Shelter,20,low,general,False,False,False
+VG_000003,CTR_38f79979,2026-04-01,2026-06-30,Settlement Navigation,19,low,immigrant_newcomer,True,True,False
+VG_000004,CTR_a6ca7d4b,2026-04-01,2026-06-30,General Support,31,low,,False,False,False
+VG_000005,CTR_a6ca7d4b,2026-04-01,2026-06-30,Language Access,25,low,immigrant_newcomer,True,True,False
+VG_000006,CTR_a6ca7d4b,2026-04-01,2026-06-30,Mental Health,11,medium,immigrant_newcomer,True,True,False
+VG_000007,CTR_1e3aa5e7,2026-04-01,2026-06-30,Legal Aid,91,medium,,False,False,False
+VG_000008,CTR_1e3aa5e7,2026-04-01,2026-06-30,Housing & Shelter,49,high,immigrant_newcomer,True,True,False
+VG_000009,CTR_a5fe7842,2026-04-01,2026-06-30,Employment,15,high,general,False,False,False
+VG_000010,CTR_a5fe7842,2026-04-01,2026-06-30,Mental Health,16,low,general,False,False,False
+VG_000011,CTR_a5fe7842,2026-04-01,2026-06-30,Housing & Shelter,21,medium,general,False,False,False
+VG_000012,CTR_2777c9f9,2026-04-01,2026-06-30,Family Services,24,low,,False,False,False
+VG_000013,CTR_a90f5e45,2026-04-01,2026-06-30,Employment,32,low,general,False,False,False
+VG_000014,CTR_0e4b5031,2026-04-01,2026-06-30,Settlement Navigation,8,medium,immigrant_newcomer,True,True,False
+VG_000015,CTR_0e4b5031,2026-04-01,2026-06-30,Employment,22,medium,immigrant_newcomer,True,True,False
+VG_000016,CTR_0e4b5031,2026-04-01,2026-06-30,General Support,10,medium,,False,False,False
+VG_000017,CTR_5404afc4,2026-04-01,2026-06-30,Food Support,32,low,general,False,False,False
+VG_000018,CTR_71177492,2026-04-01,2026-06-30,Family Services,23,high,general,False,False,False
+VG_000019,CTR_71177492,2026-04-01,2026-06-30,Legal Aid,29,low,immigrant_newcomer,True,True,False
+VG_000020,CTR_b61e17f1,2026-04-01,2026-06-30,Family Services,12,low,general,False,False,False
+VG_000021,CTR_c9e2ddc6,2026-04-01,2026-06-30,Family Services,40,low,immigrant_newcomer,True,True,False
+VG_000022,CTR_31430001,2026-04-01,2026-06-30,Food Support,18,medium,immigrant_newcomer,True,True,False
+VG_000023,CTR_31430001,2026-04-01,2026-06-30,Family Services,13,medium,immigrant_newcomer,True,True,False
+VG_000024,CTR_b71d643e,2026-04-01,2026-06-30,Mental Health,19,medium,,False,False,False
+VG_000025,CTR_c0f4f36f,2026-04-01,2026-06-30,Food Support,47,medium,,False,False,False
+VG_000026,CTR_c0f4f36f,2026-04-01,2026-06-30,Legal Aid,16,low,,False,False,False
+VG_000027,CTR_c0f4f36f,2026-04-01,2026-06-30,Family Services,21,low,general,False,False,False
+VG_000028,CTR_4a1f2b27,2026-04-01,2026-06-30,Housing & Shelter,10,low,general,False,False,False
+VG_000029,CTR_4a1f2b27,2026-04-01,2026-06-30,Employment,20,medium,general,False,False,False
+VG_000030,CTR_4a1f2b27,2026-04-01,2026-06-30,General Support,13,medium,,False,False,False
+VG_000031,CTR_d644046f,2026-04-01,2026-06-30,Language Access,22,medium,general,True,False,False
+VG_000032,CTR_d644046f,2026-04-01,2026-06-30,Family Services,14,medium,general,False,False,False
+VG_000033,CTR_3d860986,2026-04-01,2026-06-30,Food Support,13,medium,,False,False,False
+VG_000034,CTR_3d860986,2026-04-01,2026-06-30,Legal Aid,26,low,general,False,False,False
+VG_000035,CTR_0feb154b,2026-04-01,2026-06-30,Employment,16,high,general,False,False,False
+VG_000036,CTR_1e4fed49,2026-04-01,2026-06-30,Food Support,9,high,,False,False,False
+VG_000037,CTR_e17ebf8d,2026-04-01,2026-06-30,Legal Aid,12,high,,False,False,False
+VG_000038,CTR_e17ebf8d,2026-04-01,2026-06-30,Language Access,24,low,general,True,False,False
+VG_000039,CTR_6d88bcb9,2026-04-01,2026-06-30,Family Services,19,low,,False,False,False
+VG_000040,CTR_1a67967f,2026-04-01,2026-06-30,Food Support,23,low,general,False,False,False
+VG_000041,CTR_1a67967f,2026-04-01,2026-06-30,Family Services,20,low,general,False,False,False
+VG_000042,CTR_1a67967f,2026-04-01,2026-06-30,General Support,33,medium,immigrant_newcomer,True,True,False
+VG_000043,CTR_499564ba,2026-04-01,2026-06-30,General Support,8,medium,,False,False,False
+VG_000044,CTR_7cf1dafa,2026-04-01,2026-06-30,Food Support,25,low,,False,False,False
+VG_000045,CTR_9a67518b,2026-04-01,2026-06-30,Food Support,16,high,immigrant_newcomer,True,True,False
+VG_000046,CTR_9a67518b,2026-04-01,2026-06-30,General Support,30,medium,immigrant_newcomer,True,True,False
+VG_000047,CTR_9a67518b,2026-04-01,2026-06-30,Family Services,25,low,general,False,False,False
+VG_000048,CTR_104d4597,2026-04-01,2026-06-30,Family Services,9,low,immigrant_newcomer,True,True,False
+VG_000049,CTR_7b828194,2026-04-01,2026-06-30,Legal Aid,45,low,general,False,False,False
+VG_000050,CTR_7b828194,2026-04-01,2026-06-30,Housing & Shelter,43,low,immigrant_newcomer,True,True,False
+VG_000051,CTR_108f00c2,2026-04-01,2026-06-30,General Support,51,high,general,False,False,False
+VG_000052,CTR_108f00c2,2026-04-01,2026-06-30,Family Services,17,medium,general,False,False,False
+VG_000053,CTR_108f00c2,2026-04-01,2026-06-30,Food Support,32,low,general,False,False,False
+VG_000054,CTR_fc52e760,2026-04-01,2026-06-30,Settlement Navigation,38,medium,general,False,True,False
+VG_000055,CTR_56e87d9f,2026-04-01,2026-06-30,Employment,27,high,general,False,False,False
+VG_000056,CTR_22e3a69a,2026-04-01,2026-06-30,Employment,16,medium,general,False,False,False
+VG_000057,CTR_22e3a69a,2026-04-01,2026-06-30,Legal Aid,35,low,general,False,False,False
+VG_000058,CTR_22e3a69a,2026-04-01,2026-06-30,Mental Health,9,medium,general,False,False,False
+VG_000059,CTR_115acde5,2026-04-01,2026-06-30,Mental Health,24,high,immigrant_newcomer,True,True,False
+VG_000060,CTR_115acde5,2026-04-01,2026-06-30,Legal Aid,37,low,immigrant_newcomer,True,True,False
+VG_000061,CTR_261c339b,2026-04-01,2026-06-30,Settlement Navigation,23,medium,immigrant_newcomer,True,True,False
+VG_000062,CTR_261c339b,2026-04-01,2026-06-30,General Support,9,low,general,False,False,False
+VG_000063,CTR_88197aec,2026-04-01,2026-06-30,Employment,27,low,general,False,False,False
+VG_000064,CTR_88197aec,2026-04-01,2026-06-30,Settlement Navigation,19,low,immigrant_newcomer,True,True,False
+VG_000065,CTR_88197aec,2026-04-01,2026-06-30,General Support,20,medium,immigrant_newcomer,True,True,False
+VG_000066,CTR_560ae014,2026-04-01,2026-06-30,Food Support,13,medium,,False,False,False
+VG_000067,CTR_560ae014,2026-04-01,2026-06-30,Legal Aid,17,low,immigrant_newcomer,True,True,False
+VG_000068,CTR_bfb2b404,2026-04-01,2026-06-30,Food Support,19,medium,immigrant_newcomer,True,True,False
+VG_000069,CTR_bfb2b404,2026-04-01,2026-06-30,Mental Health,23,low,general,False,False,False
+VG_000070,CTR_bbafe4ba,2026-04-01,2026-06-30,Food Support,31,high,general,False,False,False
+VG_000071,CTR_064969f6,2026-04-01,2026-06-30,Food Support,10,low,,False,False,False
+VG_000072,CTR_064969f6,2026-04-01,2026-06-30,General Support,27,high,general,False,False,False
+VG_000073,CTR_064969f6,2026-04-01,2026-06-30,Family Services,11,high,,False,False,False
+VG_000074,CTR_a9d2679e,2026-04-01,2026-06-30,Food Support,28,medium,immigrant_newcomer,True,True,False
+VG_000075,CTR_a9d2679e,2026-04-01,2026-06-30,General Support,18,low,,False,False,False
+VG_000076,CTR_f8b5d07f,2026-04-01,2026-06-30,General Support,15,low,immigrant_newcomer,True,True,False
+VG_000077,CTR_f8b5d07f,2026-04-01,2026-06-30,Family Services,13,low,immigrant_newcomer,True,True,False
+VG_000078,CTR_f8b5d07f,2026-04-01,2026-06-30,Food Support,16,low,general,False,False,False
+VG_000079,CTR_a8174568,2026-04-01,2026-06-30,General Support,17,medium,,False,False,False
+VG_000080,CTR_a8174568,2026-04-01,2026-06-30,Family Services,11,high,general,False,False,False
+VG_000081,CTR_7f950086,2026-04-01,2026-06-30,Family Services,12,low,,False,False,False
+VG_000082,CTR_7f950086,2026-04-01,2026-06-30,Food Support,47,medium,immigrant_newcomer,True,True,False
+VG_000083,CTR_ec3e66a8,2026-04-01,2026-06-30,Food Support,25,low,,False,False,False
+VG_000084,CTR_ec3e66a8,2026-04-01,2026-06-30,Family Services,10,low,,False,False,False
+VG_000085,CTR_68b0e3a0,2026-04-01,2026-06-30,General Support,10,medium,,False,False,False
+VG_000086,CTR_68b0e3a0,2026-04-01,2026-06-30,Food Support,14,low,,False,False,False
+VG_000087,CTR_9610bd80,2026-04-01,2026-06-30,Food Support,46,medium,general,False,False,False
+VG_000088,CTR_9610bd80,2026-04-01,2026-06-30,General Support,13,medium,general,False,False,False
+VG_000089,CTR_9610bd80,2026-04-01,2026-06-30,Family Services,18,medium,general,False,False,False
+VG_000090,CTR_6805d0ca,2026-04-01,2026-06-30,Family Services,11,high,immigrant_newcomer,True,True,False
+VG_000091,CTR_6805d0ca,2026-04-01,2026-06-30,Food Support,33,low,,False,False,False
+VG_000092,CTR_6805d0ca,2026-04-01,2026-06-30,General Support,50,low,immigrant_newcomer,True,True,False
+VG_000093,CTR_57533edc,2026-04-01,2026-06-30,Housing & Shelter,22,medium,general,False,False,False
+VG_000094,CTR_57533edc,2026-04-01,2026-06-30,Settlement Navigation,45,medium,immigrant_newcomer,True,True,False
+VG_000095,CTR_57533edc,2026-04-01,2026-06-30,General Support,10,medium,general,False,False,False
+VG_000096,CTR_2f7f29c4,2026-04-01,2026-06-30,General Support,45,low,general,False,False,False
+VG_000097,CTR_2f7f29c4,2026-04-01,2026-06-30,Family Services,32,medium,indigenous,False,False,True
+VG_000098,CTR_2f7f29c4,2026-04-01,2026-06-30,Indigenous Cultural Support,22,low,indigenous,False,False,True
+VG_000099,CTR_e7c3062c,2026-04-01,2026-06-30,Food Support,15,low,indigenous,False,False,True
+VG_000100,CTR_e7c3062c,2026-04-01,2026-06-30,Family Services,21,low,general,False,False,False
+VG_000101,CTR_da434f87,2026-04-01,2026-06-30,Language Access,20,medium,immigrant_newcomer,True,True,False
+VG_000102,CTR_b5af990c,2026-04-01,2026-06-30,Family Services,13,low,indigenous,False,False,True
+VG_000103,CTR_b5af990c,2026-04-01,2026-06-30,Indigenous-Led Referral,24,medium,indigenous,False,False,True
+VG_000104,CTR_b5af990c,2026-04-01,2026-06-30,Housing & Shelter,14,low,general,False,False,False
+VG_000105,CTR_b0cd71cd,2026-04-01,2026-06-30,Family Services,9,low,general,False,False,False
+VG_000106,CTR_b0cd71cd,2026-04-01,2026-06-30,Legal Aid,8,low,indigenous,False,False,True
+VG_000107,CTR_b0cd71cd,2026-04-01,2026-06-30,Indigenous Cultural Support,27,medium,indigenous,False,False,True
+VG_000108,CTR_a732358a,2026-04-01,2026-06-30,Employment,14,low,general,False,False,False
+VG_000109,CTR_f7f0ffd4,2026-04-01,2026-06-30,Food Support,22,low,indigenous,False,False,True
+VG_000110,CTR_f7f0ffd4,2026-04-01,2026-06-30,Legal Aid,13,medium,general,False,False,False
+VG_000111,CTR_f7f0ffd4,2026-04-01,2026-06-30,Housing & Shelter,18,medium,indigenous,False,False,True
+VG_000112,CTR_a8c4861f,2026-04-01,2026-06-30,Food Support,11,medium,general,False,False,False
+VG_000113,CTR_a7d6edc6,2026-04-01,2026-06-30,Indigenous Cultural Support,28,medium,indigenous,False,False,True
+VG_000114,CTR_a7d6edc6,2026-04-01,2026-06-30,Indigenous-Led Referral,17,high,indigenous,False,False,True
+VG_000115,CTR_e5883b9f,2026-04-01,2026-06-30,Legal Aid,29,high,indigenous,False,False,True
+VG_000116,CTR_e5883b9f,2026-04-01,2026-06-30,Indigenous Cultural Support,13,medium,indigenous,False,False,True
+VG_000117,CTR_52ed034d,2026-04-01,2026-06-30,Employment,20,medium,indigenous,False,False,True
+VG_000118,CTR_8c9dacaa,2026-04-01,2026-06-30,Indigenous Cultural Support,10,low,indigenous,False,False,True
+VG_000119,CTR_8c9dacaa,2026-04-01,2026-06-30,Family Services,11,low,general,False,False,False
+VG_000120,CTR_8c9dacaa,2026-04-01,2026-06-30,Legal Aid,16,medium,indigenous,False,False,True
+VG_000121,CTR_42247a28,2026-04-01,2026-06-30,Food Support,12,medium,indigenous,False,False,True
+VG_000122,CTR_42247a28,2026-04-01,2026-06-30,Mental Health,17,low,general,False,False,False
+VG_000123,CTR_b7399903,2026-04-01,2026-06-30,Legal Aid,16,high,general,False,False,False
+VG_000124,CTR_b7399903,2026-04-01,2026-06-30,General Support,21,low,general,False,False,False
+VG_000125,CTR_990b9bb1,2026-04-01,2026-06-30,Indigenous Cultural Support,31,medium,indigenous,False,False,True
+VG_000126,CTR_990b9bb1,2026-04-01,2026-06-30,Indigenous-Led Referral,32,medium,indigenous,False,False,True
+VG_000127,CTR_990b9bb1,2026-04-01,2026-06-30,Housing & Shelter,50,medium,general,False,False,False
+VG_000128,CTR_9dde3ac5,2026-04-01,2026-06-30,Indigenous-Led Referral,33,medium,indigenous,False,False,True
+VG_000129,CTR_9dde3ac5,2026-04-01,2026-06-30,Mental Health,25,medium,general,False,False,False
+VG_000130,CTR_2b2d4516,2026-04-01,2026-06-30,Family Services,14,high,indigenous,False,False,True
+VG_000131,CTR_f5cd184b,2026-04-01,2026-06-30,General Support,17,medium,general,False,False,False
+VG_000132,CTR_f5cd184b,2026-04-01,2026-06-30,Housing & Shelter,33,low,general,False,False,False
+VG_000133,CTR_b1ba1572,2026-04-01,2026-06-30,Food Support,21,low,general,False,False,False
+VG_000134,CTR_b1ba1572,2026-04-01,2026-06-30,Legal Aid,20,high,indigenous,False,False,True
+VG_000135,CTR_b1ba1572,2026-04-01,2026-06-30,Family Services,18,high,indigenous,False,False,True
+VG_000136,CTR_04424bcf,2026-04-01,2026-06-30,Legal Aid,16,medium,general,False,False,False
+VG_000137,CTR_04424bcf,2026-04-01,2026-06-30,General Support,20,high,general,False,False,False
+VG_000138,CTR_966fd5f2,2026-04-01,2026-06-30,Food Support,10,low,general,False,False,False
+VG_000139,CTR_966fd5f2,2026-04-01,2026-06-30,Mental Health,14,medium,indigenous,False,False,True
+VG_000140,CTR_966fd5f2,2026-04-01,2026-06-30,Legal Aid,38,medium,general,False,False,False
+VG_000141,CTR_5fcc6a87,2026-04-01,2026-06-30,General Support,17,low,general,False,False,False
+VG_000142,CTR_5fcc6a87,2026-04-01,2026-06-30,Indigenous-Led Referral,30,low,indigenous,False,False,True
+VG_000143,CTR_824715fa,2026-04-01,2026-06-30,Housing & Shelter,65,medium,,False,False,False
+VG_000144,CTR_824715fa,2026-04-01,2026-06-30,Settlement Navigation,48,low,general,False,True,False
+VG_000145,CTR_68967eb3,2026-04-01,2026-06-30,Food Support,16,medium,immigrant_newcomer,True,True,False
+VG_000146,CTR_489df8cd,2026-04-01,2026-06-30,Food Support,11,medium,general,False,False,False
+VG_000147,CTR_489df8cd,2026-04-01,2026-06-30,Language Access,35,low,immigrant_newcomer,True,True,False
+VG_000148,CTR_489df8cd,2026-04-01,2026-06-30,Family Services,29,low,,False,False,False
+VG_000149,CTR_7b4a3216,2026-04-01,2026-06-30,Mental Health,29,medium,immigrant_newcomer,True,True,False
+VG_000150,CTR_7b4a3216,2026-04-01,2026-06-30,Family Services,12,medium,general,False,False,False
+VG_000151,CTR_7b4a3216,2026-04-01,2026-06-30,General Support,56,low,general,False,False,False
+VG_000152,CTR_77f18e5d,2026-04-01,2026-06-30,Food Support,16,high,immigrant_newcomer,True,True,False
+VG_000153,CTR_77f18e5d,2026-04-01,2026-06-30,Employment,11,medium,,False,False,False
+VG_000154,CTR_77f18e5d,2026-04-01,2026-06-30,Family Services,24,low,immigrant_newcomer,True,True,False
+VG_000155,CTR_257980e9,2026-04-01,2026-06-30,Employment,11,medium,,False,False,False
+VG_000156,CTR_257980e9,2026-04-01,2026-06-30,Language Access,12,medium,immigrant_newcomer,True,True,False
+VG_000157,CTR_4fa764cd,2026-04-01,2026-06-30,Housing & Shelter,27,high,immigrant_newcomer,True,True,False
+VG_000158,CTR_4fa764cd,2026-04-01,2026-06-30,Family Services,27,medium,general,False,False,False
+VG_000159,CTR_4fa764cd,2026-04-01,2026-06-30,Language Access,48,low,general,True,False,False
+VG_000160,CTR_e6a17e94,2026-04-01,2026-06-30,Housing & Shelter,16,high,immigrant_newcomer,True,True,False
+VG_000161,CTR_60d292ad,2026-04-01,2026-06-30,Language Access,9,high,immigrant_newcomer,True,True,False
+VG_000162,CTR_60d292ad,2026-04-01,2026-06-30,Food Support,30,high,immigrant_newcomer,True,True,False
+VG_000163,CTR_13d0d984,2026-04-01,2026-06-30,Legal Aid,18,medium,general,False,False,False
+VG_000164,CTR_13d0d984,2026-04-01,2026-06-30,Settlement Navigation,86,high,immigrant_newcomer,True,True,False
+VG_000165,CTR_321c276c,2026-04-01,2026-06-30,Settlement Navigation,16,medium,immigrant_newcomer,True,True,False
+VG_000166,CTR_321c276c,2026-04-01,2026-06-30,Mental Health,12,low,,False,False,False
+VG_000167,CTR_321c276c,2026-04-01,2026-06-30,Language Access,12,medium,general,True,False,False
+VG_000168,CTR_175e8fe5,2026-04-01,2026-06-30,Family Services,12,medium,,False,False,False
+VG_000169,CTR_175e8fe5,2026-04-01,2026-06-30,Legal Aid,16,medium,,False,False,False
+VG_000170,CTR_175e8fe5,2026-04-01,2026-06-30,Settlement Navigation,14,low,general,False,True,False
+VG_000171,CTR_1e38202f,2026-04-01,2026-06-30,Mental Health,36,medium,,False,False,False
+VG_000172,CTR_1e38202f,2026-04-01,2026-06-30,Family Services,8,high,general,False,False,False
+VG_000173,CTR_756b555e,2026-04-01,2026-06-30,Settlement Navigation,69,low,general,False,True,False
+VG_000174,CTR_bb530b3c,2026-04-01,2026-06-30,Employment,12,medium,,False,False,False
+VG_000175,CTR_bb530b3c,2026-04-01,2026-06-30,Mental Health,10,high,general,False,False,False
+VG_000176,CTR_d0817bad,2026-04-01,2026-06-30,Employment,30,low,general,False,False,False
+VG_000177,CTR_d0817bad,2026-04-01,2026-06-30,Mental Health,41,low,general,False,False,False
+VG_000178,CTR_d0817bad,2026-04-01,2026-06-30,Language Access,26,high,immigrant_newcomer,True,True,False
+VG_000179,CTR_9cdb578e,2026-04-01,2026-06-30,Housing & Shelter,28,low,immigrant_newcomer,True,True,False
+VG_000180,CTR_546832e3,2026-04-01,2026-06-30,Legal Aid,11,low,general,False,False,False
+VG_000181,CTR_ae31a09f,2026-04-01,2026-06-30,Family Services,34,low,,False,False,False
+VG_000182,CTR_08e9aed4,2026-04-01,2026-06-30,Employment,8,low,immigrant_newcomer,True,True,False
+VG_000183,CTR_08e9aed4,2026-04-01,2026-06-30,Housing & Shelter,36,low,,False,False,False
+VG_000184,CTR_08e9aed4,2026-04-01,2026-06-30,Settlement Navigation,8,low,general,False,True,False
+VG_000185,CTR_c4439cca,2026-04-01,2026-06-30,General Support,16,low,,False,False,False
+VG_000186,CTR_c4439cca,2026-04-01,2026-06-30,Settlement Navigation,8,high,general,False,True,False
+VG_000187,CTR_0b48c254,2026-04-01,2026-06-30,Employment,12,medium,general,False,False,False
+VG_000188,CTR_0b48c254,2026-04-01,2026-06-30,Language Access,10,medium,general,True,False,False
+VG_000189,CTR_0b48c254,2026-04-01,2026-06-30,General Support,18,low,immigrant_newcomer,True,True,False
+VG_000190,CTR_412a82f7,2026-04-01,2026-06-30,Mental Health,21,medium,general,False,False,False
+VG_000191,CTR_412a82f7,2026-04-01,2026-06-30,Settlement Navigation,25,high,immigrant_newcomer,True,True,False
+VG_000192,CTR_c9a376e9,2026-04-01,2026-06-30,Housing & Shelter,13,low,immigrant_newcomer,True,True,False
+VG_000193,CTR_c9a376e9,2026-04-01,2026-06-30,Legal Aid,14,high,,False,False,False
+VG_000194,CTR_c5568c53,2026-04-01,2026-06-30,Mental Health,26,low,general,False,False,False
+VG_000195,CTR_c5568c53,2026-04-01,2026-06-30,Legal Aid,11,medium,immigrant_newcomer,True,True,False
+VG_000196,CTR_72a8f708,2026-04-01,2026-06-30,Settlement Navigation,48,medium,immigrant_newcomer,True,True,False
+VG_000197,CTR_72a8f708,2026-04-01,2026-06-30,Housing & Shelter,9,medium,general,False,False,False
+VG_000198,CTR_841dc35e,2026-04-01,2026-06-30,Settlement Navigation,14,high,immigrant_newcomer,True,True,False
+VG_000199,CTR_841dc35e,2026-04-01,2026-06-30,Food Support,30,medium,general,False,False,False
+VG_000200,CTR_eaa7f1ec,2026-04-01,2026-06-30,Mental Health,17,medium,immigrant_newcomer,True,True,False
+VG_000201,CTR_e3b625ee,2026-04-01,2026-06-30,Legal Aid,16,medium,general,False,False,False
+VG_000202,CTR_e3b625ee,2026-04-01,2026-06-30,Employment,19,low,,False,False,False
+VG_000203,CTR_6cfc8c18,2026-04-01,2026-06-30,Housing & Shelter,27,low,immigrant_newcomer,True,True,False
+VG_000204,CTR_6cfc8c18,2026-04-01,2026-06-30,General Support,25,medium,,False,False,False
+VG_000205,CTR_6cfc8c18,2026-04-01,2026-06-30,Mental Health,18,high,general,False,False,False
+VG_000206,CTR_a7735fa4,2026-04-01,2026-06-30,Language Access,22,medium,general,True,False,False
+VG_000207,CTR_6f4f505e,2026-04-01,2026-06-30,Legal Aid,10,high,,False,False,False
+VG_000208,CTR_6f4f505e,2026-04-01,2026-06-30,Mental Health,11,medium,,False,False,False
+VG_000209,CTR_b5b4a01e,2026-04-01,2026-06-30,Legal Aid,15,medium,general,False,False,False
+VG_000210,CTR_b5b4a01e,2026-04-01,2026-06-30,Settlement Navigation,19,medium,immigrant_newcomer,True,True,False
+VG_000211,CTR_0138d96d,2026-04-01,2026-06-30,Food Support,12,medium,general,False,False,False
+VG_000212,CTR_0138d96d,2026-04-01,2026-06-30,Employment,18,medium,general,False,False,False
+VG_000213,CTR_e78c49ba,2026-04-01,2026-06-30,Settlement Navigation,17,medium,immigrant_newcomer,True,True,False
+VG_000214,CTR_e78c49ba,2026-04-01,2026-06-30,General Support,21,low,immigrant_newcomer,True,True,False
+VG_000215,CTR_e50b71ae,2026-04-01,2026-06-30,Family Services,15,medium,general,False,False,False
+VG_000216,CTR_e50b71ae,2026-04-01,2026-06-30,Housing & Shelter,24,medium,general,False,False,False
+VG_000217,CTR_44e4fcd6,2026-04-01,2026-06-30,Housing & Shelter,13,low,general,False,False,False
+VG_000218,CTR_44e4fcd6,2026-04-01,2026-06-30,Family Services,14,high,general,False,False,False
+VG_000219,CTR_44e4fcd6,2026-04-01,2026-06-30,Language Access,8,low,general,True,False,False
+VG_000220,CTR_9b876e03,2026-04-01,2026-06-30,Family Services,6,medium,general,False,False,False
+VG_000221,CTR_9b876e03,2026-04-01,2026-06-30,General Support,22,medium,immigrant_newcomer,True,True,False
+VG_000222,CTR_9b876e03,2026-04-01,2026-06-30,Legal Aid,24,medium,immigrant_newcomer,True,True,False
+VG_000223,CTR_70a99875,2026-04-01,2026-06-30,Food Support,36,medium,general,False,False,False
+VG_000224,CTR_70a99875,2026-04-01,2026-06-30,Settlement Navigation,14,high,general,False,True,False
+VG_000225,CTR_70a99875,2026-04-01,2026-06-30,Housing & Shelter,22,low,immigrant_newcomer,True,True,False
+VG_000226,CTR_62c6b8f4,2026-04-01,2026-06-30,General Support,24,medium,general,False,False,False
+VG_000227,CTR_b36a2783,2026-04-01,2026-06-30,Legal Aid,10,low,general,False,False,False
+VG_000228,CTR_b36a2783,2026-04-01,2026-06-30,Food Support,12,high,general,False,False,False
+VG_000229,CTR_884fbe55,2026-04-01,2026-06-30,General Support,57,medium,immigrant_newcomer,True,True,False
+VG_000230,CTR_884fbe55,2026-04-01,2026-06-30,Housing & Shelter,99,low,general,False,False,False
+VG_000231,CTR_884fbe55,2026-04-01,2026-06-30,Settlement Navigation,10,medium,immigrant_newcomer,True,True,False
+VG_000232,CTR_9ef70c6f,2026-04-01,2026-06-30,Legal Aid,19,high,general,False,False,False
+VG_000233,CTR_9ef70c6f,2026-04-01,2026-06-30,Family Services,32,medium,,False,False,False
+VG_000234,CTR_c903dadc,2026-04-01,2026-06-30,Family Services,34,medium,immigrant_newcomer,True,True,False
+VG_000235,CTR_c903dadc,2026-04-01,2026-06-30,General Support,12,medium,general,False,False,False
+VG_000236,CTR_c903dadc,2026-04-01,2026-06-30,Language Access,20,high,immigrant_newcomer,True,True,False
+VG_000237,CTR_099511a0,2026-04-01,2026-06-30,Legal Aid,27,high,general,False,False,False
+VG_000238,CTR_a22667f3,2026-04-01,2026-06-30,Language Access,35,medium,immigrant_newcomer,True,True,False
+VG_000239,CTR_9ca02025,2026-04-01,2026-06-30,Housing & Shelter,16,medium,general,False,False,False
+VG_000240,CTR_9ca02025,2026-04-01,2026-06-30,Language Access,16,high,immigrant_newcomer,True,True,False
+VG_000241,CTR_4e6cde73,2026-04-01,2026-06-30,Settlement Navigation,7,medium,immigrant_newcomer,True,True,False
+VG_000242,CTR_4e6cde73,2026-04-01,2026-06-30,Food Support,31,medium,general,False,False,False
+VG_000243,CTR_4e6cde73,2026-04-01,2026-06-30,Mental Health,22,medium,general,False,False,False
+VG_000244,CTR_527c7b95,2026-04-01,2026-06-30,Legal Aid,10,high,general,False,False,False
+VG_000245,CTR_de488727,2026-04-01,2026-06-30,Mental Health,20,medium,,False,False,False
+VG_000246,CTR_de488727,2026-04-01,2026-06-30,General Support,26,low,general,False,False,False
+VG_000247,CTR_e596a223,2026-04-01,2026-06-30,Employment,22,high,general,False,False,False
+VG_000248,CTR_e596a223,2026-04-01,2026-06-30,Language Access,58,high,immigrant_newcomer,True,True,False
+VG_000249,CTR_e501bed3,2026-04-01,2026-06-30,General Support,10,medium,,False,False,False
+VG_000250,CTR_e501bed3,2026-04-01,2026-06-30,Housing & Shelter,16,low,general,False,False,False
+VG_000251,CTR_e501bed3,2026-04-01,2026-06-30,Employment,60,low,general,False,False,False
+VG_000252,CTR_a4cc6552,2026-04-01,2026-06-30,Settlement Navigation,12,high,general,False,True,False
+VG_000253,CTR_1ce79041,2026-04-01,2026-06-30,Family Services,32,low,general,False,False,False
+VG_000254,CTR_1ce79041,2026-04-01,2026-06-30,General Support,14,medium,general,False,False,False
+VG_000255,CTR_1ce79041,2026-04-01,2026-06-30,Settlement Navigation,18,medium,general,False,True,False
+VG_000256,CTR_f2fa7248,2026-04-01,2026-06-30,Settlement Navigation,15,medium,general,False,True,False
+VG_000257,CTR_f2fa7248,2026-04-01,2026-06-30,Housing & Shelter,18,high,,False,False,False
+VG_000258,CTR_995faa2c,2026-04-01,2026-06-30,Legal Aid,8,high,,False,False,False
+VG_000259,CTR_995faa2c,2026-04-01,2026-06-30,Mental Health,15,medium,immigrant_newcomer,True,True,False
+VG_000260,CTR_995faa2c,2026-04-01,2026-06-30,Settlement Navigation,15,low,immigrant_newcomer,True,True,False
+VG_000261,CTR_e3ecc346,2026-04-01,2026-06-30,Settlement Navigation,23,medium,immigrant_newcomer,True,True,False
+VG_000262,CTR_e3ecc346,2026-04-01,2026-06-30,Family Services,8,medium,general,False,False,False
+VG_000263,CTR_c6cb39cc,2026-04-01,2026-06-30,Food Support,30,medium,,False,False,False
+VG_000264,CTR_c6cb39cc,2026-04-01,2026-06-30,Housing & Shelter,26,high,general,False,False,False
+VG_000265,CTR_c6cb39cc,2026-04-01,2026-06-30,Mental Health,17,low,immigrant_newcomer,True,True,False
+VG_000266,CTR_839f9ba3,2026-04-01,2026-06-30,Language Access,23,low,general,True,False,False
+VG_000267,CTR_839f9ba3,2026-04-01,2026-06-30,Settlement Navigation,24,medium,immigrant_newcomer,True,True,False
+VG_000268,CTR_d451dae8,2026-04-01,2026-06-30,Family Services,38,high,general,False,False,False
+VG_000269,CTR_d451dae8,2026-04-01,2026-06-30,Employment,35,medium,,False,False,False
+VG_000270,CTR_d451dae8,2026-04-01,2026-06-30,Housing & Shelter,39,medium,immigrant_newcomer,True,True,False
+VG_000271,CTR_5dffe67a,2026-04-01,2026-06-30,Employment,12,medium,general,False,False,False
+VG_000272,CTR_1c98b1b4,2026-04-01,2026-06-30,Settlement Navigation,10,medium,general,False,True,False
+VG_000273,CTR_1c98b1b4,2026-04-01,2026-06-30,Family Services,21,high,,False,False,False
+VG_000274,CTR_1c98b1b4,2026-04-01,2026-06-30,Language Access,11,low,immigrant_newcomer,True,True,False
+VG_000275,CTR_bc96914b,2026-04-01,2026-06-30,General Support,22,high,general,False,False,False
+VG_000276,CTR_bc96914b,2026-04-01,2026-06-30,Settlement Navigation,19,high,immigrant_newcomer,True,True,False
+VG_000277,CTR_c50c25e2,2026-04-01,2026-06-30,Food Support,11,medium,general,False,False,False
+VG_000278,CTR_c50c25e2,2026-04-01,2026-06-30,Legal Aid,30,medium,immigrant_newcomer,True,True,False
+VG_000279,CTR_c50c25e2,2026-04-01,2026-06-30,Mental Health,11,medium,immigrant_newcomer,True,True,False
+VG_000280,CTR_a56a17c1,2026-04-01,2026-06-30,Food Support,45,high,immigrant_newcomer,True,True,False
+VG_000281,CTR_a56a17c1,2026-04-01,2026-06-30,General Support,27,low,general,False,False,False
+VG_000282,CTR_a56a17c1,2026-04-01,2026-06-30,Mental Health,21,high,,False,False,False
+VG_000283,CTR_b25167e0,2026-04-01,2026-06-30,Legal Aid,56,low,general,False,False,False
+VG_000284,CTR_b25167e0,2026-04-01,2026-06-30,General Support,23,medium,general,False,False,False
+VG_000285,CTR_b25167e0,2026-04-01,2026-06-30,Employment,10,low,,False,False,False
+VG_000286,CTR_7c4cd817,2026-04-01,2026-06-30,Settlement Navigation,33,low,immigrant_newcomer,True,True,False
+VG_000287,CTR_7c4cd817,2026-04-01,2026-06-30,General Support,18,low,general,False,False,False
+VG_000288,CTR_7c4cd817,2026-04-01,2026-06-30,Employment,37,high,general,False,False,False
+VG_000289,CTR_57c1b4b1,2026-04-01,2026-06-30,Settlement Navigation,25,low,general,False,True,False
+VG_000290,CTR_0bce20ec,2026-04-01,2026-06-30,Family Services,22,low,,False,False,False
+VG_000291,CTR_0bce20ec,2026-04-01,2026-06-30,General Support,11,medium,immigrant_newcomer,True,True,False
+VG_000292,CTR_0bce20ec,2026-04-01,2026-06-30,Food Support,13,medium,,False,False,False
+VG_000293,CTR_e22ccd69,2026-04-01,2026-06-30,Language Access,20,medium,immigrant_newcomer,True,True,False
+VG_000294,CTR_d1c8a654,2026-04-01,2026-06-30,Language Access,17,high,general,True,False,False
+VG_000295,CTR_aaa5de8a,2026-04-01,2026-06-30,Mental Health,20,low,,False,False,False
+VG_000296,CTR_aaa5de8a,2026-04-01,2026-06-30,Food Support,18,low,,False,False,False
+VG_000297,CTR_aaa5de8a,2026-04-01,2026-06-30,Housing & Shelter,37,low,immigrant_newcomer,True,True,False
+VG_000298,CTR_ab595360,2026-04-01,2026-06-30,Food Support,27,medium,immigrant_newcomer,True,True,False
+VG_000299,CTR_ab595360,2026-04-01,2026-06-30,Settlement Navigation,21,low,general,False,True,False
+VG_000300,CTR_ab595360,2026-04-01,2026-06-30,Legal Aid,13,high,general,False,False,False
+VG_000301,CTR_29fd48e8,2026-04-01,2026-06-30,Legal Aid,10,high,,False,False,False
+VG_000302,CTR_29fd48e8,2026-04-01,2026-06-30,Housing & Shelter,33,low,general,False,False,False
+VG_000303,CTR_29fd48e8,2026-04-01,2026-06-30,General Support,8,low,,False,False,False
+VG_000304,CTR_a8afe896,2026-04-01,2026-06-30,Mental Health,15,medium,,False,False,False
+VG_000305,CTR_a8afe896,2026-04-01,2026-06-30,Employment,19,medium,,False,False,False
+VG_000306,CTR_a8afe896,2026-04-01,2026-06-30,Housing & Shelter,29,medium,general,False,False,False
+VG_000307,CTR_e9afb461,2026-04-01,2026-06-30,Family Services,17,medium,general,False,False,False
+VG_000308,CTR_e9afb461,2026-04-01,2026-06-30,Language Access,56,medium,general,True,False,False
+VG_000309,CTR_e9afb461,2026-04-01,2026-06-30,Food Support,21,low,immigrant_newcomer,True,True,False
+VG_000310,CTR_4e7e9966,2026-04-01,2026-06-30,Legal Aid,38,medium,immigrant_newcomer,True,True,False
+VG_000311,CTR_4e7e9966,2026-04-01,2026-06-30,Employment,29,low,,False,False,False
+VG_000312,CTR_4e7e9966,2026-04-01,2026-06-30,Food Support,38,medium,,False,False,False
+VG_000313,CTR_d3dbb179,2026-04-01,2026-06-30,Legal Aid,10,medium,general,False,False,False
+VG_000314,CTR_3407af78,2026-04-01,2026-06-30,Legal Aid,11,high,general,False,False,False
+VG_000315,CTR_3407af78,2026-04-01,2026-06-30,Family Services,9,medium,immigrant_newcomer,True,True,False
+VG_000316,CTR_32696e6d,2026-04-01,2026-06-30,Housing & Shelter,21,medium,general,False,False,False
+VG_000317,CTR_8ce33cc2,2026-04-01,2026-06-30,Family Services,41,high,general,False,False,False
+VG_000318,CTR_8ce33cc2,2026-04-01,2026-06-30,Mental Health,18,high,,False,False,False
+VG_000319,CTR_8ce33cc2,2026-04-01,2026-06-30,Settlement Navigation,15,medium,immigrant_newcomer,True,True,False
+VG_000320,CTR_fc26c8f4,2026-04-01,2026-06-30,Employment,30,high,,False,False,False
+VG_000321,CTR_fc26c8f4,2026-04-01,2026-06-30,Housing & Shelter,27,medium,,False,False,False
+VG_000322,CTR_fc26c8f4,2026-04-01,2026-06-30,Mental Health,20,high,immigrant_newcomer,True,True,False
+VG_000323,CTR_31405be6,2026-04-01,2026-06-30,Family Services,38,low,general,False,False,False
+VG_000324,CTR_31405be6,2026-04-01,2026-06-30,General Support,11,medium,general,False,False,False
+VG_000325,CTR_d9499346,2026-04-01,2026-06-30,Food Support,39,medium,immigrant_newcomer,True,True,False
+VG_000326,CTR_d9499346,2026-04-01,2026-06-30,Housing & Shelter,26,medium,general,False,False,False
+VG_000327,CTR_d9499346,2026-04-01,2026-06-30,Settlement Navigation,19,medium,immigrant_newcomer,True,True,False
+VG_000328,CTR_658e0945,2026-04-01,2026-06-30,Food Support,15,low,,False,False,False
+VG_000329,CTR_ad38602d,2026-04-01,2026-06-30,Family Services,38,medium,immigrant_newcomer,True,True,False
+VG_000330,CTR_9062f388,2026-04-01,2026-06-30,Legal Aid,23,low,immigrant_newcomer,True,True,False
+VG_000331,CTR_6dbd6495,2026-04-01,2026-06-30,Food Support,33,high,immigrant_newcomer,True,True,False
+VG_000332,CTR_6dbd6495,2026-04-01,2026-06-30,Language Access,21,low,immigrant_newcomer,True,True,False
+VG_000333,CTR_bbca6f9b,2026-04-01,2026-06-30,Family Services,15,medium,immigrant_newcomer,True,True,False
+VG_000334,CTR_b16a9a7c,2026-04-01,2026-06-30,Employment,20,medium,general,False,False,False
+VG_000335,CTR_b16a9a7c,2026-04-01,2026-06-30,General Support,9,medium,general,False,False,False
+VG_000336,CTR_b16a9a7c,2026-04-01,2026-06-30,Settlement Navigation,19,high,general,False,True,False
+VG_000337,CTR_fa70f161,2026-04-01,2026-06-30,Mental Health,9,high,,False,False,False
+VG_000338,CTR_fa70f161,2026-04-01,2026-06-30,Employment,11,medium,,False,False,False
+VG_000339,CTR_1ce4289f,2026-04-01,2026-06-30,Family Services,11,medium,general,False,False,False
+VG_000340,CTR_1ce4289f,2026-04-01,2026-06-30,Legal Aid,10,low,general,False,False,False
+VG_000341,CTR_1ce4289f,2026-04-01,2026-06-30,Settlement Navigation,13,medium,immigrant_newcomer,True,True,False
+VG_000342,CTR_abbc46cc,2026-04-01,2026-06-30,Language Access,13,medium,immigrant_newcomer,True,True,False
+VG_000343,CTR_abbc46cc,2026-04-01,2026-06-30,Settlement Navigation,16,high,general,False,True,False
+VG_000344,CTR_abbc46cc,2026-04-01,2026-06-30,Employment,16,medium,general,False,False,False
+VG_000345,CTR_939a2681,2026-04-01,2026-06-30,Employment,15,high,,False,False,False
+VG_000346,CTR_939a2681,2026-04-01,2026-06-30,General Support,165,high,general,False,False,False
+VG_000347,CTR_584415d6,2026-04-01,2026-06-30,Employment,26,low,general,False,False,False
+VG_000348,CTR_94d3fe4f,2026-04-01,2026-06-30,Housing & Shelter,22,medium,general,False,False,False
+VG_000349,CTR_94d3fe4f,2026-04-01,2026-06-30,Language Access,19,high,immigrant_newcomer,True,True,False
+VG_000350,CTR_94d3fe4f,2026-04-01,2026-06-30,Employment,26,high,immigrant_newcomer,True,True,False
+VG_000351,CTR_2e4e5849,2026-04-01,2026-06-30,Legal Aid,16,medium,general,False,False,False
+VG_000352,CTR_fa17583f,2026-04-01,2026-06-30,Food Support,10,medium,,False,False,False
+VG_000353,CTR_fa17583f,2026-04-01,2026-06-30,Language Access,29,medium,immigrant_newcomer,True,True,False
+VG_000354,CTR_fa17583f,2026-04-01,2026-06-30,Legal Aid,15,medium,general,False,False,False
+VG_000355,CTR_15e28c33,2026-04-01,2026-06-30,Employment,29,medium,immigrant_newcomer,True,True,False
+VG_000356,CTR_ae28ad4e,2026-04-01,2026-06-30,General Support,12,low,,False,False,False
+VG_000357,CTR_880cae4e,2026-04-01,2026-06-30,Mental Health,13,medium,immigrant_newcomer,True,True,False
+VG_000358,CTR_880cae4e,2026-04-01,2026-06-30,Family Services,30,medium,general,False,False,False
+VG_000359,CTR_880cae4e,2026-04-01,2026-06-30,Language Access,23,low,general,True,False,False
+VG_000360,CTR_230fb867,2026-04-01,2026-06-30,Legal Aid,18,medium,general,False,False,False
+VG_000361,CTR_230fb867,2026-04-01,2026-06-30,Housing & Shelter,16,low,general,False,False,False
+VG_000362,CTR_0b9296ea,2026-04-01,2026-06-30,Language Access,23,medium,general,True,False,False
+VG_000363,CTR_0b9296ea,2026-04-01,2026-06-30,Family Services,16,medium,,False,False,False
+VG_000364,CTR_678f88ac,2026-04-01,2026-06-30,Employment,15,low,immigrant_newcomer,True,True,False
+VG_000365,CTR_678f88ac,2026-04-01,2026-06-30,Settlement Navigation,25,low,immigrant_newcomer,True,True,False
+VG_000366,CTR_5adad74d,2026-04-01,2026-06-30,Settlement Navigation,10,medium,immigrant_newcomer,True,True,False
+VG_000367,CTR_3c0f8984,2026-04-01,2026-06-30,Settlement Navigation,18,high,immigrant_newcomer,True,True,False
+VG_000368,CTR_3c0f8984,2026-04-01,2026-06-30,Legal Aid,10,low,general,False,False,False
+VG_000369,CTR_3c0f8984,2026-04-01,2026-06-30,Language Access,22,low,general,True,False,False
+VG_000370,CTR_5f3af8be,2026-04-01,2026-06-30,Housing & Shelter,30,medium,general,False,False,False
+VG_000371,CTR_5f3af8be,2026-04-01,2026-06-30,General Support,12,low,general,False,False,False
+VG_000372,CTR_5f3af8be,2026-04-01,2026-06-30,Employment,20,low,,False,False,False
+VG_000373,CTR_2cba9026,2026-04-01,2026-06-30,Legal Aid,12,medium,,False,False,False
+VG_000374,CTR_2cba9026,2026-04-01,2026-06-30,General Support,13,medium,immigrant_newcomer,True,True,False
+VG_000375,CTR_2cba9026,2026-04-01,2026-06-30,Housing & Shelter,17,medium,,False,False,False
+VG_000376,CTR_ed8a6c33,2026-04-01,2026-06-30,Mental Health,16,medium,general,False,False,False
+VG_000377,CTR_ed8a6c33,2026-04-01,2026-06-30,Housing & Shelter,23,high,general,False,False,False
+VG_000378,CTR_12c3ab21,2026-04-01,2026-06-30,Settlement Navigation,30,low,immigrant_newcomer,True,True,False
+VG_000379,CTR_12c3ab21,2026-04-01,2026-06-30,Mental Health,24,medium,general,False,False,False
+VG_000380,CTR_12c3ab21,2026-04-01,2026-06-30,Legal Aid,12,medium,general,False,False,False
+VG_000381,CTR_248b4d45,2026-04-01,2026-06-30,General Support,25,high,,False,False,False
+VG_000382,CTR_248b4d45,2026-04-01,2026-06-30,Settlement Navigation,16,low,general,False,True,False
+VG_000383,CTR_aa28584f,2026-04-01,2026-06-30,Settlement Navigation,12,low,general,False,True,False
+VG_000384,CTR_19a27476,2026-04-01,2026-06-30,Family Services,15,medium,general,False,False,False
+VG_000385,CTR_19a27476,2026-04-01,2026-06-30,General Support,28,low,general,False,False,False
+VG_000386,CTR_6fa71a7c,2026-04-01,2026-06-30,Mental Health,8,medium,immigrant_newcomer,True,True,False
+VG_000387,CTR_eb7b4829,2026-04-01,2026-06-30,Language Access,15,low,immigrant_newcomer,True,True,False
+VG_000388,CTR_eb7b4829,2026-04-01,2026-06-30,Settlement Navigation,11,medium,immigrant_newcomer,True,True,False
+VG_000389,CTR_eb7b4829,2026-04-01,2026-06-30,Food Support,21,high,,False,False,False
+VG_000390,CTR_2cd39cc0,2026-04-01,2026-06-30,Housing & Shelter,16,high,,False,False,False
+VG_000391,CTR_2cd39cc0,2026-04-01,2026-06-30,Legal Aid,20,medium,general,False,False,False
+VG_000392,CTR_991c4d9c,2026-04-01,2026-06-30,Legal Aid,14,low,immigrant_newcomer,True,True,False
+VG_000393,CTR_126c7b99,2026-04-01,2026-06-30,Language Access,30,high,immigrant_newcomer,True,True,False
+VG_000394,CTR_126c7b99,2026-04-01,2026-06-30,Legal Aid,21,low,,False,False,False
+VG_000395,CTR_d28daa51,2026-04-01,2026-06-30,Housing & Shelter,34,high,immigrant_newcomer,True,True,False
+VG_000396,CTR_d28daa51,2026-04-01,2026-06-30,Language Access,9,high,immigrant_newcomer,True,True,False
+VG_000397,CTR_846359ea,2026-04-01,2026-06-30,Food Support,18,medium,general,False,False,False
+VG_000398,CTR_846359ea,2026-04-01,2026-06-30,Legal Aid,10,medium,immigrant_newcomer,True,True,False
+VG_000399,CTR_846359ea,2026-04-01,2026-06-30,General Support,15,high,general,False,False,False
+VG_000400,CTR_9d902139,2026-04-01,2026-06-30,Mental Health,28,high,general,False,False,False
+VG_000401,CTR_9d902139,2026-04-01,2026-06-30,Employment,34,high,,False,False,False
+VG_000402,CTR_b8d3a934,2026-04-01,2026-06-30,Mental Health,12,low,,False,False,False
+VG_000403,CTR_b8d3a934,2026-04-01,2026-06-30,Language Access,60,low,immigrant_newcomer,True,True,False
+VG_000404,CTR_b8d3a934,2026-04-01,2026-06-30,Settlement Navigation,18,medium,general,False,True,False
+VG_000405,CTR_268bfd40,2026-04-01,2026-06-30,Language Access,64,medium,immigrant_newcomer,True,True,False
+VG_000406,CTR_268bfd40,2026-04-01,2026-06-30,Housing & Shelter,12,medium,general,False,False,False
+VG_000407,CTR_268bfd40,2026-04-01,2026-06-30,General Support,22,high,general,False,False,False
+VG_000408,CTR_3ecb7800,2026-04-01,2026-06-30,Language Access,8,medium,immigrant_newcomer,True,True,False
+VG_000409,CTR_3ecb7800,2026-04-01,2026-06-30,Settlement Navigation,21,medium,general,False,True,False
+VG_000410,CTR_3ecb7800,2026-04-01,2026-06-30,General Support,16,low,general,False,False,False
+VG_000411,CTR_2aae7921,2026-04-01,2026-06-30,Mental Health,15,high,general,False,False,False
+VG_000412,CTR_2aae7921,2026-04-01,2026-06-30,General Support,16,medium,,False,False,False
+VG_000413,CTR_a09ef300,2026-04-01,2026-06-30,Settlement Navigation,10,low,immigrant_newcomer,True,True,False
+VG_000414,CTR_a09ef300,2026-04-01,2026-06-30,Mental Health,19,low,general,False,False,False
+VG_000415,CTR_ef6f8c86,2026-04-01,2026-06-30,Family Services,22,medium,,False,False,False
+VG_000416,CTR_ef6f8c86,2026-04-01,2026-06-30,Employment,10,medium,,False,False,False
+VG_000417,CTR_b81d4269,2026-04-01,2026-06-30,Employment,28,medium,general,False,False,False
+VG_000418,CTR_b81d4269,2026-04-01,2026-06-30,General Support,14,low,immigrant_newcomer,True,True,False
+VG_000419,CTR_b81d4269,2026-04-01,2026-06-30,Food Support,20,medium,,False,False,False
+VG_000420,CTR_42bbd0e4,2026-04-01,2026-06-30,Language Access,51,high,immigrant_newcomer,True,True,False
+VG_000421,CTR_42bbd0e4,2026-04-01,2026-06-30,Mental Health,60,medium,immigrant_newcomer,True,True,False
+VG_000422,CTR_42bbd0e4,2026-04-01,2026-06-30,Food Support,11,low,immigrant_newcomer,True,True,False
+VG_000423,CTR_9e93e94b,2026-04-01,2026-06-30,Food Support,21,medium,general,False,False,False
+VG_000424,CTR_9e93e94b,2026-04-01,2026-06-30,Language Access,33,high,general,True,False,False
+VG_000425,CTR_9e93e94b,2026-04-01,2026-06-30,Employment,18,low,general,False,False,False
+VG_000426,CTR_973c3c8c,2026-04-01,2026-06-30,Housing & Shelter,18,medium,general,False,False,False
+VG_000427,CTR_973c3c8c,2026-04-01,2026-06-30,Settlement Navigation,19,medium,general,False,True,False
+VG_000428,CTR_d75839e5,2026-04-01,2026-06-30,Family Services,27,low,general,False,False,False
+VG_000429,CTR_d75839e5,2026-04-01,2026-06-30,General Support,11,medium,immigrant_newcomer,True,True,False
+VG_000430,CTR_56f87307,2026-04-01,2026-06-30,General Support,12,high,general,False,False,False
+VG_000431,CTR_56f87307,2026-04-01,2026-06-30,Mental Health,31,low,general,False,False,False
+VG_000432,CTR_f052bdba,2026-04-01,2026-06-30,Mental Health,8,medium,immigrant_newcomer,True,True,False
+VG_000433,CTR_f052bdba,2026-04-01,2026-06-30,Employment,13,low,,False,False,False
+VG_000434,CTR_96e49f0d,2026-04-01,2026-06-30,Housing & Shelter,20,low,immigrant_newcomer,True,True,False
+VG_000435,CTR_cedd0aa5,2026-04-01,2026-06-30,Legal Aid,53,high,immigrant_newcomer,True,True,False
+VG_000436,CTR_cedd0aa5,2026-04-01,2026-06-30,General Support,17,low,general,False,False,False
+VG_000437,CTR_cedd0aa5,2026-04-01,2026-06-30,Family Services,24,low,general,False,False,False
+VG_000438,CTR_1bf879ba,2026-04-01,2026-06-30,Employment,9,medium,,False,False,False
+VG_000439,CTR_1bf879ba,2026-04-01,2026-06-30,Language Access,16,high,immigrant_newcomer,True,True,False
+VG_000440,CTR_f14fd57d,2026-04-01,2026-06-30,Language Access,46,high,general,True,False,False
+VG_000441,CTR_5d0c51bf,2026-04-01,2026-06-30,Family Services,30,high,general,False,False,False
+VG_000442,CTR_5d0c51bf,2026-04-01,2026-06-30,Settlement Navigation,38,low,general,False,True,False
+VG_000443,CTR_0b055bf6,2026-04-01,2026-06-30,Settlement Navigation,7,high,general,False,True,False
+VG_000444,CTR_0b055bf6,2026-04-01,2026-06-30,Food Support,23,medium,general,False,False,False
+VG_000445,CTR_a1d544e2,2026-04-01,2026-06-30,Food Support,53,medium,immigrant_newcomer,True,True,False
+VG_000446,CTR_a1d544e2,2026-04-01,2026-06-30,Housing & Shelter,18,low,general,False,False,False
+VG_000447,CTR_a1d544e2,2026-04-01,2026-06-30,Employment,17,low,,False,False,False
+VG_000448,CTR_f0ade6f9,2026-04-01,2026-06-30,Mental Health,7,low,general,False,False,False
+VG_000449,CTR_f0ade6f9,2026-04-01,2026-06-30,General Support,30,low,general,False,False,False
+VG_000450,CTR_f920991d,2026-04-01,2026-06-30,Housing & Shelter,36,low,immigrant_newcomer,True,True,False
+VG_000451,CTR_f920991d,2026-04-01,2026-06-30,Food Support,23,low,,False,False,False
+VG_000452,CTR_f920991d,2026-04-01,2026-06-30,Employment,13,medium,general,False,False,False
+VG_000453,CTR_9eff7b68,2026-04-01,2026-06-30,Language Access,10,low,immigrant_newcomer,True,True,False
+VG_000454,CTR_9eff7b68,2026-04-01,2026-06-30,Settlement Navigation,24,high,general,False,True,False
+VG_000455,CTR_7e48a42b,2026-04-01,2026-06-30,Housing & Shelter,27,low,general,False,False,False
+VG_000456,CTR_7e48a42b,2026-04-01,2026-06-30,Legal Aid,18,medium,general,False,False,False
+VG_000457,CTR_7e48a42b,2026-04-01,2026-06-30,Mental Health,82,high,general,False,False,False
+VG_000458,CTR_d97c7559,2026-04-01,2026-06-30,Food Support,13,medium,,False,False,False
+VG_000459,CTR_d97c7559,2026-04-01,2026-06-30,Language Access,19,medium,immigrant_newcomer,True,True,False
+VG_000460,CTR_ca6f86b7,2026-04-01,2026-06-30,Language Access,25,low,immigrant_newcomer,True,True,False
+VG_000461,CTR_ca6f86b7,2026-04-01,2026-06-30,General Support,13,low,general,False,False,False
+VG_000462,CTR_a507718d,2026-04-01,2026-06-30,General Support,14,high,immigrant_newcomer,True,True,False
+VG_000463,CTR_bd6ad07b,2026-04-01,2026-06-30,Mental Health,110,low,,False,False,False
+VG_000464,CTR_bd6ad07b,2026-04-01,2026-06-30,Legal Aid,21,medium,general,False,False,False
+VG_000465,CTR_bd6ad07b,2026-04-01,2026-06-30,Settlement Navigation,25,medium,general,False,True,False
+VG_000466,CTR_0b14aaea,2026-04-01,2026-06-30,Housing & Shelter,21,medium,immigrant_newcomer,True,True,False
+VG_000467,CTR_0b14aaea,2026-04-01,2026-06-30,Food Support,12,high,general,False,False,False
+VG_000468,CTR_0b14aaea,2026-04-01,2026-06-30,Employment,29,low,general,False,False,False
+VG_000469,CTR_4addcf54,2026-04-01,2026-06-30,Mental Health,13,medium,immigrant_newcomer,True,True,False
+VG_000470,CTR_4addcf54,2026-04-01,2026-06-30,Family Services,11,low,general,False,False,False
+VG_000471,CTR_4addcf54,2026-04-01,2026-06-30,Employment,12,medium,general,False,False,False
+VG_000472,CTR_9bdffade,2026-04-01,2026-06-30,Food Support,36,medium,general,False,False,False
+VG_000473,CTR_b05c982b,2026-04-01,2026-06-30,Employment,14,low,general,False,False,False
+VG_000474,CTR_b05c982b,2026-04-01,2026-06-30,Settlement Navigation,20,medium,immigrant_newcomer,True,True,False
+VG_000475,CTR_083118a0,2026-04-01,2026-06-30,Food Support,18,high,general,False,False,False
+VG_000476,CTR_8c6f4d0d,2026-04-01,2026-06-30,Mental Health,15,high,general,False,False,False
+VG_000477,CTR_8c6f4d0d,2026-04-01,2026-06-30,Family Services,17,medium,general,False,False,False
+VG_000478,CTR_202feeca,2026-04-01,2026-06-30,General Support,30,low,general,False,False,False
+VG_000479,CTR_fdaf4598,2026-04-01,2026-06-30,Housing & Shelter,9,low,immigrant_newcomer,True,True,False
+VG_000480,CTR_fdaf4598,2026-04-01,2026-06-30,Language Access,12,low,immigrant_newcomer,True,True,False
+VG_000481,CTR_01751b23,2026-04-01,2026-06-30,General Support,26,high,,False,False,False
+VG_000482,CTR_c7dc4419,2026-04-01,2026-06-30,Mental Health,23,medium,general,False,False,False
+VG_000483,CTR_35857f48,2026-04-01,2026-06-30,Language Access,13,high,general,True,False,False
+VG_000484,CTR_7b7e55ab,2026-04-01,2026-06-30,Settlement Navigation,17,low,immigrant_newcomer,True,True,False
+VG_000485,CTR_7b7e55ab,2026-04-01,2026-06-30,General Support,14,low,immigrant_newcomer,True,True,False
+VG_000486,CTR_7b7e55ab,2026-04-01,2026-06-30,Employment,30,medium,general,False,False,False
+VG_000487,CTR_7405dd80,2026-04-01,2026-06-30,Housing & Shelter,8,high,immigrant_newcomer,True,True,False
+VG_000488,CTR_7405dd80,2026-04-01,2026-06-30,Employment,19,low,,False,False,False
+VG_000489,CTR_7405dd80,2026-04-01,2026-06-30,Language Access,10,medium,immigrant_newcomer,True,True,False
+VG_000490,CTR_f6a14ac8,2026-04-01,2026-06-30,General Support,27,low,,False,False,False
+VG_000491,CTR_f6a14ac8,2026-04-01,2026-06-30,Employment,13,medium,,False,False,False
+VG_000492,CTR_f6a14ac8,2026-04-01,2026-06-30,Housing & Shelter,43,low,immigrant_newcomer,True,True,False
+VG_000493,CTR_9deceeeb,2026-04-01,2026-06-30,Mental Health,15,medium,,False,False,False
+VG_000494,CTR_9deceeeb,2026-04-01,2026-06-30,Housing & Shelter,23,low,,False,False,False
+VG_000495,CTR_0ae352f1,2026-04-01,2026-06-30,Legal Aid,17,medium,immigrant_newcomer,True,True,False
+VG_000496,CTR_04d518e5,2026-04-01,2026-06-30,Employment,42,low,,False,False,False
+VG_000497,CTR_04d518e5,2026-04-01,2026-06-30,Legal Aid,12,high,,False,False,False
+VG_000498,CTR_04d518e5,2026-04-01,2026-06-30,General Support,38,high,general,False,False,False
+VG_000499,CTR_e6b09bd9,2026-04-01,2026-06-30,Settlement Navigation,29,medium,general,False,True,False
+VG_000500,CTR_e6b09bd9,2026-04-01,2026-06-30,Family Services,16,low,immigrant_newcomer,True,True,False
+VG_000501,CTR_902ef35e,2026-04-01,2026-06-30,Housing & Shelter,21,high,immigrant_newcomer,True,True,False
+VG_000502,CTR_021b867b,2026-04-01,2026-06-30,Mental Health,23,high,general,False,False,False
+VG_000503,CTR_6844ef53,2026-04-01,2026-06-30,Housing & Shelter,9,high,,False,False,False
+VG_000504,CTR_6844ef53,2026-04-01,2026-06-30,Employment,13,medium,general,False,False,False
+VG_000505,CTR_6844ef53,2026-04-01,2026-06-30,Legal Aid,21,low,immigrant_newcomer,True,True,False
+VG_000506,CTR_af96864c,2026-04-01,2026-06-30,General Support,18,low,general,False,False,False
+VG_000507,CTR_af96864c,2026-04-01,2026-06-30,Legal Aid,9,low,general,False,False,False
+VG_000508,CTR_0bf9f29c,2026-04-01,2026-06-30,Employment,62,medium,general,False,False,False
+VG_000509,CTR_0bf9f29c,2026-04-01,2026-06-30,Food Support,42,high,immigrant_newcomer,True,True,False
+VG_000510,CTR_0bf9f29c,2026-04-01,2026-06-30,Family Services,21,low,,False,False,False
+VG_000511,CTR_69361a41,2026-04-01,2026-06-30,Language Access,27,medium,general,True,False,False
+VG_000512,CTR_c4120434,2026-04-01,2026-06-30,Language Access,26,low,immigrant_newcomer,True,True,False
+VG_000513,CTR_16a9eab7,2026-04-01,2026-06-30,Language Access,11,high,general,True,False,False
+VG_000514,CTR_13cf2a8e,2026-04-01,2026-06-30,Settlement Navigation,11,low,general,False,True,False
+VG_000515,CTR_b439b658,2026-04-01,2026-06-30,Mental Health,14,low,general,False,False,False
+VG_000516,CTR_b439b658,2026-04-01,2026-06-30,Settlement Navigation,60,low,immigrant_newcomer,True,True,False
+VG_000517,CTR_b439b658,2026-04-01,2026-06-30,Employment,43,medium,,False,False,False
+VG_000518,CTR_b46aa6b7,2026-04-01,2026-06-30,Language Access,39,medium,immigrant_newcomer,True,True,False
+VG_000519,CTR_b46aa6b7,2026-04-01,2026-06-30,Mental Health,31,low,general,False,False,False
+VG_000520,CTR_b46aa6b7,2026-04-01,2026-06-30,General Support,12,medium,general,False,False,False
+VG_000521,CTR_aa4c14db,2026-04-01,2026-06-30,Settlement Navigation,27,medium,general,False,True,False
+VG_000522,CTR_0273c14c,2026-04-01,2026-06-30,Language Access,15,high,immigrant_newcomer,True,True,False
+VG_000523,CTR_0273c14c,2026-04-01,2026-06-30,Food Support,23,low,immigrant_newcomer,True,True,False
+VG_000524,CTR_0273c14c,2026-04-01,2026-06-30,Housing & Shelter,30,low,,False,False,False
+VG_000525,CTR_e9b55f8c,2026-04-01,2026-06-30,Housing & Shelter,11,medium,general,False,False,False
+VG_000526,CTR_e9b55f8c,2026-04-01,2026-06-30,Language Access,12,medium,immigrant_newcomer,True,True,False
+VG_000527,CTR_39337fee,2026-04-01,2026-06-30,Family Services,14,medium,general,False,False,False
+VG_000528,CTR_a8ba6a10,2026-04-01,2026-06-30,Legal Aid,15,low,,False,False,False
+VG_000529,CTR_a8ba6a10,2026-04-01,2026-06-30,Mental Health,7,medium,,False,False,False
+VG_000530,CTR_a8ba6a10,2026-04-01,2026-06-30,Settlement Navigation,43,low,immigrant_newcomer,True,True,False
+VG_000531,CTR_7663e24e,2026-04-01,2026-06-30,General Support,26,high,general,False,False,False
+VG_000532,CTR_7663e24e,2026-04-01,2026-06-30,Language Access,60,low,immigrant_newcomer,True,True,False
+VG_000533,CTR_6bfdea1e,2026-04-01,2026-06-30,Mental Health,19,high,general,False,False,False
+VG_000534,CTR_6bfdea1e,2026-04-01,2026-06-30,Language Access,46,high,general,True,False,False
+VG_000535,CTR_919629ef,2026-04-01,2026-06-30,Employment,11,high,general,False,False,False
+VG_000536,CTR_df4a766c,2026-04-01,2026-06-30,Employment,10,high,immigrant_newcomer,True,True,False
+VG_000537,CTR_df4a766c,2026-04-01,2026-06-30,Food Support,15,low,general,False,False,False
+VG_000538,CTR_11322671,2026-04-01,2026-06-30,General Support,43,medium,general,False,False,False
+VG_000539,CTR_11322671,2026-04-01,2026-06-30,Family Services,12,medium,,False,False,False
+VG_000540,CTR_bfd4fcb8,2026-04-01,2026-06-30,Mental Health,10,medium,general,False,False,False
+VG_000541,CTR_bfd4fcb8,2026-04-01,2026-06-30,General Support,11,low,,False,False,False
+VG_000542,CTR_bfd4fcb8,2026-04-01,2026-06-30,Legal Aid,15,medium,,False,False,False
+VG_000543,CTR_8a800a73,2026-04-01,2026-06-30,Settlement Navigation,30,low,immigrant_newcomer,True,True,False
+VG_000544,CTR_8a800a73,2026-04-01,2026-06-30,Housing & Shelter,69,high,,False,False,False
+VG_000545,CTR_10eec9fa,2026-04-01,2026-06-30,Food Support,48,high,immigrant_newcomer,True,True,False
+VG_000546,CTR_fb01a6bb,2026-04-01,2026-06-30,Language Access,10,medium,immigrant_newcomer,True,True,False
+VG_000547,CTR_fb01a6bb,2026-04-01,2026-06-30,Mental Health,38,low,,False,False,False
+VG_000548,CTR_61929124,2026-04-01,2026-06-30,General Support,35,medium,general,False,False,False
+VG_000549,CTR_61929124,2026-04-01,2026-06-30,Language Access,30,medium,immigrant_newcomer,True,True,False
+VG_000550,CTR_3496cc4b,2026-04-01,2026-06-30,Employment,38,medium,immigrant_newcomer,True,True,False
+VG_000551,CTR_3496cc4b,2026-04-01,2026-06-30,Legal Aid,24,medium,general,False,False,False
+VG_000552,CTR_99e85083,2026-04-01,2026-06-30,Food Support,9,low,immigrant_newcomer,True,True,False
+VG_000553,CTR_99e85083,2026-04-01,2026-06-30,Family Services,13,low,general,False,False,False
+VG_000554,CTR_d4d908e6,2026-04-01,2026-06-30,Employment,24,medium,general,False,False,False
+VG_000555,CTR_d4d908e6,2026-04-01,2026-06-30,General Support,27,low,general,False,False,False
+VG_000556,CTR_d4d908e6,2026-04-01,2026-06-30,Settlement Navigation,20,low,immigrant_newcomer,True,True,False
+VG_000557,CTR_895eb69b,2026-04-01,2026-06-30,Legal Aid,38,low,,False,False,False
+VG_000558,CTR_895eb69b,2026-04-01,2026-06-30,Language Access,59,medium,immigrant_newcomer,True,True,False
+VG_000559,CTR_ffc92964,2026-04-01,2026-06-30,Housing & Shelter,22,low,immigrant_newcomer,True,True,False
+VG_000560,CTR_ce70012b,2026-04-01,2026-06-30,Mental Health,31,medium,immigrant_newcomer,True,True,False
+VG_000561,CTR_ce70012b,2026-04-01,2026-06-30,Family Services,11,low,immigrant_newcomer,True,True,False
+VG_000562,CTR_ce70012b,2026-04-01,2026-06-30,Housing & Shelter,25,medium,general,False,False,False
+VG_000563,CTR_b0ba8978,2026-04-01,2026-06-30,Housing & Shelter,39,medium,immigrant_newcomer,True,True,False
+VG_000564,CTR_b0ba8978,2026-04-01,2026-06-30,Family Services,11,medium,general,False,False,False
+VG_000565,CTR_b0ba8978,2026-04-01,2026-06-30,Food Support,19,high,,False,False,False
+VG_000566,CTR_f6f44776,2026-04-01,2026-06-30,Food Support,12,high,,False,False,False
+VG_000567,CTR_f6f44776,2026-04-01,2026-06-30,Legal Aid,23,low,general,False,False,False
+VG_000568,CTR_f6f44776,2026-04-01,2026-06-30,Housing & Shelter,10,medium,immigrant_newcomer,True,True,False
+VG_000569,CTR_cbbdcdc7,2026-04-01,2026-06-30,Legal Aid,15,medium,general,False,False,False
+VG_000570,CTR_cbbdcdc7,2026-04-01,2026-06-30,Family Services,18,low,general,False,False,False
+VG_000571,CTR_cbbdcdc7,2026-04-01,2026-06-30,Language Access,16,low,general,True,False,False
+VG_000572,CTR_bb6c5b14,2026-04-01,2026-06-30,Food Support,15,medium,general,False,False,False
+VG_000573,CTR_b849d135,2026-04-01,2026-06-30,Food Support,18,low,general,False,False,False
+VG_000574,CTR_d45ef0f4,2026-04-01,2026-06-30,Language Access,43,low,immigrant_newcomer,True,True,False
+VG_000575,CTR_d45ef0f4,2026-04-01,2026-06-30,General Support,19,low,general,False,False,False
+VG_000576,CTR_d45ef0f4,2026-04-01,2026-06-30,Employment,15,medium,general,False,False,False
+VG_000577,CTR_05febee2,2026-04-01,2026-06-30,Food Support,14,medium,general,False,False,False
+VG_000578,CTR_05febee2,2026-04-01,2026-06-30,Mental Health,15,low,immigrant_newcomer,True,True,False
+VG_000579,CTR_97dc7d3e,2026-04-01,2026-06-30,Settlement Navigation,16,medium,immigrant_newcomer,True,True,False
+VG_000580,CTR_97dc7d3e,2026-04-01,2026-06-30,Employment,19,medium,general,False,False,False
+VG_000581,CTR_da2a1590,2026-04-01,2026-06-30,Language Access,12,low,general,True,False,False
+VG_000582,CTR_32fdd962,2026-04-01,2026-06-30,Mental Health,17,low,general,False,False,False
+VG_000583,CTR_2f47e55b,2026-04-01,2026-06-30,Food Support,11,medium,general,False,False,False
+VG_000584,CTR_2f47e55b,2026-04-01,2026-06-30,Employment,29,medium,immigrant_newcomer,True,True,False
+VG_000585,CTR_2f47e55b,2026-04-01,2026-06-30,Settlement Navigation,19,low,immigrant_newcomer,True,True,False
+VG_000586,CTR_fdd629ba,2026-04-01,2026-06-30,Family Services,31,high,general,False,False,False
+VG_000587,CTR_2322ae7b,2026-04-01,2026-06-30,Settlement Navigation,17,medium,general,False,True,False
+VG_000588,CTR_e5db4185,2026-04-01,2026-06-30,Family Services,21,high,immigrant_newcomer,True,True,False
+VG_000589,CTR_2cf3eb67,2026-04-01,2026-06-30,Mental Health,6,low,general,False,False,False
+VG_000590,CTR_2cf3eb67,2026-04-01,2026-06-30,General Support,12,low,general,False,False,False
+VG_000591,CTR_2cf3eb67,2026-04-01,2026-06-30,Food Support,12,medium,immigrant_newcomer,True,True,False
+VG_000592,CTR_2a8b04d8,2026-04-01,2026-06-30,Mental Health,23,high,general,False,False,False
+VG_000593,CTR_2a6b71d9,2026-04-01,2026-06-30,Legal Aid,12,high,immigrant_newcomer,True,True,False
+VG_000594,CTR_2a6b71d9,2026-04-01,2026-06-30,Mental Health,64,medium,immigrant_newcomer,True,True,False
+VG_000595,CTR_2a6b71d9,2026-04-01,2026-06-30,Food Support,42,low,,False,False,False
+VG_000596,CTR_51a67ccf,2026-04-01,2026-06-30,Housing & Shelter,45,medium,,False,False,False
+VG_000597,CTR_51a67ccf,2026-04-01,2026-06-30,Food Support,12,medium,,False,False,False
+VG_000598,CTR_51a67ccf,2026-04-01,2026-06-30,General Support,18,high,general,False,False,False
+VG_000599,CTR_34f15c83,2026-04-01,2026-06-30,Housing & Shelter,44,medium,immigrant_newcomer,True,True,False
+VG_000600,CTR_34f15c83,2026-04-01,2026-06-30,Mental Health,13,medium,general,False,False,False
+VG_000601,CTR_1468a5a0,2026-04-01,2026-06-30,Language Access,30,medium,general,True,False,False
+VG_000602,CTR_1a8c8e18,2026-04-01,2026-06-30,Language Access,59,low,general,True,False,False
+VG_000603,CTR_1a8c8e18,2026-04-01,2026-06-30,Food Support,19,medium,general,False,False,False
+VG_000604,CTR_1a8c8e18,2026-04-01,2026-06-30,General Support,9,low,general,False,False,False
+VG_000605,CTR_2ad325ff,2026-04-01,2026-06-30,Housing & Shelter,16,medium,,False,False,False
+VG_000606,CTR_2ad325ff,2026-04-01,2026-06-30,Employment,9,low,,False,False,False
+VG_000607,CTR_c5faf7e6,2026-04-01,2026-06-30,Housing & Shelter,15,low,,False,False,False
+VG_000608,CTR_c5faf7e6,2026-04-01,2026-06-30,Mental Health,80,medium,general,False,False,False
+VG_000609,CTR_942ac702,2026-04-01,2026-06-30,Family Services,10,medium,general,False,False,False
+VG_000610,CTR_942ac702,2026-04-01,2026-06-30,Settlement Navigation,34,low,general,False,True,False
+VG_000611,CTR_942ac702,2026-04-01,2026-06-30,Food Support,10,medium,general,False,False,False
+VG_000612,CTR_0bb44339,2026-04-01,2026-06-30,General Support,7,medium,general,False,False,False
+VG_000613,CTR_0bb44339,2026-04-01,2026-06-30,Settlement Navigation,14,low,immigrant_newcomer,True,True,False
+VG_000614,CTR_a96b622b,2026-04-01,2026-06-30,Employment,24,medium,general,False,False,False
+VG_000615,CTR_a96b622b,2026-04-01,2026-06-30,Family Services,32,medium,general,False,False,False
+VG_000616,CTR_52ff228a,2026-04-01,2026-06-30,Food Support,20,medium,general,False,False,False
+VG_000617,CTR_52ff228a,2026-04-01,2026-06-30,Family Services,24,high,general,False,False,False
+VG_000618,CTR_52ff228a,2026-04-01,2026-06-30,Housing & Shelter,14,high,general,False,False,False
+VG_000619,CTR_44390098,2026-04-01,2026-06-30,Language Access,27,high,general,True,False,False
+VG_000620,CTR_44390098,2026-04-01,2026-06-30,General Support,17,medium,immigrant_newcomer,True,True,False
+VG_000621,CTR_44390098,2026-04-01,2026-06-30,Legal Aid,43,low,immigrant_newcomer,True,True,False
+VG_000622,CTR_fb9293d2,2026-04-01,2026-06-30,General Support,22,medium,general,False,False,False
+VG_000623,CTR_fb9293d2,2026-04-01,2026-06-30,Employment,53,medium,general,False,False,False
+VG_000624,CTR_fb9293d2,2026-04-01,2026-06-30,Mental Health,50,medium,immigrant_newcomer,True,True,False
+VG_000625,CTR_13cc0a8a,2026-04-01,2026-06-30,Language Access,38,low,immigrant_newcomer,True,True,False
+VG_000626,CTR_13cc0a8a,2026-04-01,2026-06-30,Legal Aid,8,high,general,False,False,False
+VG_000627,CTR_13cc0a8a,2026-04-01,2026-06-30,General Support,27,medium,immigrant_newcomer,True,True,False
+VG_000628,CTR_a4d9da8e,2026-04-01,2026-06-30,Family Services,34,low,general,False,False,False
+VG_000629,CTR_a4d9da8e,2026-04-01,2026-06-30,Mental Health,23,medium,immigrant_newcomer,True,True,False
+VG_000630,CTR_70b08b50,2026-04-01,2026-06-30,Family Services,34,high,general,False,False,False
+VG_000631,CTR_70b08b50,2026-04-01,2026-06-30,General Support,36,medium,general,False,False,False
+VG_000632,CTR_bae0c38f,2026-04-01,2026-06-30,Employment,8,low,,False,False,False
+VG_000633,CTR_bae0c38f,2026-04-01,2026-06-30,General Support,24,low,general,False,False,False
+VG_000634,CTR_bae0c38f,2026-04-01,2026-06-30,Food Support,20,medium,immigrant_newcomer,True,True,False
+VG_000635,CTR_db507f6f,2026-04-01,2026-06-30,Housing & Shelter,24,low,,False,False,False
+VG_000636,CTR_db507f6f,2026-04-01,2026-06-30,Settlement Navigation,29,medium,immigrant_newcomer,True,True,False
+VG_000637,CTR_ebf74092,2026-04-01,2026-06-30,Legal Aid,35,medium,immigrant_newcomer,True,True,False
+VG_000638,CTR_ebf74092,2026-04-01,2026-06-30,Family Services,15,low,general,False,False,False
+VG_000639,CTR_ebf74092,2026-04-01,2026-06-30,Language Access,69,low,immigrant_newcomer,True,True,False
+VG_000640,CTR_55cc0c2f,2026-04-01,2026-06-30,Employment,11,low,general,False,False,False
+VG_000641,CTR_55cc0c2f,2026-04-01,2026-06-30,Family Services,41,medium,general,False,False,False
+VG_000642,CTR_be1b8ae1,2026-04-01,2026-06-30,Housing & Shelter,18,medium,,False,False,False
+VG_000643,CTR_be1b8ae1,2026-04-01,2026-06-30,Settlement Navigation,24,low,immigrant_newcomer,True,True,False
+VG_000644,CTR_6cdf8b98,2026-04-01,2026-06-30,General Support,10,low,general,False,False,False
+VG_000645,CTR_6cdf8b98,2026-04-01,2026-06-30,Housing & Shelter,29,high,,False,False,False
+VG_000646,CTR_6cdf8b98,2026-04-01,2026-06-30,Settlement Navigation,44,high,general,False,True,False
+VG_000647,CTR_7011312a,2026-04-01,2026-06-30,Food Support,12,low,immigrant_newcomer,True,True,False
+VG_000648,CTR_7011312a,2026-04-01,2026-06-30,Housing & Shelter,40,medium,general,False,False,False
+VG_000649,CTR_7011312a,2026-04-01,2026-06-30,Employment,17,medium,,False,False,False
+VG_000650,CTR_ed88903a,2026-04-01,2026-06-30,Housing & Shelter,23,high,general,False,False,False
+VG_000651,CTR_ed88903a,2026-04-01,2026-06-30,Mental Health,10,medium,general,False,False,False
+VG_000652,CTR_ed88903a,2026-04-01,2026-06-30,Language Access,31,medium,immigrant_newcomer,True,True,False
+VG_000653,CTR_9b56a2b0,2026-04-01,2026-06-30,Housing & Shelter,11,high,general,False,False,False
+VG_000654,CTR_9b56a2b0,2026-04-01,2026-06-30,Family Services,65,medium,immigrant_newcomer,True,True,False
+VG_000655,CTR_9b56a2b0,2026-04-01,2026-06-30,Mental Health,21,low,general,False,False,False
+VG_000656,CTR_8e75420e,2026-04-01,2026-06-30,Language Access,19,low,general,True,False,False
+VG_000657,CTR_4aa408d2,2026-04-01,2026-06-30,Settlement Navigation,29,low,general,False,True,False
+VG_000658,CTR_4aa408d2,2026-04-01,2026-06-30,Employment,13,high,immigrant_newcomer,True,True,False
+VG_000659,CTR_4aa408d2,2026-04-01,2026-06-30,Family Services,20,low,general,False,False,False
+VG_000660,CTR_6ea72894,2026-04-01,2026-06-30,Employment,40,medium,,False,False,False
+VG_000661,CTR_dccdee98,2026-04-01,2026-06-30,Mental Health,75,low,immigrant_newcomer,True,True,False
+VG_000662,CTR_270b56ee,2026-04-01,2026-06-30,Settlement Navigation,23,medium,general,False,True,False
+VG_000663,CTR_270b56ee,2026-04-01,2026-06-30,Legal Aid,9,medium,immigrant_newcomer,True,True,False
+VG_000664,CTR_5f18dac5,2026-04-01,2026-06-30,Language Access,40,medium,immigrant_newcomer,True,True,False
+VG_000665,CTR_5f18dac5,2026-04-01,2026-06-30,Legal Aid,18,medium,immigrant_newcomer,True,True,False
+VG_000666,CTR_5f18dac5,2026-04-01,2026-06-30,General Support,10,low,general,False,False,False
+VG_000667,CTR_93955783,2026-04-01,2026-06-30,Mental Health,42,medium,general,False,False,False
+VG_000668,CTR_93955783,2026-04-01,2026-06-30,General Support,52,medium,general,False,False,False
+VG_000669,CTR_93955783,2026-04-01,2026-06-30,Housing & Shelter,22,medium,,False,False,False
+VG_000670,CTR_fb546b7f,2026-04-01,2026-06-30,Family Services,18,medium,,False,False,False
+VG_000671,CTR_fb546b7f,2026-04-01,2026-06-30,General Support,63,high,general,False,False,False
+VG_000672,CTR_fb546b7f,2026-04-01,2026-06-30,Food Support,25,low,general,False,False,False
+VG_000673,CTR_3b1ac639,2026-04-01,2026-06-30,Food Support,11,low,general,False,False,False
+VG_000674,CTR_3b1ac639,2026-04-01,2026-06-30,Family Services,9,medium,immigrant_newcomer,True,True,False
+VG_000675,CTR_3b1ac639,2026-04-01,2026-06-30,General Support,7,high,immigrant_newcomer,True,True,False
+VG_000676,CTR_192ac3c7,2026-04-01,2026-06-30,Settlement Navigation,29,high,immigrant_newcomer,True,True,False
+VG_000677,CTR_c307e795,2026-04-01,2026-06-30,Legal Aid,13,high,,False,False,False
+VG_000678,CTR_c307e795,2026-04-01,2026-06-30,Food Support,7,medium,immigrant_newcomer,True,True,False
+VG_000679,CTR_c307e795,2026-04-01,2026-06-30,Employment,31,high,immigrant_newcomer,True,True,False
+VG_000680,CTR_49cd6069,2026-04-01,2026-06-30,Housing & Shelter,11,low,general,False,False,False
+VG_000681,CTR_49cd6069,2026-04-01,2026-06-30,Food Support,12,medium,general,False,False,False
+VG_000682,CTR_49cd6069,2026-04-01,2026-06-30,Employment,25,low,general,False,False,False
+VG_000683,CTR_9b34b30f,2026-04-01,2026-06-30,Family Services,18,medium,,False,False,False
+VG_000684,CTR_702a0440,2026-04-01,2026-06-30,Housing & Shelter,9,low,general,False,False,False
+VG_000685,CTR_702a0440,2026-04-01,2026-06-30,Employment,30,low,general,False,False,False
+VG_000686,CTR_e4cce3a8,2026-04-01,2026-06-30,General Support,23,low,,False,False,False
+VG_000687,CTR_553a357c,2026-04-01,2026-06-30,Legal Aid,23,medium,,False,False,False
+VG_000688,CTR_553a357c,2026-04-01,2026-06-30,Mental Health,47,high,general,False,False,False
+VG_000689,CTR_553a357c,2026-04-01,2026-06-30,Family Services,24,low,general,False,False,False
+VG_000690,CTR_dff8f59a,2026-04-01,2026-06-30,Settlement Navigation,10,low,general,False,True,False
+VG_000691,CTR_dff8f59a,2026-04-01,2026-06-30,Family Services,19,low,general,False,False,False
+VG_000692,CTR_dff8f59a,2026-04-01,2026-06-30,Legal Aid,46,medium,general,False,False,False
+VG_000693,CTR_cbb2a6fb,2026-04-01,2026-06-30,Mental Health,130,medium,,False,False,False
+VG_000694,CTR_12610bd7,2026-04-01,2026-06-30,Language Access,11,medium,general,True,False,False
+VG_000695,CTR_ab6d28ff,2026-04-01,2026-06-30,Employment,10,high,,False,False,False
+VG_000696,CTR_ab6d28ff,2026-04-01,2026-06-30,Family Services,17,medium,general,False,False,False
+VG_000697,CTR_4ceac893,2026-04-01,2026-06-30,Legal Aid,19,medium,,False,False,False
+VG_000698,CTR_879605ff,2026-04-01,2026-06-30,Settlement Navigation,16,medium,immigrant_newcomer,True,True,False
+VG_000699,CTR_11dbb922,2026-04-01,2026-06-30,Legal Aid,16,medium,immigrant_newcomer,True,True,False
+VG_000700,CTR_11dbb922,2026-04-01,2026-06-30,Language Access,18,medium,general,True,False,False
+VG_000701,CTR_00c2cbdf,2026-04-01,2026-06-30,Legal Aid,37,medium,,False,False,False
+VG_000702,CTR_00c2cbdf,2026-04-01,2026-06-30,Settlement Navigation,19,high,general,False,True,False
+VG_000703,CTR_c03cfba7,2026-04-01,2026-06-30,Housing & Shelter,17,low,general,False,False,False
+VG_000704,CTR_c03cfba7,2026-04-01,2026-06-30,Food Support,14,low,immigrant_newcomer,True,True,False
+VG_000705,CTR_c03cfba7,2026-04-01,2026-06-30,Employment,41,medium,,False,False,False
+VG_000706,CTR_d7304727,2026-04-01,2026-06-30,Housing & Shelter,17,medium,,False,False,False
+VG_000707,CTR_d7304727,2026-04-01,2026-06-30,Food Support,7,medium,immigrant_newcomer,True,True,False
+VG_000708,CTR_0c96c919,2026-04-01,2026-06-30,Employment,13,high,general,False,False,False
+VG_000709,CTR_0c96c919,2026-04-01,2026-06-30,Food Support,15,medium,general,False,False,False
+VG_000710,CTR_0c96c919,2026-04-01,2026-06-30,Settlement Navigation,53,medium,general,False,True,False
+VG_000711,CTR_af897fea,2026-04-01,2026-06-30,Settlement Navigation,17,low,immigrant_newcomer,True,True,False
+VG_000712,CTR_af897fea,2026-04-01,2026-06-30,General Support,17,low,general,False,False,False
+VG_000713,CTR_af897fea,2026-04-01,2026-06-30,Language Access,15,medium,immigrant_newcomer,True,True,False
+VG_000714,CTR_58e44935,2026-04-01,2026-06-30,General Support,67,high,,False,False,False
+VG_000715,CTR_58e44935,2026-04-01,2026-06-30,Legal Aid,155,high,,False,False,False
+VG_000716,CTR_51eae46e,2026-04-01,2026-06-30,Mental Health,11,low,general,False,False,False
+VG_000717,CTR_51eae46e,2026-04-01,2026-06-30,Legal Aid,32,medium,general,False,False,False
+VG_000718,CTR_1d50b591,2026-04-01,2026-06-30,Housing & Shelter,47,medium,immigrant_newcomer,True,True,False
+VG_000719,CTR_1d50b591,2026-04-01,2026-06-30,Legal Aid,7,high,immigrant_newcomer,True,True,False
+VG_000720,CTR_1d50b591,2026-04-01,2026-06-30,Mental Health,18,medium,general,False,False,False
+VG_000721,CTR_ac415209,2026-04-01,2026-06-30,Employment,11,low,general,False,False,False
+VG_000722,CTR_ac415209,2026-04-01,2026-06-30,General Support,33,medium,general,False,False,False
+VG_000723,CTR_ef9cf3c8,2026-04-01,2026-06-30,Housing & Shelter,12,high,immigrant_newcomer,True,True,False
+VG_000724,CTR_ef9cf3c8,2026-04-01,2026-06-30,Family Services,11,high,immigrant_newcomer,True,True,False
+VG_000725,CTR_ef9cf3c8,2026-04-01,2026-06-30,Food Support,13,low,immigrant_newcomer,True,True,False
+VG_000726,CTR_41cdd7de,2026-04-01,2026-06-30,Language Access,19,medium,immigrant_newcomer,True,True,False
+VG_000727,CTR_41cdd7de,2026-04-01,2026-06-30,Family Services,18,medium,general,False,False,False
+VG_000728,CTR_41cdd7de,2026-04-01,2026-06-30,Legal Aid,10,low,immigrant_newcomer,True,True,False
+VG_000729,CTR_920a5c82,2026-04-01,2026-06-30,Legal Aid,12,medium,immigrant_newcomer,True,True,False
+VG_000730,CTR_920a5c82,2026-04-01,2026-06-30,Food Support,11,medium,immigrant_newcomer,True,True,False
+VG_000731,CTR_920a5c82,2026-04-01,2026-06-30,General Support,15,medium,immigrant_newcomer,True,True,False
+VG_000732,CTR_b3910901,2026-04-01,2026-06-30,Food Support,68,medium,general,False,False,False
+VG_000733,CTR_b3910901,2026-04-01,2026-06-30,Employment,30,low,,False,False,False
+VG_000734,CTR_b3910901,2026-04-01,2026-06-30,Language Access,17,high,immigrant_newcomer,True,True,False
+VG_000735,CTR_3b9354ba,2026-04-01,2026-06-30,General Support,12,medium,,False,False,False
+VG_000736,CTR_3b9354ba,2026-04-01,2026-06-30,Settlement Navigation,12,low,immigrant_newcomer,True,True,False
+VG_000737,CTR_3b9354ba,2026-04-01,2026-06-30,Language Access,17,medium,immigrant_newcomer,True,True,False
+VG_000738,CTR_d6d76016,2026-04-01,2026-06-30,Legal Aid,50,low,immigrant_newcomer,True,True,False
+VG_000739,CTR_d6d76016,2026-04-01,2026-06-30,Settlement Navigation,16,medium,immigrant_newcomer,True,True,False
+VG_000740,CTR_61d972cd,2026-04-01,2026-06-30,Employment,12,medium,immigrant_newcomer,True,True,False
+VG_000741,CTR_61d972cd,2026-04-01,2026-06-30,Food Support,37,low,,False,False,False
+VG_000742,CTR_61d972cd,2026-04-01,2026-06-30,Language Access,15,medium,general,True,False,False
+VG_000743,CTR_3e6ed19e,2026-04-01,2026-06-30,Mental Health,15,medium,general,False,False,False
+VG_000744,CTR_fa3e34fc,2026-04-01,2026-06-30,Legal Aid,32,medium,,False,False,False
+VG_000745,CTR_fa3e34fc,2026-04-01,2026-06-30,Language Access,39,high,immigrant_newcomer,True,True,False
+VG_000746,CTR_fa3e34fc,2026-04-01,2026-06-30,Food Support,12,low,general,False,False,False
+VG_000747,CTR_c6676fa3,2026-04-01,2026-06-30,General Support,34,high,general,False,False,False
+VG_000748,CTR_c6676fa3,2026-04-01,2026-06-30,Housing & Shelter,14,medium,general,False,False,False
+VG_000749,CTR_a8c33ce1,2026-04-01,2026-06-30,Legal Aid,29,low,general,False,False,False
+VG_000750,CTR_a8c33ce1,2026-04-01,2026-06-30,Employment,33,medium,general,False,False,False
+VG_000751,CTR_4612c3c7,2026-04-01,2026-06-30,Legal Aid,22,medium,general,False,False,False
+VG_000752,CTR_4612c3c7,2026-04-01,2026-06-30,Family Services,20,low,,False,False,False
+VG_000753,CTR_4612c3c7,2026-04-01,2026-06-30,Mental Health,18,low,immigrant_newcomer,True,True,False
+VG_000754,CTR_9ccdcd17,2026-04-01,2026-06-30,Settlement Navigation,20,low,immigrant_newcomer,True,True,False
+VG_000755,CTR_9ccdcd17,2026-04-01,2026-06-30,Language Access,18,high,immigrant_newcomer,True,True,False
+VG_000756,CTR_e53ba3f9,2026-04-01,2026-06-30,Legal Aid,42,high,,False,False,False
+VG_000757,CTR_e53ba3f9,2026-04-01,2026-06-30,Housing & Shelter,17,medium,immigrant_newcomer,True,True,False
+VG_000758,CTR_90e6839f,2026-04-01,2026-06-30,Language Access,8,medium,immigrant_newcomer,True,True,False
+VG_000759,CTR_90e6839f,2026-04-01,2026-06-30,General Support,9,high,immigrant_newcomer,True,True,False
+VG_000760,CTR_90e6839f,2026-04-01,2026-06-30,Mental Health,17,medium,,False,False,False
+VG_000761,CTR_23602951,2026-04-01,2026-06-30,Food Support,15,medium,general,False,False,False
+VG_000762,CTR_23602951,2026-04-01,2026-06-30,General Support,14,medium,general,False,False,False
+VG_000763,CTR_b6522042,2026-04-01,2026-06-30,Language Access,29,high,immigrant_newcomer,True,True,False
+VG_000764,CTR_b6522042,2026-04-01,2026-06-30,Legal Aid,9,low,general,False,False,False
+VG_000765,CTR_a314ecbd,2026-04-01,2026-06-30,Language Access,8,low,immigrant_newcomer,True,True,False
+VG_000766,CTR_a314ecbd,2026-04-01,2026-06-30,Housing & Shelter,17,low,general,False,False,False
+VG_000767,CTR_f50a3349,2026-04-01,2026-06-30,Food Support,10,low,general,False,False,False
+VG_000768,CTR_f50a3349,2026-04-01,2026-06-30,Housing & Shelter,30,low,general,False,False,False
+VG_000769,CTR_a3e52633,2026-04-01,2026-06-30,Language Access,41,medium,immigrant_newcomer,True,True,False
+VG_000770,CTR_a3e52633,2026-04-01,2026-06-30,Settlement Navigation,33,medium,immigrant_newcomer,True,True,False
+VG_000771,CTR_a3e52633,2026-04-01,2026-06-30,Housing & Shelter,27,medium,immigrant_newcomer,True,True,False
+VG_000772,CTR_c166ef43,2026-04-01,2026-06-30,Settlement Navigation,31,high,immigrant_newcomer,True,True,False
+VG_000773,CTR_c166ef43,2026-04-01,2026-06-30,Housing & Shelter,18,medium,general,False,False,False
+VG_000774,CTR_c166ef43,2026-04-01,2026-06-30,Family Services,33,low,immigrant_newcomer,True,True,False
+VG_000775,CTR_d7eec2cd,2026-04-01,2026-06-30,Language Access,31,medium,immigrant_newcomer,True,True,False
+VG_000776,CTR_d7eec2cd,2026-04-01,2026-06-30,Settlement Navigation,13,medium,immigrant_newcomer,True,True,False
+VG_000777,CTR_d7eec2cd,2026-04-01,2026-06-30,Family Services,7,high,,False,False,False
+VG_000778,CTR_fa8094d1,2026-04-01,2026-06-30,Food Support,14,medium,general,False,False,False
+VG_000779,CTR_fa8094d1,2026-04-01,2026-06-30,Mental Health,16,low,,False,False,False
+VG_000780,CTR_fa8094d1,2026-04-01,2026-06-30,Legal Aid,27,medium,immigrant_newcomer,True,True,False
+VG_000781,CTR_382d93b1,2026-04-01,2026-06-30,General Support,26,low,,False,False,False
+VG_000782,CTR_382d93b1,2026-04-01,2026-06-30,Language Access,22,medium,immigrant_newcomer,True,True,False
+VG_000783,CTR_382d93b1,2026-04-01,2026-06-30,Mental Health,12,low,general,False,False,False
+VG_000784,CTR_ab0b5d31,2026-04-01,2026-06-30,Language Access,25,medium,general,True,False,False
+VG_000785,CTR_ab0b5d31,2026-04-01,2026-06-30,Family Services,37,medium,general,False,False,False
+VG_000786,CTR_ab0b5d31,2026-04-01,2026-06-30,Legal Aid,54,medium,immigrant_newcomer,True,True,False
+VG_000787,CTR_a4a17932,2026-04-01,2026-06-30,Housing & Shelter,99,low,general,False,False,False
+VG_000788,CTR_a4a17932,2026-04-01,2026-06-30,Legal Aid,31,low,general,False,False,False
+VG_000789,CTR_546318fd,2026-04-01,2026-06-30,Employment,62,medium,,False,False,False
+VG_000790,CTR_546318fd,2026-04-01,2026-06-30,Food Support,27,low,,False,False,False
+VG_000791,CTR_546318fd,2026-04-01,2026-06-30,Legal Aid,20,medium,general,False,False,False
+VG_000792,CTR_006375bb,2026-04-01,2026-06-30,Family Services,35,medium,immigrant_newcomer,True,True,False
+VG_000793,CTR_006375bb,2026-04-01,2026-06-30,Settlement Navigation,15,medium,general,False,True,False
+VG_000794,CTR_006375bb,2026-04-01,2026-06-30,Food Support,17,medium,,False,False,False
+VG_000795,CTR_f54c05d0,2026-04-01,2026-06-30,Housing & Shelter,13,medium,immigrant_newcomer,True,True,False
+VG_000796,CTR_f54c05d0,2026-04-01,2026-06-30,Food Support,49,medium,immigrant_newcomer,True,True,False
+VG_000797,CTR_80a711d6,2026-04-01,2026-06-30,Food Support,16,medium,,False,False,False
+VG_000798,CTR_80a711d6,2026-04-01,2026-06-30,Mental Health,7,low,general,False,False,False
+VG_000799,CTR_80a711d6,2026-04-01,2026-06-30,Housing & Shelter,20,low,,False,False,False
+VG_000800,CTR_154ad4d1,2026-04-01,2026-06-30,Family Services,62,medium,,False,False,False
+VG_000801,CTR_154ad4d1,2026-04-01,2026-06-30,Food Support,21,medium,general,False,False,False
+VG_000802,CTR_2186c7a3,2026-04-01,2026-06-30,Language Access,37,high,immigrant_newcomer,True,True,False
+VG_000803,CTR_2186c7a3,2026-04-01,2026-06-30,Mental Health,11,high,,False,False,False
+VG_000804,CTR_2186c7a3,2026-04-01,2026-06-30,General Support,21,medium,general,False,False,False
+VG_000805,CTR_50c86899,2026-04-01,2026-06-30,General Support,19,low,immigrant_newcomer,True,True,False
+VG_000806,CTR_50c86899,2026-04-01,2026-06-30,Food Support,20,medium,,False,False,False
+VG_000807,CTR_ca73a90a,2026-04-01,2026-06-30,Food Support,9,low,immigrant_newcomer,True,True,False
+VG_000808,CTR_ca73a90a,2026-04-01,2026-06-30,General Support,13,medium,,False,False,False
+VG_000809,CTR_4a14a8e2,2026-04-01,2026-06-30,Food Support,18,low,general,False,False,False
+VG_000810,CTR_4a14a8e2,2026-04-01,2026-06-30,General Support,13,medium,general,False,False,False
+VG_000811,CTR_4a14a8e2,2026-04-01,2026-06-30,Employment,10,medium,general,False,False,False
+VG_000812,CTR_d7de5095,2026-04-01,2026-06-30,Settlement Navigation,20,low,immigrant_newcomer,True,True,False
+VG_000813,CTR_1096262e,2026-04-01,2026-06-30,Family Services,12,medium,,False,False,False
+VG_000814,CTR_1096262e,2026-04-01,2026-06-30,Food Support,10,low,general,False,False,False
+VG_000815,CTR_f8e43f61,2026-04-01,2026-06-30,General Support,11,low,general,False,False,False
+VG_000816,CTR_7ed87d25,2026-04-01,2026-06-30,Food Support,24,low,,False,False,False
+VG_000817,CTR_7ed87d25,2026-04-01,2026-06-30,Housing & Shelter,11,medium,general,False,False,False
+VG_000818,CTR_46c1056d,2026-04-01,2026-06-30,Housing & Shelter,16,low,general,False,False,False
+VG_000819,CTR_46c1056d,2026-04-01,2026-06-30,Family Services,12,high,,False,False,False
+VG_000820,CTR_5e11388f,2026-04-01,2026-06-30,Settlement Navigation,44,low,immigrant_newcomer,True,True,False
+VG_000821,CTR_7e5403a2,2026-04-01,2026-06-30,Family Services,36,medium,general,False,False,False
+VG_000822,CTR_7e5403a2,2026-04-01,2026-06-30,Housing & Shelter,15,high,general,False,False,False
+VG_000823,CTR_7e5403a2,2026-04-01,2026-06-30,General Support,47,high,immigrant_newcomer,True,True,False
+VG_000824,CTR_f475e4c1,2026-04-01,2026-06-30,General Support,13,medium,immigrant_newcomer,True,True,False
+VG_000825,CTR_1e8f68a2,2026-04-01,2026-06-30,Mental Health,20,high,,False,False,False
+VG_000826,CTR_bcd315c4,2026-04-01,2026-06-30,Employment,17,medium,general,False,False,False
+VG_000827,CTR_bcd315c4,2026-04-01,2026-06-30,Language Access,19,low,immigrant_newcomer,True,True,False
+VG_000828,CTR_bcd315c4,2026-04-01,2026-06-30,Mental Health,33,medium,general,False,False,False
+VG_000829,CTR_d20f9055,2026-04-01,2026-06-30,Food Support,27,low,general,False,False,False
+VG_000830,CTR_d20f9055,2026-04-01,2026-06-30,Language Access,67,low,immigrant_newcomer,True,True,False
+VG_000831,CTR_d20f9055,2026-04-01,2026-06-30,Family Services,28,low,immigrant_newcomer,True,True,False
+VG_000832,CTR_331e58d0,2026-04-01,2026-06-30,Language Access,9,high,immigrant_newcomer,True,True,False
+VG_000833,CTR_331e58d0,2026-04-01,2026-06-30,General Support,12,low,immigrant_newcomer,True,True,False
+VG_000834,CTR_53a37326,2026-04-01,2026-06-30,Legal Aid,21,low,general,False,False,False
+VG_000835,CTR_49c92c38,2026-04-01,2026-06-30,Family Services,19,medium,general,False,False,False
+VG_000836,CTR_ad1d9310,2026-04-01,2026-06-30,Food Support,18,low,,False,False,False
+VG_000837,CTR_ad1d9310,2026-04-01,2026-06-30,Language Access,13,medium,immigrant_newcomer,True,True,False
+VG_000838,CTR_4c6d7162,2026-04-01,2026-06-30,Employment,16,medium,general,False,False,False
+VG_000839,CTR_368ee94b,2026-04-01,2026-06-30,Employment,40,high,,False,False,False
+VG_000840,CTR_368ee94b,2026-04-01,2026-06-30,Language Access,12,medium,general,True,False,False
+VG_000841,CTR_2194c5f3,2026-04-01,2026-06-30,General Support,14,low,general,False,False,False
+VG_000842,CTR_2194c5f3,2026-04-01,2026-06-30,Housing & Shelter,19,medium,general,False,False,False
+VG_000843,CTR_2194c5f3,2026-04-01,2026-06-30,Legal Aid,19,low,,False,False,False
+VG_000844,CTR_4bf29665,2026-04-01,2026-06-30,Family Services,28,low,immigrant_newcomer,True,True,False
+VG_000845,CTR_4bf29665,2026-04-01,2026-06-30,Language Access,21,medium,immigrant_newcomer,True,True,False
+VG_000846,CTR_65dae96c,2026-04-01,2026-06-30,Family Services,9,low,,False,False,False
+VG_000847,CTR_856a0ed4,2026-04-01,2026-06-30,General Support,16,medium,,False,False,False
+VG_000848,CTR_856a0ed4,2026-04-01,2026-06-30,Food Support,12,medium,general,False,False,False
+VG_000849,CTR_856a0ed4,2026-04-01,2026-06-30,Employment,24,low,general,False,False,False
+VG_000850,CTR_01ab5453,2026-04-01,2026-06-30,Settlement Navigation,43,high,general,False,True,False
+VG_000851,CTR_01ab5453,2026-04-01,2026-06-30,Mental Health,15,medium,general,False,False,False
+VG_000852,CTR_ae5fc077,2026-04-01,2026-06-30,Food Support,8,medium,general,False,False,False
+VG_000853,CTR_ae5fc077,2026-04-01,2026-06-30,General Support,14,high,immigrant_newcomer,True,True,False
+VG_000854,CTR_ba69a3d4,2026-04-01,2026-06-30,Housing & Shelter,18,medium,immigrant_newcomer,True,True,False
+VG_000855,CTR_5fd9cced,2026-04-01,2026-06-30,Employment,17,medium,,False,False,False
+VG_000856,CTR_5fd9cced,2026-04-01,2026-06-30,General Support,11,medium,general,False,False,False
+VG_000857,CTR_5e574927,2026-04-01,2026-06-30,Employment,10,low,general,False,False,False
+VG_000858,CTR_5e574927,2026-04-01,2026-06-30,Housing & Shelter,60,low,general,False,False,False
+VG_000859,CTR_5e574927,2026-04-01,2026-06-30,Mental Health,10,low,general,False,False,False
+VG_000860,CTR_80a5c397,2026-04-01,2026-06-30,Legal Aid,14,medium,immigrant_newcomer,True,True,False
+VG_000861,CTR_80a5c397,2026-04-01,2026-06-30,Food Support,9,low,general,False,False,False
+VG_000862,CTR_80a5c397,2026-04-01,2026-06-30,Employment,14,low,immigrant_newcomer,True,True,False
+VG_000863,CTR_48994a0c,2026-04-01,2026-06-30,Housing & Shelter,19,medium,general,False,False,False
+VG_000864,CTR_f63c658b,2026-04-01,2026-06-30,Legal Aid,11,medium,immigrant_newcomer,True,True,False
+VG_000865,CTR_f63c658b,2026-04-01,2026-06-30,Language Access,23,medium,immigrant_newcomer,True,True,False
+VG_000866,CTR_f63c658b,2026-04-01,2026-06-30,General Support,18,medium,,False,False,False
+VG_000867,CTR_5a760bb8,2026-04-01,2026-06-30,Legal Aid,16,medium,general,False,False,False
+VG_000868,CTR_5a760bb8,2026-04-01,2026-06-30,Employment,8,low,general,False,False,False
+VG_000869,CTR_5a760bb8,2026-04-01,2026-06-30,Housing & Shelter,25,low,immigrant_newcomer,True,True,False
+VG_000870,CTR_d4c2a5b8,2026-04-01,2026-06-30,Housing & Shelter,14,medium,general,False,False,False
+VG_000871,CTR_d4c2a5b8,2026-04-01,2026-06-30,Food Support,48,medium,,False,False,False
+VG_000872,CTR_9ffb045c,2026-04-01,2026-06-30,Family Services,19,medium,,False,False,False
+VG_000873,CTR_9ffb045c,2026-04-01,2026-06-30,Settlement Navigation,19,medium,general,False,True,False
+VG_000874,CTR_9ffb045c,2026-04-01,2026-06-30,Employment,32,medium,immigrant_newcomer,True,True,False
+VG_000875,CTR_a64513de,2026-04-01,2026-06-30,Food Support,25,low,general,False,False,False
+VG_000876,CTR_a64513de,2026-04-01,2026-06-30,Language Access,10,low,immigrant_newcomer,True,True,False
+VG_000877,CTR_a64513de,2026-04-01,2026-06-30,Mental Health,12,low,immigrant_newcomer,True,True,False
+VG_000878,CTR_4f3a31da,2026-04-01,2026-06-30,Mental Health,19,high,,False,False,False
+VG_000879,CTR_5f887bd7,2026-04-01,2026-06-30,Employment,21,low,immigrant_newcomer,True,True,False
+VG_000880,CTR_3f2c6b05,2026-04-01,2026-06-30,General Support,9,low,general,False,False,False
+VG_000881,CTR_bbb139b1,2026-04-01,2026-06-30,Housing & Shelter,18,medium,immigrant_newcomer,True,True,False
+VG_000882,CTR_bbb139b1,2026-04-01,2026-06-30,Mental Health,22,low,immigrant_newcomer,True,True,False
+VG_000883,CTR_59a08899,2026-04-01,2026-06-30,Legal Aid,24,low,,False,False,False
+VG_000884,CTR_59a08899,2026-04-01,2026-06-30,Settlement Navigation,19,medium,immigrant_newcomer,True,True,False
+VG_000885,CTR_5b099758,2026-04-01,2026-06-30,Legal Aid,20,low,immigrant_newcomer,True,True,False
+VG_000886,CTR_5b099758,2026-04-01,2026-06-30,Food Support,19,low,immigrant_newcomer,True,True,False
+VG_000887,CTR_54dcb176,2026-04-01,2026-06-30,Housing & Shelter,10,medium,general,False,False,False
+VG_000888,CTR_54dcb176,2026-04-01,2026-06-30,Mental Health,22,high,,False,False,False
+VG_000889,CTR_54dcb176,2026-04-01,2026-06-30,Employment,18,high,general,False,False,False
+VG_000890,CTR_6c66d5ca,2026-04-01,2026-06-30,Family Services,37,medium,immigrant_newcomer,True,True,False
+VG_000891,CTR_6c66d5ca,2026-04-01,2026-06-30,Mental Health,33,medium,general,False,False,False
+VG_000892,CTR_6c66d5ca,2026-04-01,2026-06-30,Employment,36,high,general,False,False,False
+VG_000893,CTR_3c7992ef,2026-04-01,2026-06-30,Family Services,16,low,general,False,False,False
+VG_000894,CTR_3c7992ef,2026-04-01,2026-06-30,General Support,21,low,immigrant_newcomer,True,True,False
+VG_000895,CTR_232fef90,2026-04-01,2026-06-30,Mental Health,37,medium,general,False,False,False
+VG_000896,CTR_232fef90,2026-04-01,2026-06-30,Settlement Navigation,13,low,immigrant_newcomer,True,True,False
+VG_000897,CTR_232fef90,2026-04-01,2026-06-30,Legal Aid,16,high,,False,False,False
+VG_000898,CTR_031609e5,2026-04-01,2026-06-30,Language Access,20,medium,immigrant_newcomer,True,True,False
+VG_000899,CTR_031609e5,2026-04-01,2026-06-30,General Support,47,high,general,False,False,False
+VG_000900,CTR_031609e5,2026-04-01,2026-06-30,Legal Aid,22,medium,general,False,False,False
+VG_000901,CTR_c9b05f39,2026-04-01,2026-06-30,Food Support,94,medium,,False,False,False
+VG_000902,CTR_c9b05f39,2026-04-01,2026-06-30,Legal Aid,22,low,,False,False,False
+VG_000903,CTR_33c291af,2026-04-01,2026-06-30,Housing & Shelter,25,low,general,False,False,False
+VG_000904,CTR_7ff0ab76,2026-04-01,2026-06-30,Family Services,9,medium,immigrant_newcomer,True,True,False
+VG_000905,CTR_7ff0ab76,2026-04-01,2026-06-30,Employment,23,high,,False,False,False
+VG_000906,CTR_7ff0ab76,2026-04-01,2026-06-30,Mental Health,11,low,immigrant_newcomer,True,True,False
+VG_000907,CTR_69c231f9,2026-04-01,2026-06-30,Language Access,15,medium,general,True,False,False
+VG_000908,CTR_69c231f9,2026-04-01,2026-06-30,Settlement Navigation,13,medium,general,False,True,False
+VG_000909,CTR_36d3a303,2026-04-01,2026-06-30,Language Access,18,high,immigrant_newcomer,True,True,False
+VG_000910,CTR_36d3a303,2026-04-01,2026-06-30,Food Support,23,medium,general,False,False,False
+VG_000911,CTR_ad771221,2026-04-01,2026-06-30,Language Access,10,medium,immigrant_newcomer,True,True,False
+VG_000912,CTR_ad771221,2026-04-01,2026-06-30,Settlement Navigation,12,medium,general,False,True,False
+VG_000913,CTR_21ca4406,2026-04-01,2026-06-30,Settlement Navigation,18,medium,general,False,True,False
+VG_000914,CTR_21ca4406,2026-04-01,2026-06-30,Housing & Shelter,7,high,general,False,False,False
+VG_000915,CTR_21ca4406,2026-04-01,2026-06-30,Family Services,18,high,immigrant_newcomer,True,True,False
+VG_000916,CTR_058ab4bd,2026-04-01,2026-06-30,Employment,28,medium,,False,False,False
+VG_000917,CTR_e21ed7b6,2026-04-01,2026-06-30,General Support,49,low,general,False,False,False
+VG_000918,CTR_e21ed7b6,2026-04-01,2026-06-30,Legal Aid,19,medium,,False,False,False
+VG_000919,CTR_e21ed7b6,2026-04-01,2026-06-30,Family Services,15,medium,,False,False,False
+VG_000920,CTR_e3deaeb9,2026-04-01,2026-06-30,Legal Aid,22,medium,,False,False,False
+VG_000921,CTR_e3deaeb9,2026-04-01,2026-06-30,General Support,47,low,immigrant_newcomer,True,True,False
+VG_000922,CTR_e3deaeb9,2026-04-01,2026-06-30,Housing & Shelter,28,medium,general,False,False,False
+VG_000923,CTR_5402b562,2026-04-01,2026-06-30,Legal Aid,71,medium,general,False,False,False
+VG_000924,CTR_5402b562,2026-04-01,2026-06-30,Housing & Shelter,16,high,,False,False,False
+VG_000925,CTR_f4481a32,2026-04-01,2026-06-30,Family Services,16,low,general,False,False,False
+VG_000926,CTR_b22a9630,2026-04-01,2026-06-30,Family Services,27,medium,,False,False,False
+VG_000927,CTR_2cb26713,2026-04-01,2026-06-30,Food Support,11,high,immigrant_newcomer,True,True,False
+VG_000928,CTR_2cb26713,2026-04-01,2026-06-30,Employment,11,low,general,False,False,False
+VG_000929,CTR_2cb26713,2026-04-01,2026-06-30,Legal Aid,13,medium,general,False,False,False
+VG_000930,CTR_9a1c695c,2026-04-01,2026-06-30,General Support,16,high,,False,False,False
+VG_000931,CTR_68116cf7,2026-04-01,2026-06-30,Housing & Shelter,46,high,immigrant_newcomer,True,True,False
+VG_000932,CTR_68116cf7,2026-04-01,2026-06-30,Mental Health,15,low,immigrant_newcomer,True,True,False
+VG_000933,CTR_68116cf7,2026-04-01,2026-06-30,Legal Aid,16,low,,False,False,False
+VG_000934,CTR_9874d9b7,2026-04-01,2026-06-30,Employment,15,medium,general,False,False,False
+VG_000935,CTR_9874d9b7,2026-04-01,2026-06-30,Settlement Navigation,13,low,immigrant_newcomer,True,True,False
+VG_000936,CTR_9874d9b7,2026-04-01,2026-06-30,Family Services,21,medium,general,False,False,False
+VG_000937,CTR_d1e0cd21,2026-04-01,2026-06-30,Mental Health,8,medium,general,False,False,False
+VG_000938,CTR_52269cb0,2026-04-01,2026-06-30,Food Support,12,high,general,False,False,False
+VG_000939,CTR_52269cb0,2026-04-01,2026-06-30,Mental Health,35,medium,,False,False,False
+VG_000940,CTR_52269cb0,2026-04-01,2026-06-30,Settlement Navigation,28,low,general,False,True,False
+VG_000941,CTR_fb8372ab,2026-04-01,2026-06-30,Legal Aid,16,low,general,False,False,False
+VG_000942,CTR_ff30aa9e,2026-04-01,2026-06-30,Food Support,16,medium,general,False,False,False
+VG_000943,CTR_ff30aa9e,2026-04-01,2026-06-30,Family Services,22,medium,general,False,False,False
+VG_000944,CTR_331cabcc,2026-04-01,2026-06-30,Employment,24,low,,False,False,False
+VG_000945,CTR_331cabcc,2026-04-01,2026-06-30,Mental Health,18,low,immigrant_newcomer,True,True,False
+VG_000946,CTR_9004eeb8,2026-04-01,2026-06-30,Language Access,12,medium,immigrant_newcomer,True,True,False
+VG_000947,CTR_18ebdd69,2026-04-01,2026-06-30,Family Services,18,medium,,False,False,False
+VG_000948,CTR_607ab43b,2026-04-01,2026-06-30,General Support,36,medium,general,False,False,False
+VG_000949,CTR_9cf45e2e,2026-04-01,2026-06-30,Settlement Navigation,24,high,immigrant_newcomer,True,True,False
+VG_000950,CTR_9cf45e2e,2026-04-01,2026-06-30,Legal Aid,10,medium,immigrant_newcomer,True,True,False
+VG_000951,CTR_a0cb2454,2026-04-01,2026-06-30,Employment,14,low,general,False,False,False
+VG_000952,CTR_a0cb2454,2026-04-01,2026-06-30,Food Support,16,medium,immigrant_newcomer,True,True,False
+VG_000953,CTR_a0cb2454,2026-04-01,2026-06-30,Legal Aid,12,medium,general,False,False,False
+VG_000954,CTR_6baec74e,2026-04-01,2026-06-30,Employment,47,medium,general,False,False,False
+VG_000955,CTR_6baec74e,2026-04-01,2026-06-30,Family Services,15,medium,,False,False,False
+VG_000956,CTR_6baec74e,2026-04-01,2026-06-30,General Support,26,medium,,False,False,False
+VG_000957,CTR_b3a1d405,2026-04-01,2026-06-30,Food Support,30,low,general,False,False,False
+VG_000958,CTR_b3a1d405,2026-04-01,2026-06-30,Employment,10,low,general,False,False,False
+VG_000959,CTR_b3a1d405,2026-04-01,2026-06-30,Housing & Shelter,8,high,general,False,False,False
+VG_000960,CTR_b5f12930,2026-04-01,2026-06-30,Mental Health,18,low,general,False,False,False
+VG_000961,CTR_c9e36186,2026-04-01,2026-06-30,Language Access,24,high,immigrant_newcomer,True,True,False
+VG_000962,CTR_06cbdf71,2026-04-01,2026-06-30,General Support,38,medium,general,False,False,False
+VG_000963,CTR_06cbdf71,2026-04-01,2026-06-30,Food Support,9,low,general,False,False,False
+VG_000964,CTR_06cbdf71,2026-04-01,2026-06-30,Family Services,20,high,immigrant_newcomer,True,True,False
+VG_000965,CTR_c511712c,2026-04-01,2026-06-30,Food Support,45,medium,general,False,False,False
+VG_000966,CTR_33ae545d,2026-04-01,2026-06-30,Housing & Shelter,21,medium,,False,False,False
+VG_000967,CTR_44e940c7,2026-04-01,2026-06-30,Food Support,25,medium,general,False,False,False
+VG_000968,CTR_44e940c7,2026-04-01,2026-06-30,Employment,21,low,general,False,False,False
+VG_000969,CTR_31771153,2026-04-01,2026-06-30,Mental Health,15,low,immigrant_newcomer,True,True,False
+VG_000970,CTR_31771153,2026-04-01,2026-06-30,Legal Aid,49,high,general,False,False,False
+VG_000971,CTR_f94ed806,2026-04-01,2026-06-30,Employment,14,high,general,False,False,False
+VG_000972,CTR_f94ed806,2026-04-01,2026-06-30,Family Services,18,high,,False,False,False
+VG_000973,CTR_f94ed806,2026-04-01,2026-06-30,Language Access,23,medium,immigrant_newcomer,True,True,False
+VG_000974,CTR_db86caf5,2026-04-01,2026-06-30,Family Services,18,high,general,False,False,False
+VG_000975,CTR_db86caf5,2026-04-01,2026-06-30,Housing & Shelter,21,low,,False,False,False
+VG_000976,CTR_c84d35b1,2026-04-01,2026-06-30,Settlement Navigation,15,medium,immigrant_newcomer,True,True,False
+VG_000977,CTR_c84d35b1,2026-04-01,2026-06-30,Employment,16,medium,general,False,False,False
+VG_000978,CTR_c84d35b1,2026-04-01,2026-06-30,Language Access,10,low,immigrant_newcomer,True,True,False
+VG_000979,CTR_d9ba4f65,2026-04-01,2026-06-30,Family Services,7,medium,immigrant_newcomer,True,True,False
+VG_000980,CTR_d9ba4f65,2026-04-01,2026-06-30,Food Support,13,medium,immigrant_newcomer,True,True,False
+VG_000981,CTR_d9ba4f65,2026-04-01,2026-06-30,Employment,15,medium,general,False,False,False
+VG_000982,CTR_632c6247,2026-04-01,2026-06-30,Food Support,56,high,general,False,False,False
+VG_000983,CTR_632c6247,2026-04-01,2026-06-30,Settlement Navigation,22,low,general,False,True,False
+VG_000984,CTR_7824e532,2026-04-01,2026-06-30,General Support,34,low,general,False,False,False
+VG_000985,CTR_7824e532,2026-04-01,2026-06-30,Family Services,26,low,,False,False,False
+VG_000986,CTR_b1e34750,2026-04-01,2026-06-30,Employment,17,high,general,False,False,False
+VG_000987,CTR_b1e34750,2026-04-01,2026-06-30,Food Support,16,high,general,False,False,False
+VG_000988,CTR_b1e34750,2026-04-01,2026-06-30,Legal Aid,17,medium,general,False,False,False
+VG_000989,CTR_a4124881,2026-04-01,2026-06-30,Language Access,12,medium,immigrant_newcomer,True,True,False
+VG_000990,CTR_3fc81946,2026-04-01,2026-06-30,Housing & Shelter,23,medium,,False,False,False
+VG_000991,CTR_75c859d3,2026-04-01,2026-06-30,Housing & Shelter,37,high,general,False,False,False
+VG_000992,CTR_75c859d3,2026-04-01,2026-06-30,Family Services,29,low,immigrant_newcomer,True,True,False
+VG_000993,CTR_75c859d3,2026-04-01,2026-06-30,Employment,13,medium,general,False,False,False
+VG_000994,CTR_a80a3a33,2026-04-01,2026-06-30,Language Access,56,high,general,True,False,False
+VG_000995,CTR_a80a3a33,2026-04-01,2026-06-30,Legal Aid,22,high,general,False,False,False
+VG_000996,CTR_4b05f4df,2026-04-01,2026-06-30,Settlement Navigation,13,medium,immigrant_newcomer,True,True,False
+VG_000997,CTR_4b05f4df,2026-04-01,2026-06-30,Housing & Shelter,32,medium,general,False,False,False
+VG_000998,CTR_4b05f4df,2026-04-01,2026-06-30,Family Services,11,medium,general,False,False,False
+VG_000999,CTR_de03849e,2026-04-01,2026-06-30,Family Services,6,medium,general,False,False,False
+VG_001000,CTR_de03849e,2026-04-01,2026-06-30,Employment,15,medium,,False,False,False
+VG_001001,CTR_de03849e,2026-04-01,2026-06-30,Language Access,19,medium,immigrant_newcomer,True,True,False
+VG_001002,CTR_00085eea,2026-04-01,2026-06-30,General Support,18,high,immigrant_newcomer,True,True,False
+VG_001003,CTR_00085eea,2026-04-01,2026-06-30,Legal Aid,13,low,immigrant_newcomer,True,True,False
+VG_001004,CTR_00085eea,2026-04-01,2026-06-30,Employment,44,medium,general,False,False,False
+VG_001005,CTR_91283b63,2026-04-01,2026-06-30,Language Access,14,medium,immigrant_newcomer,True,True,False
+VG_001006,CTR_91283b63,2026-04-01,2026-06-30,Food Support,19,medium,immigrant_newcomer,True,True,False
+VG_001007,CTR_540592cf,2026-04-01,2026-06-30,Settlement Navigation,79,medium,general,False,True,False
+VG_001008,CTR_540592cf,2026-04-01,2026-06-30,Family Services,38,low,immigrant_newcomer,True,True,False
+VG_001009,CTR_540592cf,2026-04-01,2026-06-30,Legal Aid,12,low,immigrant_newcomer,True,True,False
+VG_001010,CTR_9dd79a94,2026-04-01,2026-06-30,Food Support,21,medium,immigrant_newcomer,True,True,False
+VG_001011,CTR_7bc81477,2026-04-01,2026-06-30,Food Support,13,high,general,False,False,False
+VG_001012,CTR_161190a0,2026-04-01,2026-06-30,Food Support,10,low,immigrant_newcomer,True,True,False
+VG_001013,CTR_161190a0,2026-04-01,2026-06-30,Family Services,6,medium,immigrant_newcomer,True,True,False
+VG_001014,CTR_161190a0,2026-04-01,2026-06-30,General Support,40,medium,general,False,False,False
+VG_001015,CTR_5eefc739,2026-04-01,2026-06-30,Family Services,20,medium,immigrant_newcomer,True,True,False
+VG_001016,CTR_5611d7f2,2026-04-01,2026-06-30,Family Services,66,high,general,False,False,False
+VG_001017,CTR_5611d7f2,2026-04-01,2026-06-30,Legal Aid,40,high,immigrant_newcomer,True,True,False
+VG_001018,CTR_99a36aab,2026-04-01,2026-06-30,General Support,14,high,general,False,False,False
+VG_001019,CTR_abb7eecf,2026-04-01,2026-06-30,Settlement Navigation,21,high,immigrant_newcomer,True,True,False
+VG_001020,CTR_abb7eecf,2026-04-01,2026-06-30,Mental Health,14,high,immigrant_newcomer,True,True,False
+VG_001021,CTR_8fe3466a,2026-04-01,2026-06-30,Mental Health,12,high,,False,False,False
+VG_001022,CTR_8fe3466a,2026-04-01,2026-06-30,Language Access,16,high,general,True,False,False
+VG_001023,CTR_8fe3466a,2026-04-01,2026-06-30,General Support,16,medium,immigrant_newcomer,True,True,False
+VG_001024,CTR_b4c05be9,2026-04-01,2026-06-30,Family Services,29,high,general,False,False,False
+VG_001025,CTR_b4c05be9,2026-04-01,2026-06-30,Mental Health,8,high,,False,False,False
+VG_001026,CTR_466d1bd3,2026-04-01,2026-06-30,Language Access,21,low,general,True,False,False
+VG_001027,CTR_466d1bd3,2026-04-01,2026-06-30,Food Support,25,medium,immigrant_newcomer,True,True,False
+VG_001028,CTR_a80c6215,2026-04-01,2026-06-30,Language Access,17,high,general,True,False,False
+VG_001029,CTR_a80c6215,2026-04-01,2026-06-30,Food Support,12,medium,general,False,False,False
+VG_001030,CTR_866cb3f3,2026-04-01,2026-06-30,Legal Aid,18,low,immigrant_newcomer,True,True,False
+VG_001031,CTR_2ad27eaf,2026-04-01,2026-06-30,Food Support,11,medium,immigrant_newcomer,True,True,False
+VG_001032,CTR_272e1d62,2026-04-01,2026-06-30,Legal Aid,22,medium,,False,False,False
+VG_001033,CTR_73c188d9,2026-04-01,2026-06-30,Mental Health,32,medium,,False,False,False
+VG_001034,CTR_73c188d9,2026-04-01,2026-06-30,Settlement Navigation,12,low,immigrant_newcomer,True,True,False
+VG_001035,CTR_07b588f7,2026-04-01,2026-06-30,Food Support,7,low,general,False,False,False
+VG_001036,CTR_07b588f7,2026-04-01,2026-06-30,Housing & Shelter,10,medium,general,False,False,False
+VG_001037,CTR_f9e2f797,2026-04-01,2026-06-30,Housing & Shelter,30,medium,immigrant_newcomer,True,True,False
+VG_001038,CTR_f9e2f797,2026-04-01,2026-06-30,Legal Aid,38,low,general,False,False,False
+VG_001039,CTR_97401290,2026-04-01,2026-06-30,Settlement Navigation,35,low,immigrant_newcomer,True,True,False
+VG_001040,CTR_97401290,2026-04-01,2026-06-30,Legal Aid,19,medium,immigrant_newcomer,True,True,False
+VG_001041,CTR_2f4e6b6c,2026-04-01,2026-06-30,Food Support,12,low,general,False,False,False
+VG_001042,CTR_2f4e6b6c,2026-04-01,2026-06-30,Mental Health,8,low,general,False,False,False
+VG_001043,CTR_804ad45a,2026-04-01,2026-06-30,Housing & Shelter,12,low,,False,False,False
+VG_001044,CTR_f1baccfe,2026-04-01,2026-06-30,General Support,28,high,general,False,False,False
+VG_001045,CTR_f1baccfe,2026-04-01,2026-06-30,Settlement Navigation,25,low,immigrant_newcomer,True,True,False
+VG_001046,CTR_694271df,2026-04-01,2026-06-30,Language Access,25,low,general,True,False,False
+VG_001047,CTR_17b9dcdd,2026-04-01,2026-06-30,Language Access,19,low,immigrant_newcomer,True,True,False
+VG_001048,CTR_17b9dcdd,2026-04-01,2026-06-30,Housing & Shelter,10,low,immigrant_newcomer,True,True,False
+VG_001049,CTR_8d08151c,2026-04-01,2026-06-30,Mental Health,21,medium,general,False,False,False
+VG_001050,CTR_0ec7ce4f,2026-04-01,2026-06-30,Mental Health,40,low,general,False,False,False
+VG_001051,CTR_bbafcc45,2026-04-01,2026-06-30,Employment,20,high,general,False,False,False
+VG_001052,CTR_bbafcc45,2026-04-01,2026-06-30,Mental Health,49,high,general,False,False,False
+VG_001053,CTR_bbafcc45,2026-04-01,2026-06-30,Housing & Shelter,39,medium,general,False,False,False
+VG_001054,CTR_618595fb,2026-04-01,2026-06-30,Family Services,12,medium,general,False,False,False
+VG_001055,CTR_2d810e46,2026-04-01,2026-06-30,General Support,13,low,general,False,False,False
+VG_001056,CTR_cf0dc34f,2026-04-01,2026-06-30,Mental Health,51,medium,,False,False,False
+VG_001057,CTR_cf0dc34f,2026-04-01,2026-06-30,Food Support,9,medium,general,False,False,False
+VG_001058,CTR_fffd9e24,2026-04-01,2026-06-30,Legal Aid,20,high,general,False,False,False
+VG_001059,CTR_fffd9e24,2026-04-01,2026-06-30,Family Services,33,medium,general,False,False,False
+VG_001060,CTR_4ea55e30,2026-04-01,2026-06-30,Mental Health,15,low,,False,False,False
+VG_001061,CTR_4ea55e30,2026-04-01,2026-06-30,General Support,13,high,general,False,False,False
+VG_001062,CTR_4ea55e30,2026-04-01,2026-06-30,Family Services,12,medium,general,False,False,False
+VG_001063,CTR_ebe456a6,2026-04-01,2026-06-30,Family Services,17,medium,immigrant_newcomer,True,True,False
+VG_001064,CTR_ebe456a6,2026-04-01,2026-06-30,General Support,19,medium,,False,False,False
+VG_001065,CTR_ebe456a6,2026-04-01,2026-06-30,Food Support,12,medium,general,False,False,False
+VG_001066,CTR_825b890c,2026-04-01,2026-06-30,Housing & Shelter,97,medium,general,False,False,False
+VG_001067,CTR_cb487630,2026-04-01,2026-06-30,Food Support,22,low,,False,False,False
+VG_001068,CTR_99232f99,2026-04-01,2026-06-30,Mental Health,27,medium,,False,False,False
+VG_001069,CTR_99232f99,2026-04-01,2026-06-30,General Support,19,high,,False,False,False
+VG_001070,CTR_99232f99,2026-04-01,2026-06-30,Settlement Navigation,57,low,general,False,True,False
+VG_001071,CTR_bca935f6,2026-04-01,2026-06-30,Mental Health,14,medium,,False,False,False
+VG_001072,CTR_bca935f6,2026-04-01,2026-06-30,Language Access,9,high,immigrant_newcomer,True,True,False
+VG_001073,CTR_cbfa097d,2026-04-01,2026-06-30,Food Support,14,medium,general,False,False,False
+VG_001074,CTR_cbfa097d,2026-04-01,2026-06-30,Family Services,32,medium,,False,False,False
+VG_001075,CTR_cbfa097d,2026-04-01,2026-06-30,Employment,20,low,,False,False,False
+VG_001076,CTR_3a558b26,2026-04-01,2026-06-30,Family Services,27,low,immigrant_newcomer,True,True,False
+VG_001077,CTR_3a558b26,2026-04-01,2026-06-30,Language Access,11,low,general,True,False,False
+VG_001078,CTR_27ba4fef,2026-04-01,2026-06-30,Settlement Navigation,15,medium,immigrant_newcomer,True,True,False
+VG_001079,CTR_27ba4fef,2026-04-01,2026-06-30,Language Access,14,low,general,True,False,False
+VG_001080,CTR_27ba4fef,2026-04-01,2026-06-30,Housing & Shelter,14,low,general,False,False,False
+VG_001081,CTR_ff03af12,2026-04-01,2026-06-30,Housing & Shelter,40,low,,False,False,False
+VG_001082,CTR_ff03af12,2026-04-01,2026-06-30,Family Services,15,medium,,False,False,False
+VG_001083,CTR_4f6be00f,2026-04-01,2026-06-30,Mental Health,18,medium,immigrant_newcomer,True,True,False
+VG_001084,CTR_4f6be00f,2026-04-01,2026-06-30,Employment,22,medium,general,False,False,False
+VG_001085,CTR_875d98e1,2026-04-01,2026-06-30,Mental Health,14,medium,immigrant_newcomer,True,True,False
+VG_001086,CTR_875d98e1,2026-04-01,2026-06-30,Employment,32,medium,general,False,False,False
+VG_001087,CTR_befcedcd,2026-04-01,2026-06-30,Mental Health,7,medium,,False,False,False
+VG_001088,CTR_befcedcd,2026-04-01,2026-06-30,Family Services,19,medium,immigrant_newcomer,True,True,False
+VG_001089,CTR_6f10856b,2026-04-01,2026-06-30,Employment,12,medium,,False,False,False
+VG_001090,CTR_6f10856b,2026-04-01,2026-06-30,Language Access,108,medium,general,True,False,False
+VG_001091,CTR_2643a98a,2026-04-01,2026-06-30,Family Services,54,medium,immigrant_newcomer,True,True,False
+VG_001092,CTR_490cf5a9,2026-04-01,2026-06-30,Housing & Shelter,18,medium,immigrant_newcomer,True,True,False
+VG_001093,CTR_490cf5a9,2026-04-01,2026-06-30,Employment,35,high,immigrant_newcomer,True,True,False
+VG_001094,CTR_3c6f6a07,2026-04-01,2026-06-30,Employment,14,low,,False,False,False
+VG_001095,CTR_a35b1925,2026-04-01,2026-06-30,Employment,29,medium,general,False,False,False
+VG_001096,CTR_a35b1925,2026-04-01,2026-06-30,Language Access,9,low,immigrant_newcomer,True,True,False
+VG_001097,CTR_a35b1925,2026-04-01,2026-06-30,Mental Health,12,high,immigrant_newcomer,True,True,False
+VG_001098,CTR_fbc14537,2026-04-01,2026-06-30,General Support,51,low,general,False,False,False
+VG_001099,CTR_fbc14537,2026-04-01,2026-06-30,Food Support,14,low,general,False,False,False
+VG_001100,CTR_fbc14537,2026-04-01,2026-06-30,Settlement Navigation,76,high,immigrant_newcomer,True,True,False
+VG_001101,CTR_0ab5529b,2026-04-01,2026-06-30,Food Support,21,low,general,False,False,False
+VG_001102,CTR_0ab5529b,2026-04-01,2026-06-30,Employment,18,medium,immigrant_newcomer,True,True,False
+VG_001103,CTR_5b197893,2026-04-01,2026-06-30,Settlement Navigation,14,low,general,False,True,False
+VG_001104,CTR_5b197893,2026-04-01,2026-06-30,Language Access,17,medium,immigrant_newcomer,True,True,False
+VG_001105,CTR_f4b17e3c,2026-04-01,2026-06-30,Family Services,14,medium,general,False,False,False
+VG_001106,CTR_f4b17e3c,2026-04-01,2026-06-30,General Support,12,high,immigrant_newcomer,True,True,False
+VG_001107,CTR_5a58e419,2026-04-01,2026-06-30,Housing & Shelter,51,low,general,False,False,False
+VG_001108,CTR_319a607a,2026-04-01,2026-06-30,Language Access,10,low,general,True,False,False
+VG_001109,CTR_319a607a,2026-04-01,2026-06-30,Legal Aid,35,high,general,False,False,False
+VG_001110,CTR_319a607a,2026-04-01,2026-06-30,Settlement Navigation,27,high,immigrant_newcomer,True,True,False
+VG_001111,CTR_cbfe583f,2026-04-01,2026-06-30,Family Services,17,high,immigrant_newcomer,True,True,False
+VG_001112,CTR_462476a6,2026-04-01,2026-06-30,Family Services,28,medium,immigrant_newcomer,True,True,False
+VG_001113,CTR_462476a6,2026-04-01,2026-06-30,Language Access,32,low,general,True,False,False
+VG_001114,CTR_dfbeeee2,2026-04-01,2026-06-30,Housing & Shelter,37,low,general,False,False,False
+VG_001115,CTR_dfbeeee2,2026-04-01,2026-06-30,General Support,12,medium,,False,False,False
+VG_001116,CTR_dfbeeee2,2026-04-01,2026-06-30,Settlement Navigation,10,high,immigrant_newcomer,True,True,False
+VG_001117,CTR_8110fd2d,2026-04-01,2026-06-30,Food Support,13,low,immigrant_newcomer,True,True,False
+VG_001118,CTR_8110fd2d,2026-04-01,2026-06-30,Language Access,64,high,immigrant_newcomer,True,True,False
+VG_001119,CTR_8110fd2d,2026-04-01,2026-06-30,Family Services,10,medium,general,False,False,False
+VG_001120,CTR_962a8204,2026-04-01,2026-06-30,Employment,92,high,general,False,False,False
+VG_001121,CTR_962a8204,2026-04-01,2026-06-30,Housing & Shelter,6,low,general,False,False,False
+VG_001122,CTR_b2fa5177,2026-04-01,2026-06-30,Language Access,20,medium,immigrant_newcomer,True,True,False
+VG_001123,CTR_b2fa5177,2026-04-01,2026-06-30,Legal Aid,38,low,,False,False,False
+VG_001124,CTR_b2fa5177,2026-04-01,2026-06-30,Mental Health,28,medium,general,False,False,False
+VG_001125,CTR_bd024f2b,2026-04-01,2026-06-30,Language Access,10,medium,immigrant_newcomer,True,True,False
+VG_001126,CTR_f66d0781,2026-04-01,2026-06-30,Food Support,17,medium,immigrant_newcomer,True,True,False
+VG_001127,CTR_f66d0781,2026-04-01,2026-06-30,Housing & Shelter,10,high,,False,False,False
+VG_001128,CTR_5c659e79,2026-04-01,2026-06-30,Language Access,45,low,immigrant_newcomer,True,True,False
+VG_001129,CTR_5c659e79,2026-04-01,2026-06-30,Employment,20,high,general,False,False,False
+VG_001130,CTR_5c659e79,2026-04-01,2026-06-30,Settlement Navigation,28,low,immigrant_newcomer,True,True,False
+VG_001131,CTR_64ce9ae7,2026-04-01,2026-06-30,General Support,11,medium,immigrant_newcomer,True,True,False
+VG_001132,CTR_64ce9ae7,2026-04-01,2026-06-30,Language Access,11,medium,immigrant_newcomer,True,True,False
+VG_001133,CTR_684c39f2,2026-04-01,2026-06-30,Legal Aid,18,low,general,False,False,False
+VG_001134,CTR_3baa48ea,2026-04-01,2026-06-30,Language Access,31,low,immigrant_newcomer,True,True,False
+VG_001135,CTR_3baa48ea,2026-04-01,2026-06-30,Legal Aid,17,medium,immigrant_newcomer,True,True,False
+VG_001136,CTR_7d45cc32,2026-04-01,2026-06-30,Food Support,11,low,general,False,False,False
+VG_001137,CTR_7d45cc32,2026-04-01,2026-06-30,Family Services,12,medium,,False,False,False
+VG_001138,CTR_7a3e3441,2026-04-01,2026-06-30,Mental Health,15,low,general,False,False,False
+VG_001139,CTR_7a3e3441,2026-04-01,2026-06-30,Food Support,98,medium,general,False,False,False
+VG_001140,CTR_d6001605,2026-04-01,2026-06-30,Employment,17,medium,general,False,False,False
+VG_001141,CTR_d6001605,2026-04-01,2026-06-30,Housing & Shelter,34,medium,general,False,False,False
+VG_001142,CTR_d6001605,2026-04-01,2026-06-30,Legal Aid,28,low,general,False,False,False
+VG_001143,CTR_6319d510,2026-04-01,2026-06-30,Family Services,39,medium,immigrant_newcomer,True,True,False
+VG_001144,CTR_6319d510,2026-04-01,2026-06-30,General Support,23,low,general,False,False,False
+VG_001145,CTR_6319d510,2026-04-01,2026-06-30,Settlement Navigation,21,low,immigrant_newcomer,True,True,False
+VG_001146,CTR_337b367e,2026-04-01,2026-06-30,Food Support,9,medium,,False,False,False
+VG_001147,CTR_337b367e,2026-04-01,2026-06-30,Employment,8,medium,general,False,False,False
+VG_001148,CTR_b61b46ba,2026-04-01,2026-06-30,Food Support,39,medium,general,False,False,False
+VG_001149,CTR_b61b46ba,2026-04-01,2026-06-30,Settlement Navigation,18,medium,immigrant_newcomer,True,True,False
+VG_001150,CTR_297a09a5,2026-04-01,2026-06-30,Settlement Navigation,21,medium,immigrant_newcomer,True,True,False
+VG_001151,CTR_297a09a5,2026-04-01,2026-06-30,Food Support,32,medium,,False,False,False
+VG_001152,CTR_a863598b,2026-04-01,2026-06-30,General Support,18,high,immigrant_newcomer,True,True,False
+VG_001153,CTR_a863598b,2026-04-01,2026-06-30,Mental Health,13,high,immigrant_newcomer,True,True,False
+VG_001154,CTR_f1f200b8,2026-04-01,2026-06-30,General Support,15,low,,False,False,False
+VG_001155,CTR_8761f939,2026-04-01,2026-06-30,General Support,19,medium,general,False,False,False
+VG_001156,CTR_82741c1a,2026-04-01,2026-06-30,Legal Aid,30,high,general,False,False,False
+VG_001157,CTR_82741c1a,2026-04-01,2026-06-30,Settlement Navigation,10,medium,immigrant_newcomer,True,True,False
+VG_001158,CTR_82741c1a,2026-04-01,2026-06-30,Food Support,22,medium,immigrant_newcomer,True,True,False
+VG_001159,CTR_9f6366cd,2026-04-01,2026-06-30,Legal Aid,14,high,general,False,False,False
+VG_001160,CTR_9f6366cd,2026-04-01,2026-06-30,Settlement Navigation,19,low,immigrant_newcomer,True,True,False
+VG_001161,CTR_9f6366cd,2026-04-01,2026-06-30,Language Access,25,medium,immigrant_newcomer,True,True,False
+VG_001162,CTR_87062a48,2026-04-01,2026-06-30,Family Services,51,low,immigrant_newcomer,True,True,False
+VG_001163,CTR_87062a48,2026-04-01,2026-06-30,Legal Aid,30,medium,general,False,False,False
+VG_001164,CTR_87062a48,2026-04-01,2026-06-30,General Support,16,high,general,False,False,False
+VG_001165,CTR_95adf2d9,2026-04-01,2026-06-30,Mental Health,26,medium,immigrant_newcomer,True,True,False
+VG_001166,CTR_c0eed579,2026-04-01,2026-06-30,Food Support,29,medium,general,False,False,False
+VG_001167,CTR_04d74995,2026-04-01,2026-06-30,Family Services,10,high,general,False,False,False
+VG_001168,CTR_2fab8cf2,2026-04-01,2026-06-30,Settlement Navigation,16,medium,immigrant_newcomer,True,True,False
+VG_001169,CTR_b16294d9,2026-04-01,2026-06-30,General Support,15,medium,,False,False,False
+VG_001170,CTR_b16294d9,2026-04-01,2026-06-30,Legal Aid,14,low,,False,False,False
+VG_001171,CTR_b16294d9,2026-04-01,2026-06-30,Housing & Shelter,20,medium,immigrant_newcomer,True,True,False
+VG_001172,CTR_9e7c2443,2026-04-01,2026-06-30,Mental Health,17,low,immigrant_newcomer,True,True,False
+VG_001173,CTR_9e7c2443,2026-04-01,2026-06-30,Family Services,17,medium,general,False,False,False
+VG_001174,CTR_3c537f2e,2026-04-01,2026-06-30,Settlement Navigation,27,medium,immigrant_newcomer,True,True,False
+VG_001175,CTR_3c537f2e,2026-04-01,2026-06-30,Family Services,107,high,immigrant_newcomer,True,True,False
+VG_001176,CTR_3c537f2e,2026-04-01,2026-06-30,Mental Health,9,medium,general,False,False,False
+VG_001177,CTR_d4c412d5,2026-04-01,2026-06-30,Food Support,10,high,general,False,False,False
+VG_001178,CTR_ffc04ca1,2026-04-01,2026-06-30,Legal Aid,15,medium,general,False,False,False
+VG_001179,CTR_ffc04ca1,2026-04-01,2026-06-30,Employment,15,low,general,False,False,False
+VG_001180,CTR_f4dced97,2026-04-01,2026-06-30,Family Services,72,medium,immigrant_newcomer,True,True,False
+VG_001181,CTR_1ec82b82,2026-04-01,2026-06-30,General Support,17,high,general,False,False,False
+VG_001182,CTR_d2ef4f75,2026-04-01,2026-06-30,Mental Health,8,high,general,False,False,False
+VG_001183,CTR_f112a6f3,2026-04-01,2026-06-30,Food Support,33,high,,False,False,False
+VG_001184,CTR_f112a6f3,2026-04-01,2026-06-30,Legal Aid,23,low,general,False,False,False
+VG_001185,CTR_83ec4821,2026-04-01,2026-06-30,General Support,37,low,,False,False,False
+VG_001186,CTR_7cf9a78d,2026-04-01,2026-06-30,Mental Health,12,medium,immigrant_newcomer,True,True,False
+VG_001187,CTR_6bdd7f51,2026-04-01,2026-06-30,Employment,26,medium,,False,False,False
+VG_001188,CTR_6bdd7f51,2026-04-01,2026-06-30,Food Support,19,high,,False,False,False
+VG_001189,CTR_6bdd7f51,2026-04-01,2026-06-30,Language Access,11,high,immigrant_newcomer,True,True,False
+VG_001190,CTR_734b7300,2026-04-01,2026-06-30,Language Access,17,high,immigrant_newcomer,True,True,False
+VG_001191,CTR_fc12cbda,2026-04-01,2026-06-30,Housing & Shelter,10,medium,immigrant_newcomer,True,True,False
+VG_001192,CTR_9477a462,2026-04-01,2026-06-30,Settlement Navigation,21,medium,immigrant_newcomer,True,True,False
+VG_001193,CTR_9477a462,2026-04-01,2026-06-30,General Support,60,medium,general,False,False,False
+VG_001194,CTR_6172d6ff,2026-04-01,2026-06-30,Settlement Navigation,20,medium,immigrant_newcomer,True,True,False
+VG_001195,CTR_6172d6ff,2026-04-01,2026-06-30,Language Access,19,low,immigrant_newcomer,True,True,False
+VG_001196,CTR_3ee68680,2026-04-01,2026-06-30,General Support,25,low,immigrant_newcomer,True,True,False
+VG_001197,CTR_3ee68680,2026-04-01,2026-06-30,Legal Aid,8,medium,immigrant_newcomer,True,True,False
+VG_001198,CTR_3ee68680,2026-04-01,2026-06-30,Family Services,105,low,general,False,False,False
+VG_001199,CTR_e898cdf2,2026-04-01,2026-06-30,Settlement Navigation,45,medium,general,False,True,False
+VG_001200,CTR_e898cdf2,2026-04-01,2026-06-30,Mental Health,37,medium,general,False,False,False
+VG_001201,CTR_e898cdf2,2026-04-01,2026-06-30,Housing & Shelter,15,high,general,False,False,False
+VG_001202,CTR_43c3a885,2026-04-01,2026-06-30,Food Support,9,low,general,False,False,False
+VG_001203,CTR_43c3a885,2026-04-01,2026-06-30,Language Access,18,medium,immigrant_newcomer,True,True,False
+VG_001204,CTR_43c3a885,2026-04-01,2026-06-30,Legal Aid,42,medium,,False,False,False
+VG_001205,CTR_85f227b0,2026-04-01,2026-06-30,General Support,51,medium,,False,False,False
+VG_001206,CTR_85f227b0,2026-04-01,2026-06-30,Language Access,28,low,immigrant_newcomer,True,True,False
+VG_001207,CTR_9e462de4,2026-04-01,2026-06-30,Food Support,7,high,,False,False,False
+VG_001208,CTR_9e462de4,2026-04-01,2026-06-30,Family Services,27,low,general,False,False,False
+VG_001209,CTR_9e462de4,2026-04-01,2026-06-30,Settlement Navigation,40,high,immigrant_newcomer,True,True,False
+VG_001210,CTR_b8716015,2026-04-01,2026-06-30,Language Access,20,low,immigrant_newcomer,True,True,False
+VG_001211,CTR_b8716015,2026-04-01,2026-06-30,Mental Health,14,low,immigrant_newcomer,True,True,False
+VG_001212,CTR_b8716015,2026-04-01,2026-06-30,Housing & Shelter,26,medium,general,False,False,False
+VG_001213,CTR_d46af379,2026-04-01,2026-06-30,Legal Aid,18,medium,immigrant_newcomer,True,True,False
+VG_001214,CTR_157dfefa,2026-04-01,2026-06-30,Language Access,22,high,immigrant_newcomer,True,True,False
+VG_001215,CTR_3fdbcade,2026-04-01,2026-06-30,Family Services,19,medium,general,False,False,False
+VG_001216,CTR_3fdbcade,2026-04-01,2026-06-30,Food Support,7,low,,False,False,False
+VG_001217,CTR_1eae6c9d,2026-04-01,2026-06-30,Language Access,16,medium,immigrant_newcomer,True,True,False
+VG_001218,CTR_1eae6c9d,2026-04-01,2026-06-30,General Support,39,high,,False,False,False
+VG_001219,CTR_1eae6c9d,2026-04-01,2026-06-30,Mental Health,27,medium,general,False,False,False
+VG_001220,CTR_2cea587c,2026-04-01,2026-06-30,Mental Health,55,medium,general,False,False,False
+VG_001221,CTR_2cea587c,2026-04-01,2026-06-30,General Support,28,medium,general,False,False,False
+VG_001222,CTR_2cea587c,2026-04-01,2026-06-30,Family Services,9,low,,False,False,False
+VG_001223,CTR_5ca10033,2026-04-01,2026-06-30,Housing & Shelter,15,low,general,False,False,False
+VG_001224,CTR_5ca10033,2026-04-01,2026-06-30,Family Services,16,high,immigrant_newcomer,True,True,False
+VG_001225,CTR_5ca10033,2026-04-01,2026-06-30,Language Access,13,low,general,True,False,False
+VG_001226,CTR_61e7f3b1,2026-04-01,2026-06-30,Food Support,8,low,immigrant_newcomer,True,True,False
+VG_001227,CTR_767da326,2026-04-01,2026-06-30,Settlement Navigation,16,medium,immigrant_newcomer,True,True,False
+VG_001228,CTR_4e0987b5,2026-04-01,2026-06-30,Housing & Shelter,11,low,general,False,False,False
+VG_001229,CTR_d4aa7218,2026-04-01,2026-06-30,General Support,9,medium,immigrant_newcomer,True,True,False
+VG_001230,CTR_d4aa7218,2026-04-01,2026-06-30,Language Access,21,low,immigrant_newcomer,True,True,False
+VG_001231,CTR_d4aa7218,2026-04-01,2026-06-30,Housing & Shelter,14,low,general,False,False,False
+VG_001232,CTR_3c4d2bb8,2026-04-01,2026-06-30,General Support,36,medium,general,False,False,False
+VG_001233,CTR_3c4d2bb8,2026-04-01,2026-06-30,Employment,22,low,,False,False,False
+VG_001234,CTR_3c4d2bb8,2026-04-01,2026-06-30,Language Access,14,medium,immigrant_newcomer,True,True,False
+VG_001235,CTR_3583df67,2026-04-01,2026-06-30,Employment,10,low,general,False,False,False
+VG_001236,CTR_3583df67,2026-04-01,2026-06-30,Legal Aid,16,low,general,False,False,False
+VG_001237,CTR_aadd6e88,2026-04-01,2026-06-30,Legal Aid,25,medium,immigrant_newcomer,True,True,False
+VG_001238,CTR_aadd6e88,2026-04-01,2026-06-30,Language Access,14,medium,immigrant_newcomer,True,True,False
+VG_001239,CTR_aadd6e88,2026-04-01,2026-06-30,Mental Health,64,low,general,False,False,False
+VG_001240,CTR_daaa2f25,2026-04-01,2026-06-30,Food Support,22,medium,,False,False,False
+VG_001241,CTR_061dbd26,2026-04-01,2026-06-30,General Support,27,high,general,False,False,False
+VG_001242,CTR_061dbd26,2026-04-01,2026-06-30,Mental Health,24,high,,False,False,False
+VG_001243,CTR_11a74a9c,2026-04-01,2026-06-30,Settlement Navigation,16,low,general,False,True,False
+VG_001244,CTR_11a74a9c,2026-04-01,2026-06-30,Language Access,10,high,general,True,False,False
+VG_001245,CTR_11a74a9c,2026-04-01,2026-06-30,Mental Health,38,low,immigrant_newcomer,True,True,False
+VG_001246,CTR_7cfa79f1,2026-04-01,2026-06-30,Settlement Navigation,18,medium,immigrant_newcomer,True,True,False
+VG_001247,CTR_7cfa79f1,2026-04-01,2026-06-30,Housing & Shelter,9,medium,general,False,False,False
+VG_001248,CTR_626f7a11,2026-04-01,2026-06-30,Food Support,11,medium,general,False,False,False
+VG_001249,CTR_626f7a11,2026-04-01,2026-06-30,Employment,7,low,general,False,False,False
+VG_001250,CTR_05e33646,2026-04-01,2026-06-30,General Support,9,medium,,False,False,False
+VG_001251,CTR_05e33646,2026-04-01,2026-06-30,Legal Aid,33,high,general,False,False,False
+VG_001252,CTR_05e33646,2026-04-01,2026-06-30,Settlement Navigation,10,medium,immigrant_newcomer,True,True,False
+VG_001253,CTR_8e07debb,2026-04-01,2026-06-30,General Support,19,medium,general,False,False,False
+VG_001254,CTR_8e07debb,2026-04-01,2026-06-30,Housing & Shelter,9,low,immigrant_newcomer,True,True,False
+VG_001255,CTR_206680ad,2026-04-01,2026-06-30,Employment,12,low,general,False,False,False
+VG_001256,CTR_206680ad,2026-04-01,2026-06-30,Language Access,10,high,general,True,False,False
+VG_001257,CTR_206680ad,2026-04-01,2026-06-30,Housing & Shelter,30,medium,immigrant_newcomer,True,True,False
+VG_001258,CTR_84dd0621,2026-04-01,2026-06-30,Housing & Shelter,32,medium,general,False,False,False
+VG_001259,CTR_84dd0621,2026-04-01,2026-06-30,Settlement Navigation,39,high,general,False,True,False
+VG_001260,CTR_2c3c48e1,2026-04-01,2026-06-30,Mental Health,17,low,,False,False,False
+VG_001261,CTR_2c3c48e1,2026-04-01,2026-06-30,Food Support,14,low,general,False,False,False
+VG_001262,CTR_2c3c48e1,2026-04-01,2026-06-30,Housing & Shelter,10,medium,,False,False,False
+VG_001263,CTR_f026bb38,2026-04-01,2026-06-30,Family Services,17,medium,,False,False,False
+VG_001264,CTR_96a4a2f1,2026-04-01,2026-06-30,Settlement Navigation,17,low,general,False,True,False
+VG_001265,CTR_3e6d3931,2026-04-01,2026-06-30,Housing & Shelter,35,high,general,False,False,False
+VG_001266,CTR_a703ded4,2026-04-01,2026-06-30,General Support,14,medium,immigrant_newcomer,True,True,False
+VG_001267,CTR_4769f463,2026-04-01,2026-06-30,Employment,14,high,general,False,False,False
+VG_001268,CTR_74321724,2026-04-01,2026-06-30,Legal Aid,17,low,general,False,False,False
+VG_001269,CTR_74321724,2026-04-01,2026-06-30,Food Support,19,low,general,False,False,False
+VG_001270,CTR_80cf46eb,2026-04-01,2026-06-30,General Support,17,low,general,False,False,False
+VG_001271,CTR_a47ce9cb,2026-04-01,2026-06-30,Mental Health,11,medium,immigrant_newcomer,True,True,False
+VG_001272,CTR_d4be50c9,2026-04-01,2026-06-30,Settlement Navigation,14,low,general,False,True,False
+VG_001273,CTR_d4be50c9,2026-04-01,2026-06-30,General Support,18,medium,general,False,False,False
+VG_001274,CTR_e771e843,2026-04-01,2026-06-30,Employment,8,high,general,False,False,False
+VG_001275,CTR_e771e843,2026-04-01,2026-06-30,Family Services,31,medium,immigrant_newcomer,True,True,False
+VG_001276,CTR_e771e843,2026-04-01,2026-06-30,Legal Aid,16,low,general,False,False,False
+VG_001277,CTR_f432f544,2026-04-01,2026-06-30,Food Support,16,high,immigrant_newcomer,True,True,False
+VG_001278,CTR_a78e2e69,2026-04-01,2026-06-30,Housing & Shelter,13,high,general,False,False,False
+VG_001279,CTR_a78e2e69,2026-04-01,2026-06-30,General Support,13,low,general,False,False,False
+VG_001280,CTR_346a031c,2026-04-01,2026-06-30,Food Support,25,high,immigrant_newcomer,True,True,False
+VG_001281,CTR_66280ea7,2026-04-01,2026-06-30,Settlement Navigation,14,high,immigrant_newcomer,True,True,False
+VG_001282,CTR_a5ba62c7,2026-04-01,2026-06-30,Food Support,12,medium,general,False,False,False
+VG_001283,CTR_a5ba62c7,2026-04-01,2026-06-30,Language Access,14,high,general,True,False,False
+VG_001284,CTR_a5ba62c7,2026-04-01,2026-06-30,Settlement Navigation,36,low,immigrant_newcomer,True,True,False
+VG_001285,CTR_0d1c2688,2026-04-01,2026-06-30,Settlement Navigation,14,medium,immigrant_newcomer,True,True,False
+VG_001286,CTR_08a66398,2026-04-01,2026-06-30,Mental Health,41,medium,,False,False,False
+VG_001287,CTR_08a66398,2026-04-01,2026-06-30,Food Support,19,medium,,False,False,False
+VG_001288,CTR_08a66398,2026-04-01,2026-06-30,Legal Aid,29,low,,False,False,False
+VG_001289,CTR_e5bf9cf7,2026-04-01,2026-06-30,Housing & Shelter,41,low,general,False,False,False
+VG_001290,CTR_e5bf9cf7,2026-04-01,2026-06-30,Employment,66,medium,general,False,False,False
+VG_001291,CTR_9e15ce57,2026-04-01,2026-06-30,Mental Health,13,low,general,False,False,False
+VG_001292,CTR_9e15ce57,2026-04-01,2026-06-30,Food Support,17,medium,general,False,False,False
+VG_001293,CTR_9e15ce57,2026-04-01,2026-06-30,Language Access,17,medium,immigrant_newcomer,True,True,False
+VG_001294,CTR_4ca0fc8d,2026-04-01,2026-06-30,Language Access,17,low,immigrant_newcomer,True,True,False
+VG_001295,CTR_4ca0fc8d,2026-04-01,2026-06-30,Housing & Shelter,13,medium,general,False,False,False
+VG_001296,CTR_9c882992,2026-04-01,2026-06-30,Legal Aid,12,low,general,False,False,False
+VG_001297,CTR_7e5c7810,2026-04-01,2026-06-30,Legal Aid,16,medium,general,False,False,False
+VG_001298,CTR_7e5c7810,2026-04-01,2026-06-30,Employment,17,medium,general,False,False,False
+VG_001299,CTR_7e5c7810,2026-04-01,2026-06-30,Settlement Navigation,31,medium,immigrant_newcomer,True,True,False
+VG_001300,CTR_40fc7124,2026-04-01,2026-06-30,Family Services,20,medium,general,False,False,False
+VG_001301,CTR_30465afd,2026-04-01,2026-06-30,Family Services,15,medium,general,False,False,False
+VG_001302,CTR_30465afd,2026-04-01,2026-06-30,Settlement Navigation,16,high,general,False,True,False
+VG_001303,CTR_30465afd,2026-04-01,2026-06-30,Language Access,14,low,immigrant_newcomer,True,True,False
+VG_001304,CTR_3e86bc7e,2026-04-01,2026-06-30,Housing & Shelter,14,medium,immigrant_newcomer,True,True,False
+VG_001305,CTR_3e86bc7e,2026-04-01,2026-06-30,Family Services,48,low,,False,False,False
+VG_001306,CTR_3e86bc7e,2026-04-01,2026-06-30,Language Access,39,medium,general,True,False,False
+VG_001307,CTR_dd718030,2026-04-01,2026-06-30,Language Access,10,medium,immigrant_newcomer,True,True,False
+VG_001308,CTR_dd718030,2026-04-01,2026-06-30,General Support,21,high,immigrant_newcomer,True,True,False
+VG_001309,CTR_dd718030,2026-04-01,2026-06-30,Mental Health,8,low,general,False,False,False
+VG_001310,CTR_ab1fd802,2026-04-01,2026-06-30,Family Services,14,medium,general,False,False,False
+VG_001311,CTR_ab1fd802,2026-04-01,2026-06-30,Housing & Shelter,17,low,general,False,False,False
+VG_001312,CTR_ab1fd802,2026-04-01,2026-06-30,Mental Health,36,low,immigrant_newcomer,True,True,False
+VG_001313,CTR_89429973,2026-04-01,2026-06-30,Food Support,18,high,,False,False,False
+VG_001314,CTR_74174743,2026-04-01,2026-06-30,Food Support,8,medium,general,False,False,False
+VG_001315,CTR_60d95d4f,2026-04-01,2026-06-30,Legal Aid,19,low,general,False,False,False
+VG_001316,CTR_65e86587,2026-04-01,2026-06-30,Food Support,10,high,,False,False,False
+VG_001317,CTR_6f5e1d55,2026-04-01,2026-06-30,Settlement Navigation,25,low,immigrant_newcomer,True,True,False
+VG_001318,CTR_6f5e1d55,2026-04-01,2026-06-30,Family Services,9,high,,False,False,False
+VG_001319,CTR_6f5e1d55,2026-04-01,2026-06-30,Employment,35,low,,False,False,False
+VG_001320,CTR_564e47db,2026-04-01,2026-06-30,Food Support,12,low,,False,False,False
+VG_001321,CTR_f6b32d91,2026-04-01,2026-06-30,Mental Health,11,low,general,False,False,False
+VG_001322,CTR_f6b32d91,2026-04-01,2026-06-30,Language Access,41,low,immigrant_newcomer,True,True,False
+VG_001323,CTR_f6b32d91,2026-04-01,2026-06-30,Settlement Navigation,13,low,immigrant_newcomer,True,True,False
+VG_001324,CTR_edfc84fd,2026-04-01,2026-06-30,Mental Health,17,low,immigrant_newcomer,True,True,False
+VG_001325,CTR_edfc84fd,2026-04-01,2026-06-30,General Support,18,medium,general,False,False,False
+VG_001326,CTR_6dbd0e6e,2026-04-01,2026-06-30,Family Services,35,low,,False,False,False
+VG_001327,CTR_6dbd0e6e,2026-04-01,2026-06-30,Language Access,24,medium,immigrant_newcomer,True,True,False
+VG_001328,CTR_6dbd0e6e,2026-04-01,2026-06-30,Food Support,18,medium,,False,False,False
+VG_001329,CTR_14ab7fbc,2026-04-01,2026-06-30,Family Services,18,low,general,False,False,False
+VG_001330,CTR_ec838803,2026-04-01,2026-06-30,Mental Health,12,medium,general,False,False,False
+VG_001331,CTR_58661fb0,2026-04-01,2026-06-30,Housing & Shelter,11,low,immigrant_newcomer,True,True,False
+VG_001332,CTR_22fbb6f9,2026-04-01,2026-06-30,General Support,17,medium,general,False,False,False
+VG_001333,CTR_45702f9d,2026-04-01,2026-06-30,Mental Health,16,low,immigrant_newcomer,True,True,False
+VG_001334,CTR_45702f9d,2026-04-01,2026-06-30,Language Access,16,low,immigrant_newcomer,True,True,False
+VG_001335,CTR_45702f9d,2026-04-01,2026-06-30,Settlement Navigation,58,low,immigrant_newcomer,True,True,False
+VG_001336,CTR_79b58906,2026-04-01,2026-06-30,Food Support,9,high,general,False,False,False
+VG_001337,CTR_c25d91da,2026-04-01,2026-06-30,General Support,41,medium,general,False,False,False
+VG_001338,CTR_c25d91da,2026-04-01,2026-06-30,Employment,12,low,general,False,False,False
+VG_001339,CTR_6645f6fa,2026-04-01,2026-06-30,Settlement Navigation,13,medium,immigrant_newcomer,True,True,False
+VG_001340,CTR_6645f6fa,2026-04-01,2026-06-30,Housing & Shelter,24,low,immigrant_newcomer,True,True,False
+VG_001341,CTR_db827c19,2026-04-01,2026-06-30,Language Access,33,high,immigrant_newcomer,True,True,False
+VG_001342,CTR_8ff2b4b1,2026-04-01,2026-06-30,General Support,36,high,general,False,False,False
+VG_001343,CTR_8ff2b4b1,2026-04-01,2026-06-30,Food Support,12,high,general,False,False,False
+VG_001344,CTR_8ff2b4b1,2026-04-01,2026-06-30,Family Services,43,medium,immigrant_newcomer,True,True,False
+VG_001345,CTR_f0ed8e6d,2026-04-01,2026-06-30,Employment,68,low,general,False,False,False
+VG_001346,CTR_f0ed8e6d,2026-04-01,2026-06-30,Housing & Shelter,39,low,,False,False,False
+VG_001347,CTR_f0ed8e6d,2026-04-01,2026-06-30,Mental Health,18,medium,immigrant_newcomer,True,True,False
+VG_001348,CTR_650799a4,2026-04-01,2026-06-30,Housing & Shelter,27,low,,False,False,False
+VG_001349,CTR_650799a4,2026-04-01,2026-06-30,Employment,53,medium,general,False,False,False
+VG_001350,CTR_650799a4,2026-04-01,2026-06-30,Settlement Navigation,26,medium,immigrant_newcomer,True,True,False
+VG_001351,CTR_3022a534,2026-04-01,2026-06-30,Employment,76,low,general,False,False,False
+VG_001352,CTR_3022a534,2026-04-01,2026-06-30,General Support,22,low,general,False,False,False
+VG_001353,CTR_dae06464,2026-04-01,2026-06-30,Housing & Shelter,11,medium,,False,False,False
+VG_001354,CTR_dae06464,2026-04-01,2026-06-30,Mental Health,10,high,general,False,False,False
+VG_001355,CTR_5124ebd5,2026-04-01,2026-06-30,Employment,16,low,general,False,False,False
+VG_001356,CTR_493350cf,2026-04-01,2026-06-30,Employment,12,low,,False,False,False
+VG_001357,CTR_7f09a935,2026-04-01,2026-06-30,Employment,16,medium,,False,False,False
+VG_001358,CTR_7f09a935,2026-04-01,2026-06-30,Legal Aid,103,high,,False,False,False
+VG_001359,CTR_e491bc14,2026-04-01,2026-06-30,Language Access,61,low,immigrant_newcomer,True,True,False
+VG_001360,CTR_e224275a,2026-04-01,2026-06-30,Food Support,14,medium,,False,False,False
+VG_001361,CTR_e224275a,2026-04-01,2026-06-30,Legal Aid,18,low,,False,False,False
+VG_001362,CTR_e224275a,2026-04-01,2026-06-30,Employment,15,medium,general,False,False,False
+VG_001363,CTR_c33bdc88,2026-04-01,2026-06-30,Settlement Navigation,65,medium,immigrant_newcomer,True,True,False
+VG_001364,CTR_c33bdc88,2026-04-01,2026-06-30,Language Access,18,medium,general,True,False,False
+VG_001365,CTR_ed014780,2026-04-01,2026-06-30,Language Access,48,medium,immigrant_newcomer,True,True,False
+VG_001366,CTR_ed014780,2026-04-01,2026-06-30,General Support,12,medium,general,False,False,False
+VG_001367,CTR_ed014780,2026-04-01,2026-06-30,Settlement Navigation,11,medium,immigrant_newcomer,True,True,False
+VG_001368,CTR_a09aafe5,2026-04-01,2026-06-30,Housing & Shelter,43,high,general,False,False,False
+VG_001369,CTR_5da04bb8,2026-04-01,2026-06-30,Mental Health,11,medium,,False,False,False
+VG_001370,CTR_5da04bb8,2026-04-01,2026-06-30,Employment,26,medium,,False,False,False
+VG_001371,CTR_f8352bff,2026-04-01,2026-06-30,Mental Health,29,low,immigrant_newcomer,True,True,False
+VG_001372,CTR_f8352bff,2026-04-01,2026-06-30,General Support,10,low,,False,False,False
+VG_001373,CTR_f8352bff,2026-04-01,2026-06-30,Settlement Navigation,16,low,general,False,True,False
+VG_001374,CTR_61365511,2026-04-01,2026-06-30,Food Support,13,medium,immigrant_newcomer,True,True,False
+VG_001375,CTR_61365511,2026-04-01,2026-06-30,General Support,14,low,general,False,False,False
+VG_001376,CTR_be1174d3,2026-04-01,2026-06-30,Food Support,15,medium,general,False,False,False
+VG_001377,CTR_58aea3e9,2026-04-01,2026-06-30,Food Support,16,medium,general,False,False,False
+VG_001378,CTR_58aea3e9,2026-04-01,2026-06-30,Mental Health,17,low,general,False,False,False
+VG_001379,CTR_58aea3e9,2026-04-01,2026-06-30,General Support,45,low,general,False,False,False
+VG_001380,CTR_50a11b9e,2026-04-01,2026-06-30,General Support,14,high,general,False,False,False
+VG_001381,CTR_ea919eac,2026-04-01,2026-06-30,Family Services,22,medium,immigrant_newcomer,True,True,False
+VG_001382,CTR_ea919eac,2026-04-01,2026-06-30,General Support,16,medium,immigrant_newcomer,True,True,False
+VG_001383,CTR_0e169b16,2026-04-01,2026-06-30,Mental Health,37,high,,False,False,False
+VG_001384,CTR_0e169b16,2026-04-01,2026-06-30,Housing & Shelter,37,medium,general,False,False,False
+VG_001385,CTR_a9c54984,2026-04-01,2026-06-30,Settlement Navigation,27,medium,immigrant_newcomer,True,True,False
+VG_001386,CTR_a24b27d1,2026-04-01,2026-06-30,Employment,10,low,immigrant_newcomer,True,True,False
+VG_001387,CTR_a24b27d1,2026-04-01,2026-06-30,Housing & Shelter,24,medium,immigrant_newcomer,True,True,False
+VG_001388,CTR_043520c3,2026-04-01,2026-06-30,Mental Health,14,low,,False,False,False
+VG_001389,CTR_043520c3,2026-04-01,2026-06-30,Settlement Navigation,18,high,general,False,True,False
+VG_001390,CTR_043520c3,2026-04-01,2026-06-30,Employment,11,low,,False,False,False
+VG_001391,CTR_8111b9d1,2026-04-01,2026-06-30,General Support,23,high,general,False,False,False
+VG_001392,CTR_8111b9d1,2026-04-01,2026-06-30,Employment,13,medium,general,False,False,False
+VG_001393,CTR_8111b9d1,2026-04-01,2026-06-30,Mental Health,24,high,general,False,False,False
+VG_001394,CTR_0fe99696,2026-04-01,2026-06-30,Employment,12,medium,immigrant_newcomer,True,True,False
+VG_001395,CTR_0fe99696,2026-04-01,2026-06-30,Mental Health,41,high,,False,False,False
+VG_001396,CTR_03ef24e5,2026-04-01,2026-06-30,Employment,11,high,immigrant_newcomer,True,True,False
+VG_001397,CTR_03ef24e5,2026-04-01,2026-06-30,General Support,9,high,,False,False,False
+VG_001398,CTR_5f545d78,2026-04-01,2026-06-30,Settlement Navigation,28,low,general,False,True,False
+VG_001399,CTR_5f545d78,2026-04-01,2026-06-30,General Support,20,low,general,False,False,False
+VG_001400,CTR_604f9a49,2026-04-01,2026-06-30,Employment,12,medium,,False,False,False
+VG_001401,CTR_604f9a49,2026-04-01,2026-06-30,Family Services,21,high,general,False,False,False
+VG_001402,CTR_6e9b923c,2026-04-01,2026-06-30,Legal Aid,22,low,,False,False,False
+VG_001403,CTR_e4d9021a,2026-04-01,2026-06-30,Housing & Shelter,29,medium,general,False,False,False
+VG_001404,CTR_e4d9021a,2026-04-01,2026-06-30,Settlement Navigation,23,high,immigrant_newcomer,True,True,False
+VG_001405,CTR_80816f1b,2026-04-01,2026-06-30,Family Services,8,high,,False,False,False
+VG_001406,CTR_22e44caa,2026-04-01,2026-06-30,Housing & Shelter,12,high,,False,False,False
+VG_001407,CTR_996ef211,2026-04-01,2026-06-30,Language Access,26,high,general,True,False,False
+VG_001408,CTR_996ef211,2026-04-01,2026-06-30,Mental Health,11,high,,False,False,False

@@ -1,0 +1,13 @@
+area_id,area_name,borough_name,latitude,longitude,population,income_indicator,age_indicator,language_indicator,immigration_indicator,housing_indicator,vulnerability_score,vulnerability_rank,top_vulnerability_drivers
+A001,Parc Extension,Villeray-Saint-Michel-Parc-Extension,45.529,-73.633,31200,82,54,88,91,76,78.2,1,newcomer support need; language access need; income pressure
+A004,Montreal-Nord,Montreal-Nord,45.6,-73.62,43600,86,65,69,78,82,76.0,2,income pressure; housing pressure; newcomer support need
+A003,Cote-des-Neiges,Cote-des-Neiges-Notre-Dame-de-Grace,45.5,-73.63,52400,74,58,83,87,71,74.6,3,newcomer support need; language access need; income pressure
+A002,Saint-Michel,Villeray-Saint-Michel-Parc-Extension,45.56,-73.61,48600,78,62,72,84,69,73.0,4,newcomer support need; income pressure; language access need
+A012,Riviere-des-Prairies,Riviere-des-Prairies-Pointe-aux-Trembles,45.645,-73.57,32200,58,63,45,50,47,52.6,5,age-related support need; income pressure; newcomer support need
+A005,Hochelaga,Mercier-Hochelaga-Maisonneuve,45.545,-73.545,33300,67,50,32,28,73,50.0,6,housing pressure; income pressure; age-related support need
+A007,Ahuntsic,Ahuntsic-Cartierville,45.555,-73.66,39600,42,72,38,44,40,47.2,7,age-related support need; newcomer support need; income pressure
+A011,Pointe-Saint-Charles,Le Sud-Ouest,45.478,-73.56,16600,61,48,25,30,68,46.4,8,housing pressure; income pressure; age-related support need
+A008,Lachine,Lachine,45.435,-73.69,27800,53,57,29,35,55,45.8,9,age-related support need; housing pressure; income pressure
+A006,Verdun,Verdun,45.458,-73.57,70400,48,45,26,31,52,40.4,10,housing pressure; income pressure; age-related support need
+A010,Plateau Mont-Royal,Le Plateau-Mont-Royal,45.525,-73.575,104000,35,34,22,29,45,33.0,11,housing pressure; income pressure; age-related support need
+A009,Westmount,Westmount,45.485,-73.596,19800,15,46,18,24,20,24.6,12,age-related support need; newcomer support need; housing pressure

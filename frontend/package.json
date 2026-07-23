@@ -12,7 +12,8 @@
     "preview": "vite preview",
     "validate:boundaries": "node scripts/validate-boundaries.mjs",
     "validate:dashboard-adapter": "node scripts/validate-dashboard-adapter.mjs",
-    "validate:supabase-dashboard": "node scripts/validate-supabase-dashboard.mjs"
+    "validate:supabase-dashboard": "node scripts/validate-supabase-dashboard.mjs",
+    "validate:supabase-contract": "node scripts/validate-supabase.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.110.1",

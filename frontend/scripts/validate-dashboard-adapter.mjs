@@ -37,11 +37,11 @@ if (sharedBorough?.sourceAreaIds.join(",") !== "A001,A002") {
 
 const services = mapServiceRowsToDashboardServices([{
   service_id: "S001",
-  service_name: "Test food service",
-  service_category: "Food Support",
+  name: "Test food service",
+  primary_category: "Food",
+  service_categories: "Food; Material Aid",
   latitude: 45.51,
   longitude: -73.59,
-  language: "English;French",
 }]);
 if (services.length !== 1 || services[0].category !== "Food") {
   failures.push("Supabase service row did not map into the dashboard contract");

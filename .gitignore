@@ -1,21 +1,38 @@
-.DS_Store
-frontend/node_modules/
-frontend/dist/
-.env
-.env.*
-!.env.example
+# Python
 __pycache__/
 *.py[cod]
 .pytest_cache/
 .ruff_cache/
 .mypy_cache/
+
+# Environments and build output
 .venv/
 venv/
+.env
+.env.*
+!.env.example
+node_modules/
+frontend/node_modules/
+dist/
+frontend/dist/
+*.egg-info/
 .git-local/
-data/raw/*
-!data/raw/.gitkeep
-data/processed/*
-!data/processed/.gitkeep
+
+# OS and editor state
+.DS_Store
+.vscode/
+.idea/
+
+# Streamlit local state
+.streamlit/secrets.toml
+
+# Regenerable or downloaded data-pipeline state
+data/raw/_sources/
+data/raw/service_sources/installations_recreatives_shp/
+data/raw/boundaries/ct_national_shp/
+data/raw/service_sources/_211/
+data/community_radar.sqlite
+*.sqlite-journal
 *.parquet
 *.sqlite
 *.db

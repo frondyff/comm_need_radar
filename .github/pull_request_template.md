@@ -2,8 +2,6 @@
 
 Closes #
 
-Linked issue:
-
 ## Scope
 
 ### In Scope
@@ -27,8 +25,6 @@ Linked issue:
 ## Validation
 
 - [ ] I ran the relevant local checks for this task
-- [ ] I manually reviewed affected Markdown or dashboard behavior
-- [ ] GitHub Actions checks are passing, or failures are documented
 - [ ] I confirmed no private data, secrets, or PII are committed
 
 ## Review Checklist
@@ -37,4 +33,3 @@ Linked issue:
 - [ ] Acceptance criteria are satisfied
 - [ ] Dependencies or blockers are documented
 - [ ] Handoff notes are clear for the next owner
-- [ ] Target branch is `dev`, unless this is a milestone promotion from `dev` to `main`
