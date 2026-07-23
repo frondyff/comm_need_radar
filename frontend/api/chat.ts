@@ -62,6 +62,8 @@ type GapRow = {
 
 const PAGE_SIZE = 1000;
 const MAX_PROMPT_CHARS = 900;
+const MAX_RADIUS_KM = 25;
+const LLM_TIMEOUT_MS = 15000;
 const DEFAULT_MODEL = "gpt-4.1-mini";
 
 function haversineKm(lat1: number, lon1: number, lat2: number, lon2: number): number {
@@ -148,14 +150,26 @@ export default async function handler(req: any, res: any) {
     return json(res, 405, { error: "method_not_allowed" });
   }
 
-  const body = (typeof req.body === "string" ? JSON.parse(req.body || "{}") : req.body || {}) as ChatRequest;
+  let body: ChatRequest;
+  try {
+    body = (typeof req.body === "string" ? JSON.parse(req.body || "{}") : req.body || {}) as ChatRequest;
+  } catch {
+    return json(res, 400, { error: "invalid_json" });
+  }
   const message = String(body.message ?? "").trim();
   const selectedAreaId = String(body.selectedAreaId ?? "").trim();
   const serviceCategory = String(body.serviceCategory ?? "All");
   const radiusKm = Number(body.radiusKm ?? 5);
   const language = body.language === "fr" ? "fr" : "en";
 
-  if (!message || message.length > MAX_PROMPT_CHARS || !selectedAreaId || !Number.isFinite(radiusKm)) {
+  if (
+    !message ||
+    message.length > MAX_PROMPT_CHARS ||
+    !selectedAreaId ||
+    !Number.isFinite(radiusKm) ||
+    radiusKm < 0 ||
+    radiusKm > MAX_RADIUS_KM
+  ) {
     return json(res, 400, { error: "invalid_request" });
   }
 
@@ -249,6 +263,7 @@ export default async function handler(req: any, res: any) {
   try {
     const llmResponse = await fetch(`${llmBaseUrl.replace(/\/$/, "")}/chat/completions`, {
       method: "POST",
+      signal: AbortSignal.timeout(LLM_TIMEOUT_MS),
       headers: {
         Authorization: `Bearer ${llmApiKey}`,
         "Content-Type": "application/json"

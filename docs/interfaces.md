@@ -192,9 +192,10 @@ Versioned schema and RLS definitions live in `supabase/migrations/`; operational
 steps and refresh semantics live in `docs/supabase-operations.md`.
 
 The current cloud schema contains 19 tables. Browser roles have read-only access
-to `area_profile`, `gap_score`, `accessibility`, `service_table`,
-`observed_need_index`, and `vulnerability_index_v2`. All raw/source tables and
-database views are denied to browser roles.
+to `area_profile`, `gap_score`, `accessibility`, the legacy `service_table`,
+the canonical `services_master`, `observed_need_index`, and
+`vulnerability_index_v2`. All other raw/source tables and database views are
+denied to browser roles.
 
 Required application keys:
 
@@ -204,6 +205,7 @@ Required application keys:
 | `gap_score` | `area_id` | `area_profile.area_id` |
 | `accessibility` | `area_id`, `service_category` | `area_profile.area_id` |
 | `service_table` | `service_id` | `database_center.center_id` |
+| `services_master` | `service_id` | optional `area_profile.area_id` |
 | `observed_need_index` | `area_id` | `area_profile.area_id` |
 | `vulnerability_index_v2` | `area_id` | `area_profile.area_id` |
 

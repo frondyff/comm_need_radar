@@ -48,6 +48,7 @@ APP_READY_TABLES = (
     "gap_score",
     "accessibility",
     "service_table",
+    "services_master",
     "observed_need_index",
     "vulnerability_index_v2",
 )

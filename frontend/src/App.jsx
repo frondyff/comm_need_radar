@@ -7,7 +7,6 @@ import { Radar, LocateFixed, Search, ChevronLeft, Layers, Activity, AlertTriangl
 import { CategoryIcon, CATEGORY_COLORS, createServiceMarker, createUserLocationMarker } from "./components/serviceVisuals";
 import { ChatbotWidget } from "./chatbot/ChatbotWidget.jsx";
 import { FlyerPreview } from "./flyer/FlyerPreview";
-import { flyerPdfExporter } from "./flyer/FlyerPdfExporter";
 import { loadDashboardData } from "./lib/dashboardAdapter.js";
 import { logFlyerDownload, logPageEvent } from "./lib/analytics.js";
 import { haversineKm } from "./lib/supabaseData.js";
@@ -566,7 +565,11 @@ function PlannerView({ lang, setLang, onSwitch, onExit, location, onChangeLocati
           )}
         </div>
 
-        <ChatbotWidget isEN={isEN} selectedAreaLabel={selectedAreaLabel} />
+        <ChatbotWidget
+          isEN={isEN}
+          selectedAreaId={selectedAreaId}
+          selectedAreaLabel={selectedAreaLabel}
+        />
       </div>
     </div>
   );
@@ -735,6 +738,7 @@ export default function CommunityRadar() {
     setIsDownloadingFlyer(true);
 
     try {
+      const { flyerPdfExporter } = await import("./flyer/FlyerPdfExporter");
       await flyerPdfExporter.export(selected);
       setFlyerDone(true);
       logFlyer(selected,{group:activeGroup,gender:activeGender,age:activeAge,category:[...activeCategory,...activeOtherCategory],location:selectedLocation.name,locationObj:selectedLocation,language:lang},meta);

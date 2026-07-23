@@ -19,6 +19,7 @@ const expectedCounts = {
   gap_score: Number(env.SUPABASE_EXPECTED_GAP_SCORE_ROWS ?? 12),
   accessibility: Number(env.SUPABASE_EXPECTED_ACCESSIBILITY_ROWS ?? 108),
   service_table: Number(env.SUPABASE_EXPECTED_SERVICE_TABLE_ROWS ?? 4255),
+  services_master: Number(env.SUPABASE_EXPECTED_SERVICES_MASTER_ROWS ?? 3664),
   observed_need_index: Number(env.SUPABASE_EXPECTED_OBSERVED_NEED_INDEX_ROWS ?? 12),
   vulnerability_index_v2: Number(
     env.SUPABASE_EXPECTED_VULNERABILITY_INDEX_V2_ROWS ?? 12
@@ -79,6 +80,23 @@ const requiredColumns = {
     "source_url",
     "last_checked_date"
   ],
+  services_master: [
+    "service_id",
+    "name",
+    "primary_category",
+    "service_categories",
+    "address",
+    "latitude",
+    "longitude",
+    "mappable",
+    "area_id",
+    "borough_name",
+    "phone",
+    "website",
+    "hours",
+    "services",
+    "sources"
+  ],
   observed_need_index: [
     "area_id",
     "v1_demand_score",
@@ -100,6 +118,7 @@ const keyColumns = {
   gap_score: ["area_id"],
   accessibility: ["area_id", "service_category"],
   service_table: ["service_id"],
+  services_master: ["service_id"],
   observed_need_index: ["area_id"],
   vulnerability_index_v2: ["area_id"]
 };
@@ -115,7 +134,6 @@ const privateObjects = [
   "monitoring_summary",
   "role_activity_log",
   "flyer_examples",
-  "services_master",
   "center_area_lookup",
   "observed_need_category_summary",
   "v_visit_needs_by_center",

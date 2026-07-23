@@ -26,6 +26,7 @@ declare
         'gap_score',
         'accessibility',
         'service_table',
+        'services_master',
         'observed_need_index',
         'vulnerability_index_v2'
     ];
@@ -132,6 +133,8 @@ begin
     if actual_count <> 108 then raise exception 'accessibility expected 108 rows, found %', actual_count; end if;
     select count(*) into actual_count from public.service_table;
     if actual_count <> 4255 then raise exception 'service_table expected 4255 rows, found %', actual_count; end if;
+    select count(*) into actual_count from public.services_master;
+    if actual_count <> 3664 then raise exception 'services_master expected 3664 rows, found %', actual_count; end if;
     select count(*) into actual_count from public.observed_need_index;
     if actual_count <> 12 then raise exception 'observed_need_index expected 12 rows, found %', actual_count; end if;
     select count(*) into actual_count from public.vulnerability_index_v2;

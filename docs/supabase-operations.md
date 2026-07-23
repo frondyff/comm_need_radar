@@ -10,12 +10,13 @@ The browser may read only these aggregated, app-ready tables:
 - `area_profile`
 - `gap_score`
 - `accessibility`
-- `service_table`
+- `service_table` (legacy compatibility)
+- `services_master` (canonical dashboard service directory)
 - `observed_need_index`
 - `vulnerability_index_v2`
 
 The migrations enable RLS on all 19 tables, revoke browser-role privileges by
-default, and grant `SELECT` only on those six tables. Raw/source tables and both
+default, and grant `SELECT` only on those seven tables. Raw/source tables and both
 database views remain inaccessible to `anon` and `authenticated` roles.
 
 Use only the project URL and publishable key in the browser. Database passwords,
@@ -51,7 +52,7 @@ Cloud refresh uses **transactional replace** semantics:
   RLS; the loader never drops database objects.
 - The loader truncates and reloads all 19 tables inside one transaction.
 - Source and target row counts must match for every table.
-- All six app-ready tables must be nonempty.
+- All seven app-ready tables must be nonempty.
 - Foreign keys are checked before commit.
 - Any missing object, column mismatch, load error, or validation failure rolls
   the complete refresh back and exits nonzero.
@@ -67,6 +68,7 @@ constraints and RLS policies.
 | `gap_score` | 12 |
 | `accessibility` | 108 |
 | `service_table` | 4,255 |
+| `services_master` | 3,664 |
 | `observed_need_index` | 12 |
 | `vulnerability_index_v2` | 12 |
 

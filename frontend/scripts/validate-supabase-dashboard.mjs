@@ -9,7 +9,7 @@ const expectedCounts = {
   areas: 12,
   gap: 12,
   accessibility: 108,
-  services: 4255,
+  services: Number(process.env.SUPABASE_EXPECTED_SERVICES_MASTER_ROWS ?? 3664),
 };
 const data = await loadAppData();
 const failures = [];

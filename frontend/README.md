@@ -257,6 +257,10 @@ live data.
 
 Install everything with `npm install`.
 
+The production build splits maps, Supabase, and PDF generation into separate
+chunks. The PDF engine has a 600 KB budget and is loaded only when a user asks
+to download a flyer; it is not part of the initial application bundle.
+
 ---
 
 ## McGill University · BUSA 649 · Team Next Level
