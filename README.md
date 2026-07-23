@@ -54,6 +54,18 @@ With `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY`, the dashboard
 loads real app-ready scores and the deduplicated `services_master` layer.
 Without that configuration it shows an explicitly labeled demo fallback.
 
+## Production Deployment
+
+The production React application is live at:
+
+- https://comm-mvp.vercel.app
+
+The Vercel production deployment uses the public Supabase contract for the
+dashboard and server-side chatbot retrieval. No LLM key is configured in the
+current release, so `/api/chat` uses its grounded deterministic fallback. See
+`docs/deployment-verification-2026-07-23.md` for the release evidence and known
+limitations.
+
 ## Data And Validation
 
 Python 3.11+ is required for the reproducible data, scoring, and spatial

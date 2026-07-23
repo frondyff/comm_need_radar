@@ -17,6 +17,7 @@ dist/
 frontend/dist/
 *.egg-info/
 .git-local/
+.vercel/
 
 # OS and editor state
 .DS_Store
@@ -36,3 +37,5 @@ data/community_radar.sqlite
 *.parquet
 *.sqlite
 *.db
+.vercel
+.env*

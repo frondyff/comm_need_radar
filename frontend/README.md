@@ -4,6 +4,8 @@ A React web app for social workers and planners to find community services and g
 
 ---
 
+**Production:** https://comm-mvp.vercel.app
+
 ## Quick start
 
 **Requirements:** Node.js 22+ (download at [nodejs.org](https://nodejs.org))

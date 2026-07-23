@@ -1,7 +1,9 @@
 # Production Web Implementation Guide
 
-Status: implementation guide for the React, Supabase, Vercel, and LLM
-production web path.
+Status: active implementation guide. The integrated React/Supabase/Vercel path
+was deployed to production on 2026-07-23 at https://comm-mvp.vercel.app.
+Remaining product acceptance, LLM configuration, user testing, and final
+handoff work stays tracked by the linked GitHub issues.
 
 Use this guide with `docs/production-web-architecture.md`. The architecture
 explains the target system shape; this file orders the work by GitHub issue so
