@@ -73,6 +73,14 @@ def answer(question: str) -> str:
                                                               "overview", "summary", "how vulnerable")):
         return _format(q.explain_area(area))
 
+    # Sub-types within a category are not in the data: needs are recorded at the
+    # category level (Housing & Shelter, Food, Mental Health, Legal Aid, ...), not
+    # as specific medical or legal issue types.
+    if cat and any(w in ql for w in ("most common", "most frequent", "reported most",
+                                     "reported frequently")) \
+            and any(w in ql for w in ("need", "issue", "problem", "type")):
+        return _format(q.not_collected("a breakdown of specific need or issue types within a category"))
+
     # 3. Area demographics from the census profile, only when the question is about
     #    the AREA (population / income / immigration / housing), not services for a group.
     asking_services = any(w in ql for w in ("organization", "orgs", "service", "list", "show me",
@@ -94,16 +102,19 @@ def answer(question: str) -> str:
         return _format(q.total_services())
 
     # 5. Visit / demand numbers (require a service category).
-    VISIT = ("demand", "visited", "visits", "request", "received", "submitted", "unmet", "additional",
-             "need more", "most visitor", "most client", "most people", "people received",
-             "greatest need", "need the most", "most need")
+    VISIT = ("demand", "visited", "visits", "visitor", "request", "received", "submitted", "unmet",
+             "additional", "need more", "most client", "most people", "people received", "referral",
+             "greatest need", "need the most", "most need", "busiest", "most visited")
     if any(w in ql for w in VISIT) or (cat and ("area" in ql or "region" in ql) and "need" in ql):
         if cat is None:
+            if area:                                  # overall demand for the whole area
+                return _format(q.area_demand(area))
             return ("For visit or demand numbers, please name a category: shelter, food, medical, "
-                    "legal, or translation.")
+                    "legal, or translation, or an area.")
         need, label = cat
         if any(w in ql for w in ("most visitor", "most client", "most people", "receive the most",
-                                 "serve the most")):
+                                 "serve the most", "highest number", "receive the highest",
+                                 "most visited", "busiest", "referral")):
             return _format(q.top_centers(label, need))
         if any(w in ql for w in ("unmet", "additional", "need more")):
             return _format(q.unmet(label, need, label))

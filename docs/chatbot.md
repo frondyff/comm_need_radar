@@ -20,6 +20,41 @@ python3 scripts/chatbot.py --chat
 python3 scripts/chatbot.py "list all the shelters in Verdun"
 ```
 
+### Guided (decision-tree) mode
+
+Instead of typing questions, the user picks from menus. Same grounded backend, so
+every answer is accurate and shows its source, and the user can only ask what the
+data supports (no misroutes, nothing to decline).
+
+```bash
+python3 scripts/chatbot_menu.py
+```
+
+The menu tree:
+
+```
+What would you like to know?
+  1. Find services / organizations  -> category -> area -> group
+  2. Service demand and visits      -> category -> (total visits / demand by area /
+                                                    top centres / areas needing more)
+  3. About an area                  -> area -> (overview / demographics / needs / demand)
+  4. City-wide rankings             -> (most vulnerable / highest gap / most immigrants /
+                                        lowest income / housing pressure)
+```
+
+For the frontend, wire buttons/dropdowns to the structured entry point (it returns
+the same `(answer, source_table)`):
+
+```python
+from chatbot_menu import answer_structured
+answer_structured("find_services", category="Shelter", area="Verdun",
+                  audience={"immigrant": True})
+answer_structured("demand", category="food", area="Verdun", metric="visits")
+answer_structured("ranking", metric="vulnerable")
+```
+
+### Open-text mode
+
 By default it reads the local `data/community_radar.sqlite` and needs only
 Python's standard library. If `python3` is not found, use the Anaconda Python
 (`/opt/anaconda3/bin/python3`).
