@@ -263,6 +263,18 @@ def visits_total(cat, need):
             "observed_need_category_summary (synthetic visit/usage data)")
 
 
+def area_demand(area):
+    aid, name = area
+    r = rows("SELECT rolling_visit_count, top_key_needs FROM observed_need_index WHERE area_id=:a",
+             {"a": aid})
+    if not r:
+        return (f"No demand data is available for {name}.", "observed_need_index")
+    total, needs = r[0]
+    return (f"In {name}, there were about {int(total):,} recorded visits in total. "
+            f"The most reported needs were: {needs}.",
+            "observed_need_index (synthetic visit/usage data)")
+
+
 def top_needs(area):
     area_id, name = area
     r = rows("SELECT top_key_needs FROM observed_need_index WHERE area_id=:a", {"a": area_id})
