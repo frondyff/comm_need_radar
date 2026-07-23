@@ -143,6 +143,7 @@ def answer(question: str) -> str:
 
 def chat():
     print("Community Radar assistant. Ask about services, demand, or gaps. Type 'quit' to exit.\n")
+    history = []
     while True:
         try:
             question = input("you > ").strip()
@@ -151,7 +152,16 @@ def chat():
         if question.lower() in ("quit", "exit", "q"):
             break
         if question:
-            print("\n" + answer(question) + "\n")
+            reply = answer(question)
+            print("\n" + reply + "\n")
+            history.append((question, reply.split("\n")[0]))
+
+    if history:
+        print("\n--- Summary of your session ---")
+        for i, (ques, ans) in enumerate(history, 1):
+            print(f"  {i}. Q: {ques}")
+            print(f"     A: {ans}")
+    print("\nGoodbye! Thank you for using our service!")
 
 
 if __name__ == "__main__":
