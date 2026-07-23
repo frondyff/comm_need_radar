@@ -33,3 +33,4 @@ Closes #
 - [ ] Acceptance criteria are satisfied
 - [ ] Dependencies or blockers are documented
 - [ ] Handoff notes are clear for the next owner
+- [ ] Target branch is `dev`, unless this is a milestone promotion from `dev` to `main`
