@@ -17,6 +17,7 @@ import sys
 import chatbot_queries as q
 
 BACK = "__back__"
+HISTORY = []
 
 CATEGORY_OPTS = [("Shelter", "shelter"), ("Food", "food"), ("Medical", "medical"),
                  ("Legal", "legal"), ("Translation", "translation")]
@@ -99,6 +100,20 @@ def show(result):
     print(f"\n\U0001F4CA Source (table): {source}")
 
 
+def _emit(label, result):
+    show(result)
+    HISTORY.append((label, result[0].split("\n")[0]))
+
+
+def _farewell():
+    if HISTORY:
+        print("\n--- Summary of your session ---")
+        for i, (label, ans) in enumerate(HISTORY, 1):
+            print(f"  {i}. {label}")
+            print(f"     -> {ans}")
+    print("\nGoodbye! Thank you for using our service!")
+
+
 def _find():
     cat = pick("Which service category?", CATEGORY_OPTS + [("Any category", None)])
     if cat is BACK:
@@ -110,7 +125,12 @@ def _find():
     if grp is BACK:
         return
     sc = q.CATEGORIES[cat][1] if cat else None
-    show(q.query_services("list", sc, area, grp))
+    extra = (" for Indigenous people" if grp.get("indigenous") else
+             " for immigrants/newcomers" if grp.get("immigrant") else
+             f" for {grp['gender']}" if grp.get("gender") else
+             f" for {grp['age']}" if grp.get("age") else "")
+    label = f"List {sc or 'all'} services" + (f" in {area[1]}" if area else "") + extra
+    _emit(label, q.query_services("list", sc, area, grp))
 
 
 def _demand():
@@ -129,13 +149,14 @@ def _demand():
         area = pick("Which area?", _areas())
         if area is BACK:
             return
-        show(q.visits_in_area(sc, need, area) if area else q.visits_total(sc, need))
+        _emit(f"Visits for {cat}" + (f" in {area[1]}" if area else " (Montreal total)"),
+              q.visits_in_area(sc, need, area) if area else q.visits_total(sc, need))
     elif metric == "demand":
-        show(q.demand_by_area(sc, need))
+        _emit(f"Demand by area for {cat}", q.demand_by_area(sc, need))
     elif metric == "centres":
-        show(q.top_centers(sc, need))
+        _emit(f"Top centres for {cat}", q.top_centers(sc, need))
     elif metric == "unmet":
-        show(q.unmet(sc, need, sc))
+        _emit(f"Areas needing more {cat}", q.unmet(sc, need, sc))
 
 
 def _area():
@@ -149,8 +170,9 @@ def _area():
         ("Total service demand", "demand")])
     if metric is BACK:
         return
-    show({"overview": q.explain_area, "demographics": q.area_stats,
-          "needs": q.top_needs, "demand": q.area_demand}[metric](area))
+    _emit(f"{area[1]}: {metric}",
+          {"overview": q.explain_area, "demographics": q.area_stats,
+           "needs": q.top_needs, "demand": q.area_demand}[metric](area))
 
 
 def _rank():
@@ -160,7 +182,10 @@ def _rank():
         ("Highest housing pressure", "housing")])
     if metric is BACK:
         return
-    show(answer_structured("ranking", metric=metric))
+    labels = {"vulnerable": "Most vulnerable areas", "gap": "Highest service gap",
+              "immigrants": "Most immigrants", "income_low": "Lowest income",
+              "housing": "Highest housing pressure"}
+    _emit(labels[metric], answer_structured("ranking", metric=metric))
 
 
 def menu():
@@ -173,9 +198,9 @@ def menu():
             ("City-wide rankings", "rank"),
             ("Quit", "quit")])
         if choice in (BACK, "quit"):
-            print("Goodbye.")
-            return
+            break
         {"find": _find, "demand": _demand, "area": _area, "rank": _rank}[choice]()
+    _farewell()
 
 
 if __name__ == "__main__":
