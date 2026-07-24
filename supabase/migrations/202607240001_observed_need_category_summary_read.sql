@@ -5,6 +5,10 @@ begin;
 -- Consistent with the other app_read_* policies. Read-only; no write access.
 alter table public.observed_need_category_summary enable row level security;
 
+-- Base table privilege: RLS decides which rows, but the role still needs the
+-- table-level SELECT grant (the other app_read_* tables all have both).
+grant select on public.observed_need_category_summary to anon, authenticated;
+
 drop policy if exists app_read_observed_need_category_summary on public.observed_need_category_summary;
 create policy app_read_observed_need_category_summary on public.observed_need_category_summary
 for select to anon, authenticated using (true);
