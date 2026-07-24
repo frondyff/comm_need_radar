@@ -26,6 +26,20 @@ const SOURCE = {
 
 const client = () => getSupabaseClient();
 const num = v => Number(v || 0).toLocaleString();
+
+// The 12 analysis areas, so the chatbot can offer them as menu choices instead
+// of depending on a map click. Returns [{ areaId, areaLabel }] ordered by name.
+export async function listAreas() {
+  const c = client();
+  if (!c) return [];
+  const { data, error } = await c
+    .from("area_profile")
+    .select("area_id, area_name")
+    .order("area_name");
+  if (error || !data) return [];
+  return data.map(r => ({ areaId: r.area_id, areaLabel: r.area_name }));
+}
+
 const cap = s => (s ? s[0].toUpperCase() + s.slice(1) : s);
 const phone = p => (p ? `  (${String(p).split(/\s+/).join(" ")})` : "");
 const notConfigured = () => ({ answer: "The live data source is not configured.", source: "n/a" });
