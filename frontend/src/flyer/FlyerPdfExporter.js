@@ -1,6 +1,5 @@
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
-import { getFlyerFileName } from "./flyerData";
 import { FLYER_PREVIEW_ELEMENT_ID } from "./flyerStyles";
 
 export class FlyerPdfExporter {
@@ -18,17 +17,27 @@ export class FlyerPdfExporter {
     this.#createPdf = createPdf;
   }
 
-  async export(service) {
+  async export(flyer) {
+    if (!flyer?.service || !flyer?.fileName) {
+      throw new Error("A current flyer view model is required for export.");
+    }
+
     const flyerElement = this.#getFlyerElement();
     const canvas = await this.#canvasRenderer(flyerElement, {
       backgroundColor: "#ffffff",
       logging: false,
+      // html2canvas receives a clone, so remove only the preview controls
+      // there. The live Leaflet map keeps its user-selected zoom and the
+      // in-map legend remains part of the downloaded flyer.
+      onclone: (clonedDocument) => {
+        clonedDocument.querySelectorAll(".flyer-map-controls").forEach((control) => control.remove());
+      },
       scale: 2,
       useCORS: true,
     });
     const pdf = this.#createPdf();
     const placement = this.#getImagePlacement(pdf, canvas);
-    const fileName = getFlyerFileName(service);
+    const fileName = flyer.fileName;
 
     pdf.addImage(canvas.toDataURL("image/png"), "PNG", placement.x, placement.y, placement.width, placement.height);
     pdf.save(fileName);
@@ -49,7 +58,10 @@ export class FlyerPdfExporter {
   #getImagePlacement(pdf, canvas) {
     const pageWidth = pdf.internal.pageSize.getWidth();
     const pageHeight = pdf.internal.pageSize.getHeight();
-    const margin = 8;
+    // The flyer preview is already an A4-proportioned composition. Keep the
+    // export edge-to-edge so the downloaded page is the same composition,
+    // rather than shrinking it into an additional white frame.
+    const margin = 0;
     const maxWidth = pageWidth - margin * 2;
     const maxHeight = pageHeight - margin * 2;
     const imageRatio = canvas.width / canvas.height;

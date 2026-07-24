@@ -9,6 +9,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "test:flyer": "node --test src/flyer/flyerMapState.test.js",
     "preview": "vite preview",
     "typecheck:api": "tsc -p tsconfig.api.json",
     "validate:boundaries": "node scripts/validate-boundaries.mjs",

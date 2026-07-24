@@ -4,9 +4,14 @@ import { useEffect } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { Radar, LocateFixed, Search, ChevronLeft, Layers, Activity, AlertTriangle, TrendingUp } from "lucide-react";
-import { CategoryIcon, CATEGORY_COLORS, createServiceMarker, createUserLocationMarker } from "./components/serviceVisuals";
+import { CategoryIcon, CATEGORY_COLORS, MAP_LEGEND_ITEMS, createServiceMarker, createUserLocationMarker } from "./components/serviceVisuals";
 import { ChatbotWidget } from "./chatbot/ChatbotWidget.jsx";
 import { FlyerPreview } from "./flyer/FlyerPreview";
+<<<<<<< Updated upstream
+=======
+import { flyerPdfExporter } from "./flyer/FlyerPdfExporter";
+import { FlyerViewModel } from "./flyer/flyerData";
+>>>>>>> Stashed changes
 import { loadDashboardData } from "./lib/dashboardAdapter.js";
 import { logFlyerDownload, logPageEvent } from "./lib/analytics.js";
 import { haversineKm } from "./lib/supabaseData.js";
@@ -663,13 +668,6 @@ export default function CommunityRadar() {
       .sort((a, b) => (a.distanceKm ?? Infinity) - (b.distanceKm ?? Infinity));
   }, [rawServices, selectedLocation?.id, selectedLocation?.lat, selectedLocation?.lng]);
 
-  useEffect(() => {
-    if (services.length > 0 && !services.some(service => service.id === selected?.id)) {
-      setSelected(services[0]);
-      setFlyerDone(false);
-    }
-  }, [services, selected?.id]);
-
   const T = {
     title:"Community Radar",
     chooseRole: isEN?"Who are you?":"Qui êtes-vous?",
@@ -701,7 +699,7 @@ export default function CommunityRadar() {
   // the loaded data, so it adapts automatically as new values show up.
   const otherCategoryOptions = [...new Set(services.filter(s=>s.category==="Other").map(s=>s.type).filter(Boolean))].sort();
 
-  const filtered = services.filter(s => {
+  const filtered = useMemo(() => services.filter(s => {
     const mg = activeGroup.length===0 || s.group.some(g=>activeGroup.includes(g));
     const mge = !activeGender || s.gender===activeGender || s.gender==="All";
     const ma = activeAge.length===0 || (s.ageGroups||[]).some(a=>activeAge.includes(a));
@@ -710,7 +708,31 @@ export default function CommunityRadar() {
       || activeOtherCategory.includes(s.type);
     const ms = !search || s.name.toLowerCase().includes(search.toLowerCase()) || s.type.toLowerCase().includes(search.toLowerCase());
     return mg && mge && ma && mc && ms;
-  });
+  }), [services, activeGroup, activeGender, activeAge, activeCategory, activeOtherCategory, search]);
+
+  // The selected centre is always one the user can see in the current result
+  // list. This prevents a filter or data refresh from leaving an old service
+  // in the right panel or in the next downloaded flyer.
+  useEffect(() => {
+    const currentService = selected && filtered.find(service => String(service.id) === String(selected.id));
+    if (currentService === selected) return;
+
+    setSelected(currentService || filtered[0] || null);
+    setFlyerDone(false);
+    setFlyerDownloadError("");
+    setRightTab("info");
+  }, [filtered, selected]);
+
+  const flyer = useMemo(() => {
+    if (!selected || !selectedLocation) return null;
+    return FlyerViewModel.fromSelection({
+      service: selected,
+      location: selectedLocation,
+      candidateServices: filtered,
+      language: lang,
+      updatedLabel: T.updated,
+    });
+  }, [selected, selectedLocation, filtered, lang, T.updated]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const pagedFiltered = filtered.slice(listPage * PAGE_SIZE, (listPage + 1) * PAGE_SIZE);
@@ -726,20 +748,27 @@ export default function CommunityRadar() {
 
   const handleLocationSelected = (location) => {
     setDistLocation(location);
+    setFlyerDone(false);
+    setFlyerDownloadError("");
+    setRightTab("info");
     logEvent("dist_location_selected", location.name, {});
     setStep(locationReturnStep);
   };
 
   const handleDownload = async () => {
-    if (!selected || isDownloadingFlyer) return;
+    if (!flyer || isDownloadingFlyer) return;
 
     setFlyerDone(false);
     setFlyerDownloadError("");
     setIsDownloadingFlyer(true);
 
     try {
+<<<<<<< Updated upstream
       const { flyerPdfExporter } = await import("./flyer/FlyerPdfExporter");
       await flyerPdfExporter.export(selected);
+=======
+      await flyerPdfExporter.export(flyer);
+>>>>>>> Stashed changes
       setFlyerDone(true);
       logFlyer(selected,{group:activeGroup,gender:activeGender,age:activeAge,category:[...activeCategory,...activeOtherCategory],location:selectedLocation.name,locationObj:selectedLocation,language:lang},meta);
     } catch (error) {
@@ -910,9 +939,9 @@ export default function CommunityRadar() {
         </div>
 
         {/* MAIN: list | right panel */}
-        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14}}>
+        <div style={{display:"grid",gridTemplateColumns:"minmax(0, 1fr) minmax(0, 1fr)",gap:14}}>
           {/* LEFT: list or map */}
-          <div style={{background:"#fff",border:"1px solid #E2E8F0",borderRadius:8,overflow:"hidden",display:"flex",flexDirection:"column"}}>
+          <div style={{background:"#fff",border:"1px solid #E2E8F0",borderRadius:8,overflow:"hidden",display:"flex",flexDirection:"column",minWidth:0}}>
             {showMap ? (
               <div style={{position:"relative",flex:1,minHeight:440,zIndex:0}}>
                 <button onClick={()=>setShowMap(false)} style={{position:"absolute",top:10,left:10,zIndex:1001,padding:"5px 12px",borderRadius:8,border:"1px solid #E2E8F0",background:"#fff",cursor:"pointer",fontSize:13}}>{T.backList}</button>
@@ -930,9 +959,8 @@ export default function CommunityRadar() {
                     </Marker>
                   ))}
                 </MapContainer>
-                <div style={{position:"absolute",bottom:10,left:10,zIndex:1000,background:"rgba(255,255,255,0.95)",borderRadius:6,padding:"4px 8px",border:"1px solid #E2E8F0",display:"flex",flexDirection:"column",gap:3}}>
-                  <div style={{display:"flex",alignItems:"center",gap:4,fontSize:11}}><div style={{width:8,height:8,borderRadius:"50%",background:"#0F172A"}}/>{isEN?"You are here":"Vous êtes ici"}</div>
-                  {categories.map(c=><div key={c.label} style={{display:"flex",alignItems:"center",gap:4,fontSize:11}}><div style={{width:8,height:8,borderRadius:"50%",background:c.color}}/>{c.label}</div>)}
+                <div aria-label="Leaflet map legend" style={{position:"absolute",bottom:10,left:10,zIndex:1000,background:"rgba(255,255,255,0.95)",borderRadius:6,padding:"4px 8px",border:"1px solid #E2E8F0",display:"flex",flexDirection:"column",gap:3}}>
+                  {MAP_LEGEND_ITEMS.map(item=><div key={item.label} style={{display:"flex",alignItems:"center",gap:4,fontSize:11}}><div style={{width:8,height:8,borderRadius:"50%",background:item.color}}/>{item.kind==="location"?(isEN?"You are here":"Vous êtes ici"):item.label}</div>)}
                 </div>
               </div>
             ) : (
@@ -1011,7 +1039,7 @@ export default function CommunityRadar() {
           </div>
 
           {/* RIGHT: tabbed panel */}
-          <div style={{display:"flex",flexDirection:"column",gap:0}}>
+          <div style={{display:"flex",flexDirection:"column",gap:0,minWidth:0}}>
             {selected && (
               <div style={{background:"#fff",border:"1px solid #E2E8F0",borderRadius:8,overflow:"hidden",display:"flex",flexDirection:"column",height:"100%"}}>
                 {/* Tab bar */}
@@ -1091,7 +1119,7 @@ export default function CommunityRadar() {
                 {/* Flyer preview tab */}
                 {rightTab==="flyer" && (
                   <div style={{flex:1,overflowY:"auto",background:"#F1F5F9",padding:"16px",display:"flex",flexDirection:"column",gap:12}}>
-                    <FlyerPreview service={selected} location={selectedLocation} services={services} language={lang} updatedLabel={T.updated}/>
+                    <FlyerPreview flyer={flyer}/>
 
                     <div>
                       {flyerDone && <div style={{marginBottom:8,padding:"7px 10px",background:"#ECFDF5",borderRadius:6,color:"#059669",fontSize:12}}>✓ PDF downloaded successfully</div>}

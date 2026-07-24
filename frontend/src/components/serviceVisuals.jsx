@@ -1,5 +1,6 @@
 import L from "leaflet";
-import { Globe, Home, Layers, Scale, Stethoscope, UtensilsCrossed } from "lucide-react";
+import { renderToStaticMarkup } from "react-dom/server";
+import { Circle, CircleUserRound, Globe, Home, Layers, MapPin, Scale, Stethoscope, UtensilsCrossed } from "lucide-react";
 
 export const CATEGORY_COLORS = Object.freeze({
   Shelter: "#DC2626",
@@ -9,6 +10,15 @@ export const CATEGORY_COLORS = Object.freeze({
   Translation: "#9333EA",
   Other: "#64748B",
 });
+
+export const USER_LOCATION_COLOR = "#0F172A";
+
+// This is the sole visual contract for category colors on every Leaflet map,
+// map legend, marker, and flyer service-centre detail.
+export const MAP_LEGEND_ITEMS = Object.freeze([
+  Object.freeze({ label: "You are here", color: USER_LOCATION_COLOR, kind: "location" }),
+  ...Object.entries(CATEGORY_COLORS).map(([label, color]) => Object.freeze({ label, color, kind: "service" })),
+]);
 
 const CATEGORY_ICONS = Object.freeze({
   Shelter: Home,
@@ -40,10 +50,10 @@ export function createUserLocationMarker() {
   // was the exact same color as the Legal category dot.
   const svg = `
     <svg xmlns="http://www.w3.org/2000/svg" width="30" height="40" viewBox="0 0 30 40">
-      <path d="M15 0C6.7 0 0 6.7 0 15c0 11 15 25 15 25s15-14 15-25C30 6.7 23.3 0 15 0z" fill="#0F172A" stroke="white" stroke-width="2"/>
+      <path d="M15 0C6.7 0 0 6.7 0 15c0 11 15 25 15 25s15-14 15-25C30 6.7 23.3 0 15 0z" fill="${USER_LOCATION_COLOR}" stroke="white" stroke-width="2"/>
       <circle cx="15" cy="15" r="9.5" fill="white"/>
-      <circle cx="15" cy="11.5" r="3.6" fill="#0F172A"/>
-      <path d="M8.2 21c0-3.9 3.1-6.2 6.8-6.2s6.8 2.3 6.8 6.2" fill="none" stroke="#0F172A" stroke-width="2.2" stroke-linecap="round"/>
+      <circle cx="15" cy="11.5" r="3.6" fill="${USER_LOCATION_COLOR}"/>
+      <path d="M8.2 21c0-3.9 3.1-6.2 6.8-6.2s6.8 2.3 6.8 6.2" fill="none" stroke="${USER_LOCATION_COLOR}" stroke-width="2.2" stroke-linecap="round"/>
     </svg>`;
 
   return L.divIcon({
@@ -53,6 +63,41 @@ export function createUserLocationMarker() {
     iconAnchor: [15, 40],
     popupAnchor: [0, -36],
   });
+}
+
+function createFlyerPinMarker({ color, InnerIcon, size = 36 }) {
+  const iconMarkup = renderToStaticMarkup(
+    <span style={{ display: "inline-flex", height: size, position: "relative", width: size }}>
+      <MapPin size={size} color={color} fill={color} strokeWidth={1.5} />
+      <InnerIcon
+        size={size * 0.48}
+        color="#fff"
+        fill={InnerIcon === Circle ? "#fff" : "none"}
+        strokeWidth={InnerIcon === Circle ? 1 : 2.7}
+        style={{ left: size * 0.26, position: "absolute", top: size * 0.17 }}
+      />
+    </span>,
+  );
+
+  return L.divIcon({
+    html: iconMarkup,
+    className: "",
+    iconSize: [size, size],
+    iconAnchor: [size / 2, size],
+    popupAnchor: [0, -size],
+  });
+}
+
+export function createFlyerStartMarker() {
+  return createFlyerPinMarker({ color: "#111111", InnerIcon: CircleUserRound, size: 38 });
+}
+
+export function createFlyerPrimaryMarker() {
+  return createFlyerPinMarker({ color: "#E50914", InnerIcon: Circle, size: 40 });
+}
+
+export function createFlyerShelterMarker(color) {
+  return createFlyerPinMarker({ color, InnerIcon: Home, size: 36 });
 }
 
 export function CategoryIcon({ category, size = 14, color, style }) {
