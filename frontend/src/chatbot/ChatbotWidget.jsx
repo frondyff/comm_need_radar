@@ -55,7 +55,9 @@ export function ChatbotWidget({ isEN, selectedAreaId, selectedAreaLabel }) {
     setChatOpen(false); setScreen("root"); setCategory(null);
     setPickedArea(null); setResult(null); setHistory([]);
   };
-  const requestClose = () => (history.length ? setScreen("bye") : doClose());
+  // First ✕ shows the session summary; a second ✕ (already on the summary, or
+  // when there is nothing to summarize) closes the chat.
+  const requestClose = () => (screen !== "bye" && history.length ? setScreen("bye") : doClose());
 
   async function run(label, promise) {
     setLoading(true); setScreen("result");
