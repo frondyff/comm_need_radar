@@ -28,6 +28,7 @@ declare
         'service_table',
         'services_master',
         'observed_need_index',
+        'observed_need_category_summary',
         'vulnerability_index_v2'
     ];
     missing_objects text;
@@ -137,6 +138,8 @@ begin
     if actual_count <> 3664 then raise exception 'services_master expected 3664 rows, found %', actual_count; end if;
     select count(*) into actual_count from public.observed_need_index;
     if actual_count <> 12 then raise exception 'observed_need_index expected 12 rows, found %', actual_count; end if;
+    select count(*) into actual_count from public.observed_need_category_summary;
+    if actual_count <> 110 then raise exception 'observed_need_category_summary expected 110 rows, found %', actual_count; end if;
     select count(*) into actual_count from public.vulnerability_index_v2;
     if actual_count <> 12 then raise exception 'vulnerability_index_v2 expected 12 rows, found %', actual_count; end if;
 
@@ -155,6 +158,11 @@ begin
         left join public.area_profile a using (area_id)
         where a.area_id is null
     ) then raise exception 'observed_need_index contains orphan area IDs'; end if;
+    if exists (
+        select 1 from public.observed_need_category_summary o
+        left join public.area_profile a using (area_id)
+        where a.area_id is null
+    ) then raise exception 'observed_need_category_summary contains orphan area IDs'; end if;
     if exists (
         select 1 from public.vulnerability_index_v2 v
         left join public.area_profile a using (area_id)

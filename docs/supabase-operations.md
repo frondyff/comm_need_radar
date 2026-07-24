@@ -13,10 +13,11 @@ The browser may read only these aggregated, app-ready tables:
 - `service_table` (legacy compatibility)
 - `services_master` (canonical dashboard service directory)
 - `observed_need_index`
+- `observed_need_category_summary` (aggregated synthetic demand by area/category)
 - `vulnerability_index_v2`
 
 The migrations enable RLS on all 19 tables, revoke browser-role privileges by
-default, and grant `SELECT` only on those seven tables. Raw/source tables and both
+default, and grant `SELECT` only on those eight tables. Raw/source tables and both
 database views remain inaccessible to `anon` and `authenticated` roles.
 
 Use only the project URL and publishable key in the browser. Database passwords,
@@ -52,7 +53,7 @@ Cloud refresh uses **transactional replace** semantics:
   RLS; the loader never drops database objects.
 - The loader truncates and reloads all 19 tables inside one transaction.
 - Source and target row counts must match for every table.
-- All seven app-ready tables must be nonempty.
+- All eight app-ready tables must be nonempty.
 - Foreign keys are checked before commit.
 - Any missing object, column mismatch, load error, or validation failure rolls
   the complete refresh back and exits nonzero.
@@ -70,6 +71,7 @@ constraints and RLS policies.
 | `service_table` | 4,255 |
 | `services_master` | 3,664 |
 | `observed_need_index` | 12 |
+| `observed_need_category_summary` | 110 |
 | `vulnerability_index_v2` | 12 |
 
 Change these expectations only as part of a reviewed data refresh.
@@ -106,6 +108,7 @@ the implementation PR or issue comment.
 | `gap_score` | `area_id` | `area_profile.area_id` |
 | `accessibility` | `area_id` | `area_profile.area_id` |
 | `observed_need_index` | `area_id` | `area_profile.area_id` |
+| `observed_need_category_summary` | `area_id` | `area_profile.area_id` |
 | `vulnerability_index_v2` | `area_id` | `area_profile.area_id` |
 | `center_area_lookup` | `center_id`, `area_id` | centers and areas |
 | `services_master` | `area_id` | `area_profile.area_id` |

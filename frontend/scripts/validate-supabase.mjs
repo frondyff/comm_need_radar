@@ -21,6 +21,9 @@ const expectedCounts = {
   service_table: Number(env.SUPABASE_EXPECTED_SERVICE_TABLE_ROWS ?? 4255),
   services_master: Number(env.SUPABASE_EXPECTED_SERVICES_MASTER_ROWS ?? 3664),
   observed_need_index: Number(env.SUPABASE_EXPECTED_OBSERVED_NEED_INDEX_ROWS ?? 12),
+  observed_need_category_summary: Number(
+    env.SUPABASE_EXPECTED_OBSERVED_NEED_CATEGORY_SUMMARY_ROWS ?? 110
+  ),
   vulnerability_index_v2: Number(
     env.SUPABASE_EXPECTED_VULNERABILITY_INDEX_V2_ROWS ?? 12
   )
@@ -104,6 +107,13 @@ const requiredColumns = {
     "observed_data_basis",
     "insufficient_visit_data"
   ],
+  observed_need_category_summary: [
+    "area_id",
+    "key_need",
+    "encounter_count",
+    "encounter_share_pct",
+    "category_rank"
+  ],
   vulnerability_index_v2: [
     "area_id",
     "vulnerability_index_v2",
@@ -120,6 +130,7 @@ const keyColumns = {
   service_table: ["service_id"],
   services_master: ["service_id"],
   observed_need_index: ["area_id"],
+  observed_need_category_summary: ["area_id", "key_need"],
   vulnerability_index_v2: ["area_id"]
 };
 
@@ -135,7 +146,6 @@ const privateObjects = [
   "role_activity_log",
   "flyer_examples",
   "center_area_lookup",
-  "observed_need_category_summary",
   "v_visit_needs_by_center",
   "v_ct_vulnerability"
 ];
@@ -221,6 +231,7 @@ for (const table of [
   "gap_score",
   "accessibility",
   "observed_need_index",
+  "observed_need_category_summary",
   "vulnerability_index_v2"
 ]) {
   const orphanIds = [

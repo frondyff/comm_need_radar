@@ -55,6 +55,7 @@ export async function listServices({ category, areaId, areaLabel, audience = {} 
   if (audience.indigenous) q = q.eq("serves_indigenous", true);
   if (audience.immigrant) q = q.eq("serves_immigrant", true);
   if (audience.gender) q = q.eq("gender_focus", audience.gender);
+  if (audience.age) q = q.ilike("age_groups", `%${audience.age}%`);
   const { data, count, error } = await q.order("name").limit(20);
   if (error) return failed(error);
   const label = (service ? service.toLowerCase() + " " : "") + "organizations";

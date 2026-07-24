@@ -2,6 +2,7 @@ import {
   CHATBOT_API_STATUS,
   sendChatbotMessage,
 } from "../src/chatbot/chatbotApi.js";
+import { readFile } from "node:fs/promises";
 
 const originalFetch = globalThis.fetch;
 const failures = [];
@@ -49,6 +50,25 @@ try {
   });
   if (failure.status !== CHATBOT_API_STATUS.error || failure.limitations.length === 0) {
     failures.push("Chatbot client did not expose a safe API error state");
+  }
+
+  const groundedSource = await readFile(
+    new URL("../src/chatbot/groundedChatbot.js", import.meta.url),
+    "utf8"
+  );
+  if (!groundedSource.includes('q.ilike("age_groups", `%${audience.age}%`)')) {
+    failures.push("Grounded chatbot does not apply the selected age-group filter");
+  }
+
+  const widgetSource = await readFile(
+    new URL("../src/chatbot/ChatbotWidget.jsx", import.meta.url),
+    "utf8"
+  );
+  if (
+    !widgetSource.includes("Highest income pressure")
+    || widgetSource.includes('["Lowest income"')
+  ) {
+    failures.push("Grounded chatbot ranking label does not match income-pressure semantics");
   }
 } finally {
   globalThis.fetch = originalFetch;

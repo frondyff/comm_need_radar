@@ -200,8 +200,8 @@ export function ChatbotWidget({ isEN, selectedAreaId, selectedAreaLabel }) {
         ["Highest service gap", () => run("Ranking: highest service gap", highestGap())],
         ["Most immigrants", () => run("Ranking: most immigrants",
           rankBy({ column: "immigration_indicator", label: "immigrant concentration" }))],
-        ["Lowest income", () => run("Ranking: lowest income",
-          rankBy({ column: "income_indicator", label: "income pressure", ascending: true }))],
+        ["Highest income pressure", () => run("Ranking: highest income pressure",
+          rankBy({ column: "income_indicator", label: "income pressure" }))],
       ]} />;
     }
     return null;

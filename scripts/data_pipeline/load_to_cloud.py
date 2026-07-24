@@ -50,6 +50,7 @@ APP_READY_TABLES = (
     "service_table",
     "services_master",
     "observed_need_index",
+    "observed_need_category_summary",
     "vulnerability_index_v2",
 )
 
