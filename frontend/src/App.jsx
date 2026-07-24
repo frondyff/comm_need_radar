@@ -7,11 +7,7 @@ import { Radar, LocateFixed, Search, ChevronLeft, Layers, Activity, AlertTriangl
 import { CategoryIcon, CATEGORY_COLORS, MAP_LEGEND_ITEMS, createServiceMarker, createUserLocationMarker } from "./components/serviceVisuals";
 import { ChatbotWidget } from "./chatbot/ChatbotWidget.jsx";
 import { FlyerPreview } from "./flyer/FlyerPreview";
-<<<<<<< Updated upstream
-=======
-import { flyerPdfExporter } from "./flyer/FlyerPdfExporter";
 import { FlyerViewModel } from "./flyer/flyerData";
->>>>>>> Stashed changes
 import { loadDashboardData } from "./lib/dashboardAdapter.js";
 import { logFlyerDownload, logPageEvent } from "./lib/analytics.js";
 import { haversineKm } from "./lib/supabaseData.js";
@@ -763,12 +759,8 @@ export default function CommunityRadar() {
     setIsDownloadingFlyer(true);
 
     try {
-<<<<<<< Updated upstream
       const { flyerPdfExporter } = await import("./flyer/FlyerPdfExporter");
-      await flyerPdfExporter.export(selected);
-=======
       await flyerPdfExporter.export(flyer);
->>>>>>> Stashed changes
       setFlyerDone(true);
       logFlyer(selected,{group:activeGroup,gender:activeGender,age:activeAge,category:[...activeCategory,...activeOtherCategory],location:selectedLocation.name,locationObj:selectedLocation,language:lang},meta);
     } catch (error) {
