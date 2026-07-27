@@ -60,6 +60,14 @@ SCHEMA = {
             k_anon_count INTEGER, severity TEXT, population_group TEXT,
             language_need_flag INTEGER, settlement_need_flag INTEGER,
             indigenous_specific_need_flag INTEGER,
+            source_type TEXT NOT NULL DEFAULT 'synthetic_demonstration',
+            area_id TEXT,
+            weighted_demand_total REAL,
+            service_impression_count INTEGER,
+            intent_rate_per_100_impressions REAL,
+            digital_demand_score REAL,
+            coverage_status TEXT,
+            scoring_version TEXT,
             FOREIGN KEY (center_id) REFERENCES database_center(center_id)
         )""",
     "service_table": """

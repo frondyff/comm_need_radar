@@ -20,6 +20,8 @@
 | 2026-07-14 | Use official administrative polygons and a labeled centroid partition for `A001`/`A002` | Preserves the 12 stable scoring IDs without overlapping synthetic envelopes or presenting the derived divider as official |
 | 2026-07-14 | Keep GeoJSON for the 12-feature production map contract | The generated payload is 265 KB raw and 71 KB gzip; PMTiles adds complexity without a payload benefit at this scale |
 | 2026-07-23 | Use `feature/dashboard` as the canonical React UX and combine production work on `integration/production-web` | Preserves the accepted dashboard interaction model while importing Supabase, scoring, spatial, pipeline, and server API artifacts without reviving the obsolete TypeScript/MapLibre frontend |
+| 2026-07-27 | Use anonymous `page_events` and `flyer_downloads` as the real observed-needs input for experimental V2 | Website behavior supplies the observed score through k-anonymized `database_visitor_tag` aggregates; the original V2 remains 60% structural and 40% observed, while production `gap_score` stays unchanged pending application approval |
+| 2026-07-27 | Keep production gap scoring unchanged while web-observed V2 is evaluated | Preserves the current application contract; the code applies the original 60/40 V2 only after all areas pass coverage and otherwise uses structural-only fallback |
 
 ## Pending Decisions For Real Data Version
 
@@ -28,4 +30,4 @@
 | Final public service source | Laura | Prefer 211 Quebec if structured access is feasible |
 | Future high-resolution geography level | Laura and Frondy | Current release uses 11 official administrative polygons mapped to 12 stable project IDs; reconsider tracts when scoring supports them |
 | Validate V1/V2 weights and saturation thresholds | Frondy and Chloe | Current weights are implemented but experimental |
-| Wire V2 into gap scoring and application views | Frondy and Jessie | Defer until weights and production coverage are validated |
+| Wire V2 into gap scoring and application views | Frondy and Jessie | Defer until production coverage, web-observed quality artifacts, and representative-user interpretation are validated |

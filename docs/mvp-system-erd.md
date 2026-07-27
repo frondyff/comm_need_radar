@@ -1,14 +1,16 @@
 # MVP Data Models
 
-Date updated: 2026-07-02
+Date updated: 2026-07-27
 
-This document separates two related models:
+This document separates three related models:
 
 1. The application-facing model contains the processed tables currently used by
    the dashboard and frontend.
 2. The scoring pipeline model shows how census, geography, center, and
    k-anonymized encounter data produce V1 frontline demand and V2 planning
    scores.
+3. The web-observed model accumulates anonymous website behavior into the
+   existing observed-needs layer without changing the production gap score.
 
 ## Application-Facing Data Model
 
@@ -290,6 +292,83 @@ erDiagram
     }
 ```
 
+## Web-Observed Demand Model
+
+```mermaid
+erDiagram
+    AREA_PROFILE ||--o{ PAGE_EVENT : "optional service-area context"
+    AREA_PROFILE ||--o{ FLYER_DOWNLOAD : "optional service-area context"
+    PAGE_EVENT }o--o{ DATABASE_VISITOR_TAG : "aggregates into"
+    FLYER_DOWNLOAD }o--o{ DATABASE_VISITOR_TAG : "aggregates into"
+    AREA_PROFILE ||--o{ DATABASE_VISITOR_TAG : "receives web snapshot"
+    DATABASE_VISITOR_TAG }o--|| OBSERVED_NEED_INDEX : "supplies observed score"
+    OBSERVED_NEED_INDEX ||--|| VULNERABILITY_INDEX_V2 : "40% when reviewable"
+    AREA_VULNERABILITY_INDEX_REAL ||--|| VULNERABILITY_INDEX_V2 : "60% structural focus"
+
+    PAGE_EVENT {
+        uuid id PK
+        timestamp created_at
+        int event_version
+        string anonymous_session_id
+        string event_type
+        string selected_area_id
+        string service_id
+        string service_area_id
+        string category
+        string source_view
+        boolean is_test
+    }
+
+    FLYER_DOWNLOAD {
+        uuid id PK
+        timestamp created_at
+        int event_version
+        string anonymous_session_id
+        string service_id
+        string selected_area_id
+        string service_area_id
+        string category
+        string distribution_location
+        string source_view
+        boolean is_test
+    }
+
+    DATABASE_VISITOR_TAG {
+        string visit_group_id PK
+        string area_id FK
+        date period_start
+        date period_end
+        string key_need
+        int k_anon_count
+        string source_type
+        float weighted_demand_total
+        int service_impression_count
+        float intent_rate_per_100_impressions
+        float digital_demand_score
+        string coverage_status
+        string scoring_version
+    }
+
+    OBSERVED_NEED_INDEX {
+        string area_id PK, FK
+        int rolling_visit_count
+        string top_need_category
+        float v2_observed_score
+        string observed_data_basis
+        boolean insufficient_visit_data
+    }
+
+    VULNERABILITY_INDEX_V2 {
+        string area_id PK, FK
+        float mvp_focus_census_index
+        float v2_observed_score
+        float structural_weight
+        float observed_weight
+        float vulnerability_index_v2
+        string v2_data_basis
+    }
+```
+
 ## Relationship Notes
 
 - `AREA_PROFILE.area_id` is the main MVP area key.
@@ -309,6 +388,14 @@ erDiagram
   `OBSERVED_NEED_INDEX` contains the area-level V1 and V2 observed summaries.
 - `VULNERABILITY_INDEX_V2` is implemented as an experimental planning score but
   is not yet wired into `GAP_SCORE` or the application-facing views.
+- `PAGE_EVENT` and `FLYER_DOWNLOAD` are insert-only for browser roles. Their
+  area fields are intentionally not foreign keys at ingestion; the private
+  pipeline rejects missing or unknown areas before aggregation.
+- Web `DATABASE_VISITOR_TAG` rows contain only k-anonymized area/window
+  aggregates. The exposure-normalized digital-demand score becomes
+  `OBSERVED_NEED_INDEX.v2_observed_score`; `VULNERABILITY_INDEX_V2` then uses
+  the original 60% structural / 40% observed formula. Partial coverage uses
+  structural-only fallback, and V2 does not feed `GAP_SCORE`.
 - `SERVICES_MASTER` is the canonical single services table: the 211 Grand
   Montréal directory merged with the open-data social/food/library service points,
   de-duplicated (3,664 actionable organizations; park amenities and name-only

@@ -103,11 +103,19 @@ const pageEvent = {
   event_type: "production_grill_write_probe",
   detail: marker,
   location: "automated-test",
+  event_version: 2,
+  anonymous_session_id: marker.slice(0, 128),
+  selected_area_id: null,
+  service_id: null,
+  service_area_id: null,
+  category: null,
+  source_view: "production_grill",
+  is_test: true,
 };
 
 const { data: service, error: serviceError } = await publicClient
   .from("services_master")
-  .select("service_id,name,primary_category")
+  .select("service_id,name,primary_category,area_id")
   .not("service_id", "is", null)
   .limit(1)
   .single();
@@ -129,6 +137,13 @@ const flyerDownload = {
   service_category: service.primary_category || "Other",
   distribution_location: marker,
   flyer_language: "en",
+  event_version: 2,
+  anonymous_session_id: marker.slice(0, 128),
+  selected_area_id: service.area_id,
+  service_area_id: service.area_id,
+  category: service.primary_category || "Other",
+  source_view: "production_grill",
+  is_test: true,
 };
 
 try {

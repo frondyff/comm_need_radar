@@ -136,6 +136,12 @@ client is ever recorded, and the app can't read its own analytics back).
 | `service_id` / `service_name` / `service_category` | Which service the flyer was for |
 | `distribution_location` | Which of the 9 distribution points was selected |
 | `flyer_language` | EN or FR |
+| `event_version` | Analytics contract version; only version 2 is observed-score eligible |
+| `anonymous_session_id` | Random session-scoped ID used only for deduplication |
+| `selected_area_id` / `service_area_id` | Explicit selected/service geography; distribution point is not treated as residence |
+| `category` | Normalized service-interest category |
+| `source_view` | List, map, flyer, or automated validation context |
+| `is_test` | Excludes automated probes from aggregation |
 
 This is what lets us answer "which groups are social workers prioritizing
 when they hand out flyers" — e.g. filtering `flyer_downloads` by
@@ -151,9 +157,14 @@ existing `logEvent(type, detail, meta)` call now writes here automatically.
 | Column | What it captures |
 |---|---|
 | `created_at` | Timestamp (auto) |
-| `event_type` | `page_view`, `group_filter`, `age_filter`, `category_filter`, `other_category_filter`, `search`, `map_opened`, `role_selected`, `service_card_opened`, `dist_location_selected` |
-| `detail` | The specific value for that event (e.g. which category was clicked) |
+| `event_type` | Includes `page_view`, filters, `search`, `service_impression`, `map_opened`, `service_card_opened`, and `dist_location_selected` |
+| `detail` | Bounded event detail. Search records only `query_entered`/`query_empty`, never raw query text |
 | `location` | Distribution point selected at the time, if any |
+| `event_version` | Analytics contract version |
+| `anonymous_session_id` | Random session-scoped deduplication ID |
+| `selected_area_id` / `service_area_id` | Validated area attribution inputs |
+| `service_id` / `category` | Normalized service-interest context |
+| `source_view` / `is_test` | UI source and automated-test exclusion |
 
 `page_view` fires once per app load (on mount), before the person has clicked
 anything.
@@ -168,44 +179,21 @@ download or breaks the UI.
 
 ### Required Supabase setup
 
-```sql
-create table public.flyer_downloads (
-  id uuid primary key default gen_random_uuid(),
-  created_at timestamptz not null default now(),
-  group_filter text[] default '{}',
-  gender_filter text,
-  age_filter text[] default '{}',
-  category_filter text[] default '{}',
-  service_id text,
-  service_name text,
-  service_category text,
-  distribution_location text,
-  flyer_language text
-);
-
-create table public.page_events (
-  id uuid primary key default gen_random_uuid(),
-  created_at timestamptz not null default now(),
-  event_type text not null,
-  detail text,
-  location text
-);
-
-alter table public.flyer_downloads enable row level security;
-alter table public.page_events enable row level security;
-
-create policy "Allow public insert" on public.flyer_downloads for insert to anon with check (true);
-create policy "Allow public insert" on public.page_events for insert to anon with check (true);
-
-grant insert on public.flyer_downloads to anon, authenticated;
-grant insert on public.page_events to anon, authenticated;
-```
+Apply the versioned migrations through
+`supabase/migrations/202607270001_web_observed_demand.sql`. It upgrades both
+analytics tables without deleting existing rows, narrows public inserts, and
+extends the private visitor-tag contract for k-anonymized web aggregates.
 
 Deliberately **no `SELECT` policy** for `anon` on either table — the front
 end should only ever be able to write analytics, never read them back. To
 actually analyze the data, query these tables directly in the Supabase
 dashboard (or with the `service_role` key from a trusted backend), not
 through the public client used by the app.
+
+Version-2 rows may feed the observed-needs layer after deduplication and
+all-area coverage checks. The observed score enters the original 60%
+structural / 40% observed experimental V2; it does not change production
+`gap_score`. See `docs/web-observed-demand-scoring.md`.
 
 ---
 

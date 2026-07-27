@@ -180,6 +180,61 @@ def main() -> None:
                     f"Supabase is missing required views: {', '.join(missing_views)}"
                 )
 
+            # Core refreshes still seed the committed synthetic observed fixture,
+            # but must never replace a real web-observed snapshot. Preserve the
+            # latter inside this transaction before truncating the FK graph.
+            connection.execute(
+                text(
+                    "create temporary table preserve_web_visitor_tag "
+                    "on commit drop as "
+                    "select * from public.database_visitor_tag "
+                    "where source_type = 'web_behavior'"
+                )
+            )
+            connection.execute(
+                text(
+                    "create temporary table preserve_web_observed_need "
+                    "on commit drop as "
+                    "select * from public.observed_need_index "
+                    "where observed_data_basis like 'real_web_behavior%'"
+                )
+            )
+            connection.execute(
+                text(
+                    "create temporary table preserve_web_categories "
+                    "on commit drop as "
+                    "select * from public.observed_need_category_summary "
+                    "where source_type = 'web_behavior'"
+                )
+            )
+            connection.execute(
+                text(
+                    "create temporary table preserve_web_v2 "
+                    "on commit drop as "
+                    "select * from public.vulnerability_index_v2 "
+                    "where v2_data_basis like '%web_behavior%' "
+                    "or v2_data_basis = 'structural_focus_only_web_observed_insufficient'"
+                )
+            )
+            preserved_observed_count = connection.execute(
+                text("select count(*) from preserve_web_observed_need")
+            ).scalar_one()
+            preserved_v2_count = connection.execute(
+                text("select count(*) from preserve_web_v2")
+            ).scalar_one()
+            area_count = connection.execute(
+                text("select count(*) from public.area_profile")
+            ).scalar_one()
+            if (preserved_observed_count or preserved_v2_count) and (
+                preserved_observed_count != area_count
+                or preserved_v2_count != area_count
+            ):
+                raise RuntimeError(
+                    "Refusing to preserve a partial web-observed snapshot: "
+                    f"areas={area_count}, observed={preserved_observed_count}, "
+                    f"v2={preserved_v2_count}"
+                )
+
             # Every table in the known FK graph is included. Avoid CASCADE so a
             # future dependent table outside this contract cannot be erased.
             connection.execute(text(f"truncate table {_quoted_names(TABLES)}"))
@@ -227,6 +282,40 @@ def main() -> None:
                 if table in APP_READY_TABLES and target_count == 0:
                     raise RuntimeError(f"Required app-ready table {table} is empty")
                 print(f"  PASS {table:34s} {target_count:>6d} rows")
+
+            connection.execute(
+                text(
+                    "insert into public.database_visitor_tag "
+                    "select * from preserve_web_visitor_tag"
+                )
+            )
+            if preserved_observed_count:
+                connection.execute(
+                    text("delete from public.observed_need_category_summary")
+                )
+                connection.execute(text("delete from public.observed_need_index"))
+                connection.execute(text("delete from public.vulnerability_index_v2"))
+                connection.execute(
+                    text(
+                        "insert into public.observed_need_category_summary "
+                        "select * from preserve_web_categories"
+                    )
+                )
+                connection.execute(
+                    text(
+                        "insert into public.observed_need_index "
+                        "select * from preserve_web_observed_need"
+                    )
+                )
+                connection.execute(
+                    text(
+                        "insert into public.vulnerability_index_v2 "
+                        "select * from preserve_web_v2"
+                    )
+                )
+                print(
+                    "  PASS web-observed snapshot preserved across core refresh"
+                )
 
             connection.execute(text("set constraints all immediate"))
 

@@ -13,6 +13,9 @@ test("landing page supports language and role selection without horizontal overf
 
   await expect(page).toHaveTitle(/Community Radar/i);
   await expect(page.getByRole("heading", { name: "Community Radar" })).toBeVisible();
+  await expect(page.getByTestId("analytics-privacy-note")).toContainText(
+    "website activity does not change the live vulnerability score"
+  );
   await page.getByRole("button", { name: "FR", exact: true }).click();
   await expect(page.getByText("Qui êtes-vous?")).toBeVisible();
 
@@ -47,7 +50,7 @@ test("community workflow exercises filters, pagination, map, and safe analytics"
   await expect(cards.first()).toBeVisible();
 
   const nextPage = page.getByTestId("next-page");
-  if (await nextPage.isEnabled()) {
+  if (await nextPage.count() > 0 && await nextPage.isEnabled()) {
     await nextPage.click();
     await expect(page.getByText(/Page 2\//)).toBeVisible();
   }
@@ -64,8 +67,15 @@ test("community workflow exercises filters, pagination, map, and safe analytics"
     expect.objectContaining({
       event_type: expect.any(String),
       detail: expect.anything(),
+      event_version: 2,
+      anonymous_session_id: expect.any(String),
+      is_test: false,
     })
   );
+  const pageEventPayloads = analyticsWritesFor(page)
+    .filter(write => write.table === "page_events")
+    .flatMap(write => Array.isArray(write.body) ? write.body : [write.body]);
+  expect(pageEventPayloads.some(payload => payload.detail === "CLSC")).toBe(false);
 });
 
 test("community workflow downloads a valid single-page A4 flyer PDF", async ({ page }) => {
@@ -114,8 +124,13 @@ test("community workflow downloads a valid single-page A4 flyer PDF", async ({ p
       service_category: expect.any(String),
       distribution_location: expect.any(String),
       flyer_language: "EN",
+      event_version: 2,
+      anonymous_session_id: expect.any(String),
+      source_view: "flyer_download",
+      is_test: false,
     })
   );
+  expect(flyerPayload).toHaveProperty("service_area_id");
 });
 
 test("planner workflow loads live areas, switches language, and completes a chatbot session", async ({ page }) => {

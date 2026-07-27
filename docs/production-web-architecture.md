@@ -34,6 +34,13 @@ flowchart LR
     SUPA_APP --> OBS["observed_need_index"]
     SUPA_APP --> V2["vulnerability_index_v2"]
 
+    APP -->|"anonymous insert-only v2 events"| ANALYTICS["page_events + flyer_downloads"]
+    ANALYTICS -->|"private scheduled aggregation"| VISITS["database_visitor_tag web aggregates"]
+    VISITS -->|"coverage-gated observed score"| OBS
+    REAL -->|"60% structural focus"| V2
+    OBS -->|"40% observed when reviewable"| V2
+    V2 -.->|"not yet used by production gap"| REVIEW["Application integration decision"]
+
     APP -->|"POST /api/chat"| CHAT_API["Vercel API route: chatbot service"]
     CHAT_API -->|"server-side Supabase query"| SUPA_APP
     CHAT_API --> RETRIEVAL["Deterministic retrieval + ranking"]
@@ -46,7 +53,7 @@ flowchart LR
 
     SUPA_RAW["Supabase raw/source tables"] -.->|"not exposed to frontend chatbot v1"| CHAT_API
     SUPA_RAW --> CENSUS["census_tract"]
-    SUPA_RAW --> VISITS["database_visitor_tag"]
+    SUPA_RAW --> RAW_VISITS["database_visitor_tag"]
     SUPA_RAW --> CENTERS["database_center"]
 ```
 
@@ -77,6 +84,12 @@ flowchart LR
 - Raw/source tables such as `census_tract`, `database_center`, and
   `database_visitor_tag` remain outside the browser-facing chatbot scope unless
   a separate privacy and RLS review approves them.
+- The browser can insert versioned anonymous events into `page_events` and
+  `flyer_downloads` but cannot read them. `database_visitor_tag` remains private
+  even to anonymous/authenticated browser roles.
+- Website behavior never updates `area_vulnerability_index_real` or
+  `gap_score`. See `docs/web-observed-demand-scoring.md` for deduplication,
+  exposure normalization, quality gates, and the owner decision boundary.
 
 ## Chatbot Service Boundary
 

@@ -29,13 +29,19 @@ Production URL: https://comm-need-radar.vercel.app
 - Public/open service sources consolidated into 4,255 source records and a
   canonical 3,664-row `services_master` frontend layer.
 - Supabase `page_events` and `flyer_downloads` anonymous workflow analytics.
+- Versioned website interactions can replace the synthetic observed layer with
+  real, exposure-normalized, k-anonymized aggregates after coverage gates pass.
+  The production gap score remains unchanged.
 
 ## Synthetic Or Experimental Data
 
-- `database_visitor_tags.csv` contains synthetic, k-anonymized demonstration
-  encounters.
-- `observed_need_index` and `vulnerability_index_v2` therefore remain
-  experimental.
+- The committed `database_visitor_tags.csv` remains a synthetic demonstration
+  fixture and is excluded from the web-observed pipeline.
+- Published web behavior is accumulated into `database_visitor_tag`, becomes
+  `observed_need_index.v2_observed_score`, and enters the original 60%
+  structural / 40% observed `vulnerability_index_v2`.
+- The observed score remains experimental and applies only when every area
+  passes session, active-day, and service-impression thresholds.
 - V2 does not feed the production gap score.
 - Demo frontend constants remain only as a clearly labeled outage/offline
   fallback.
@@ -53,7 +59,12 @@ Production URL: https://comm-need-radar.vercel.app
 
 ## Known Limitations
 
-- Observed-needs inputs are synthetic and must not drive operational decisions.
+- The committed observed-needs fixture is synthetic; only a published
+  `source_type=web_behavior` snapshot may replace it, and V2 remains
+  experimental pending representative-user review.
+- Website interactions measure product reach and service interest, not unique
+  residents or total community need; legacy, test, duplicated, un-attributed,
+  and insufficient-coverage events are excluded from observed scoring.
 - V1/V2 weights require representative user/domain review.
 - The 2.5 km accessibility threshold is straight-line distance, not travel
   time, capacity, eligibility, or availability.

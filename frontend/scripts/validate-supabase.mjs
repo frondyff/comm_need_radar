@@ -6,6 +6,10 @@ const env = loadEnv(process.env.NODE_ENV ?? "development", process.cwd(), "");
 const supabaseUrl = env.VITE_SUPABASE_URL;
 const supabaseKey =
   env.VITE_SUPABASE_PUBLISHABLE_KEY ?? env.VITE_SUPABASE_ANON_KEY;
+const expectedObservedCategoryRows =
+  env.SUPABASE_EXPECTED_OBSERVED_NEED_CATEGORY_SUMMARY_ROWS
+    ? Number(env.SUPABASE_EXPECTED_OBSERVED_NEED_CATEGORY_SUMMARY_ROWS)
+    : null;
 
 if (!supabaseUrl || !supabaseKey) {
   console.error(
@@ -21,9 +25,7 @@ const expectedCounts = {
   service_table: Number(env.SUPABASE_EXPECTED_SERVICE_TABLE_ROWS ?? 4255),
   services_master: Number(env.SUPABASE_EXPECTED_SERVICES_MASTER_ROWS ?? 3664),
   observed_need_index: Number(env.SUPABASE_EXPECTED_OBSERVED_NEED_INDEX_ROWS ?? 12),
-  observed_need_category_summary: Number(
-    env.SUPABASE_EXPECTED_OBSERVED_NEED_CATEGORY_SUMMARY_ROWS ?? 110
-  ),
+  observed_need_category_summary: expectedObservedCategoryRows,
   vulnerability_index_v2: Number(
     env.SUPABASE_EXPECTED_VULNERABILITY_INDEX_V2_ROWS ?? 12
   )
@@ -112,7 +114,10 @@ const requiredColumns = {
     "key_need",
     "encounter_count",
     "encounter_share_pct",
-    "category_rank"
+    "category_rank",
+    "weighted_demand_total",
+    "weighted_demand_share_pct",
+    "source_type"
   ],
   vulnerability_index_v2: [
     "area_id",
@@ -197,7 +202,7 @@ for (const [table, count] of Object.entries(expectedCounts)) {
     fail(`${table} read failed: ${error.message}`);
     continue;
   }
-  if (actualCount !== count) {
+  if (count !== null && actualCount !== count) {
     fail(`${table} expected ${count} rows but returned ${actualCount}`);
     continue;
   }

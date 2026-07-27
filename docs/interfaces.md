@@ -191,11 +191,14 @@ Grain: one row per monitoring check.
 Versioned schema and RLS definitions live in `supabase/migrations/`; operational
 steps and refresh semantics live in `docs/supabase-operations.md`.
 
-The current cloud schema contains 19 tables. Browser roles have read-only access
+The current cloud schema contains 19 core tables plus two cloud-native
+analytics tables. Browser roles have read-only access
 to `area_profile`, `gap_score`, `accessibility`, the legacy `service_table`,
 the canonical `services_master`, `observed_need_index`, and
-`vulnerability_index_v2`. All other raw/source tables and database views are
-denied to browser roles.
+`observed_need_category_summary`, and `vulnerability_index_v2`. Browser roles
+have insert-only access to `page_events` and `flyer_downloads`. All raw/source
+and database-view objects, including `database_visitor_tag`, are denied to
+browser roles.
 
 Required application keys:
 
@@ -211,6 +214,34 @@ Required application keys:
 
 Cloud refresh uses transactional replacement of rows. Migrations, rather than
 the data loader, own tables, types, keys, indexes, views, grants, and RLS.
+
+## Web-Observed Demand Outputs
+
+Generated files under gitignored `data/derived/web_observed_demand/`:
+
+- `database_visitor_tag.csv`
+- `web_observed_area.csv`
+- `observed_need_index.csv`
+- `observed_need_category_summary.csv`
+- `vulnerability_index_v2.csv`
+- `quality_report.json`
+
+`web_observed_area` has one row per dataset and area. Required fields include
+`dataset_id`, `area_id`, `unique_sessions`, `active_days`,
+`service_impressions`, `weighted_demand_total`,
+`intent_rate_per_100_impressions`, `digital_demand_score`,
+and `coverage_status`.
+
+`database_visitor_tag` stores one web aggregate per qualifying area/window.
+`k_anon_count` is the unique-session privacy count;
+`weighted_demand_total` is the accumulated behavior weight. The area score is
+written to `observed_need_index.v2_observed_score`, then
+`vulnerability_index_v2` applies the original 60% structural / 40% observed
+formula.
+
+Only after all 12 areas have `coverage_status=reviewable` may observed scores
+and the 40% observed weight be applied. Otherwise V2 is structural-only. These
+outputs do not feed `gap_score`.
 
 ## Area Boundary GeoJSON
 
