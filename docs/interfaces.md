@@ -191,11 +191,13 @@ Grain: one row per monitoring check.
 Versioned schema and RLS definitions live in `supabase/migrations/`; operational
 steps and refresh semantics live in `docs/supabase-operations.md`.
 
-The current cloud schema contains 19 tables. Browser roles have read-only access
+The current cloud schema contains 19 core tables plus five cloud-native
+analytics/shadow tables. Browser roles have read-only access
 to `area_profile`, `gap_score`, `accessibility`, the legacy `service_table`,
 the canonical `services_master`, `observed_need_index`, and
-`vulnerability_index_v2`. All other raw/source tables and database views are
-denied to browser roles.
+`observed_need_category_summary`, and `vulnerability_index_v2`. Browser roles
+have insert-only access to `page_events` and `flyer_downloads`. All raw/source,
+database-view, and digital-demand shadow objects are denied to browser roles.
 
 Required application keys:
 
@@ -211,6 +213,29 @@ Required application keys:
 
 Cloud refresh uses transactional replacement of rows. Migrations, rather than
 the data loader, own tables, types, keys, indexes, views, grants, and RLS.
+
+## Digital-Demand Shadow Outputs
+
+Generated files under gitignored `data/derived/digital_demand/`:
+
+- `digital_demand_area.csv`
+- `priority_score_v2_shadow.csv`
+- `quality_report.json`
+
+`digital_demand_area` has one row per dataset and area. Required fields include
+`dataset_id`, `area_id`, `unique_sessions`, `active_days`,
+`service_impressions`, `weighted_intent`,
+`intent_rate_per_100_impressions`, `digital_demand_score`,
+`coverage_status`, and `data_basis`.
+
+`priority_score_v2_shadow` has one row per dataset and area. Required fields
+include `structural_vulnerability_score`, `digital_demand_score`,
+`structural_weight`, `digital_weight`, `priority_score_v2_shadow`,
+`coverage_status`, `score_data_basis`, and `shadow_rank`.
+
+Only after all 12 rows have `coverage_status=reviewable` may the dataset receive
+digital scores and nonzero digital weight. These outputs are private and do
+not feed `gap_score`.
 
 ## Area Boundary GeoJSON
 

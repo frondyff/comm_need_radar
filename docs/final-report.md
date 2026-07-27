@@ -29,6 +29,9 @@ Production URL: https://comm-need-radar.vercel.app
 - Public/open service sources consolidated into 4,255 source records and a
   canonical 3,664-row `services_master` frontend layer.
 - Supabase `page_events` and `flyer_downloads` anonymous workflow analytics.
+- Versioned website interactions can feed a private, exposure-normalized
+  digital-demand shadow pipeline after coverage gates pass; they do not change
+  the production score.
 
 ## Synthetic Or Experimental Data
 
@@ -36,6 +39,9 @@ Production URL: https://comm-need-radar.vercel.app
   encounters.
 - `observed_need_index` and `vulnerability_index_v2` therefore remain
   experimental.
+- `priority_score_v2_shadow` is a separate private research composite. It uses
+  real website behavior only when an area passes session, active-day, and
+  service-impression thresholds.
 - V2 does not feed the production gap score.
 - Demo frontend constants remain only as a clearly labeled outage/offline
   fallback.
@@ -54,6 +60,9 @@ Production URL: https://comm-need-radar.vercel.app
 ## Known Limitations
 
 - Observed-needs inputs are synthetic and must not drive operational decisions.
+- Website interactions measure product reach and service interest, not unique
+  residents or total community need; legacy, test, duplicated, un-attributed,
+  and insufficient-coverage events are excluded from shadow scoring.
 - V1/V2 weights require representative user/domain review.
 - The 2.5 km accessibility threshold is straight-line distance, not travel
   time, capacity, eligibility, or availability.

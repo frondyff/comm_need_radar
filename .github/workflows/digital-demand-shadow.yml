@@ -1,0 +1,58 @@
+name: Digital Demand Shadow
+
+on:
+  workflow_dispatch:
+    inputs:
+      as_of_date:
+        description: Optional UTC reporting date in YYYY-MM-DD format
+        required: false
+        type: string
+      window_days:
+        description: Rolling analytics window
+        required: true
+        default: "90"
+        type: string
+  schedule:
+    - cron: "20 6 * * 1"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: comm-need-radar-digital-demand-shadow
+  cancel-in-progress: false
+
+jobs:
+  build:
+    if: github.event_name == 'workflow_dispatch' || vars.DIGITAL_DEMAND_SHADOW_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+      SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: Build and publish private shadow scores
+        shell: bash
+        run: |
+          as_of_date="${{ inputs.as_of_date }}"
+          window_days="${{ inputs.window_days || '90' }}"
+          if [[ -z "$as_of_date" ]]; then
+            as_of_date="$(date -u +%F)"
+          fi
+          python scripts/build_digital_demand_shadow.py \
+            --from-supabase \
+            --publish \
+            --as-of-date "$as_of_date" \
+            --window-days "$window_days"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: digital-demand-shadow-quality
+          path: data/derived/digital_demand/
+          if-no-files-found: error
+          retention-days: 30

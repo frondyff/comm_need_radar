@@ -19,7 +19,12 @@ declare
         'center_area_lookup',
         'observed_need_index',
         'observed_need_category_summary',
-        'vulnerability_index_v2'
+        'vulnerability_index_v2',
+        'page_events',
+        'flyer_downloads',
+        'digital_demand_dataset',
+        'digital_demand_area',
+        'priority_score_v2_shadow'
     ];
     app_tables constant text[] := array[
         'area_profile',
@@ -30,6 +35,15 @@ declare
         'observed_need_index',
         'observed_need_category_summary',
         'vulnerability_index_v2'
+    ];
+    analytics_tables constant text[] := array[
+        'page_events',
+        'flyer_downloads'
+    ];
+    shadow_tables constant text[] := array[
+        'digital_demand_dataset',
+        'digital_demand_area',
+        'priority_score_v2_shadow'
     ];
     missing_objects text;
     failed_objects text;
@@ -46,6 +60,16 @@ begin
     if to_regclass('public.v_visit_needs_by_center') is null
        or to_regclass('public.v_ct_vulnerability') is null then
         raise exception 'One or more required views are missing';
+    end if;
+    if to_regprocedure('public.enforce_shadow_digital_coverage()') is null
+       or not exists (
+           select 1
+           from pg_trigger
+           where tgrelid = 'public.priority_score_v2_shadow'::regclass
+             and tgname = 'enforce_shadow_digital_coverage'
+             and not tgisinternal
+       ) then
+        raise exception 'Digital shadow coverage trigger is missing';
     end if;
 
     select string_agg(name, ', ' order by name)
@@ -91,12 +115,15 @@ begin
         from information_schema.role_table_grants
         where table_schema = 'public'
           and grantee in ('PUBLIC', 'anon', 'authenticated')
-          and (
-              table_name <> all(app_tables)
-              or privilege_type <> 'SELECT'
+          and not (
+              (table_name = any(app_tables) and privilege_type = 'SELECT')
+              or (
+                  table_name = any(analytics_tables)
+                  and privilege_type = 'INSERT'
+              )
           )
     ) then
-        raise exception 'Browser roles have grants outside the approved read-only table set';
+        raise exception 'Browser roles have grants outside approved read or analytics-insert sets';
     end if;
 
     select string_agg(name, ', ' order by name)
@@ -112,6 +139,65 @@ begin
     );
     if failed_objects is not null then
         raise exception 'App tables missing anon SELECT grants: %', failed_objects;
+    end if;
+
+    select string_agg(name, ', ' order by name)
+    into failed_objects
+    from unnest(analytics_tables) as name
+    where not exists (
+        select 1
+        from information_schema.role_table_grants
+        where table_schema = 'public'
+          and table_name = name
+          and grantee = 'anon'
+          and privilege_type = 'INSERT'
+    ) or not exists (
+        select 1
+        from pg_policies
+        where schemaname = 'public'
+          and tablename = name
+          and cmd = 'INSERT'
+          and ('anon' = any(roles) or 'public' = any(roles))
+    );
+    if failed_objects is not null then
+        raise exception 'Analytics tables missing controlled anon INSERT access: %', failed_objects;
+    end if;
+
+    if exists (
+        select 1
+        from information_schema.role_table_grants
+        where table_schema = 'public'
+          and table_name = any(shadow_tables)
+          and grantee in ('PUBLIC', 'anon', 'authenticated')
+    ) then
+        raise exception 'Browser roles can access private digital-demand shadow tables';
+    end if;
+
+    select string_agg(column_name, ', ' order by column_name)
+    into missing_objects
+    from unnest(array[
+        'event_version',
+        'anonymous_session_id',
+        'selected_area_id',
+        'service_area_id',
+        'source_view',
+        'is_test'
+    ]) as required_column(column_name)
+    where not exists (
+        select 1
+        from information_schema.columns c
+        where c.table_schema = 'public'
+          and c.table_name = 'page_events'
+          and c.column_name = required_column.column_name
+    ) or not exists (
+        select 1
+        from information_schema.columns c
+        where c.table_schema = 'public'
+          and c.table_name = 'flyer_downloads'
+          and c.column_name = required_column.column_name
+    );
+    if missing_objects is not null then
+        raise exception 'Analytics scoring columns missing: %', missing_objects;
     end if;
 
     if not exists (
@@ -181,6 +267,31 @@ begin
         select 1 from public.vulnerability_index_v2
         where abs((structural_weight + observed_weight) - 1.0) > 0.000001
     ) then raise exception 'vulnerability_index_v2 weights do not sum to 1'; end if;
+    if exists (
+        select 1 from public.priority_score_v2_shadow
+        where abs((structural_weight + digital_weight) - 1.0) > 0.000001
+           or digital_weight > 0.25
+    ) then raise exception 'shadow priority weights violate the approved guardrail'; end if;
+    if exists (
+        select 1
+        from public.priority_score_v2_shadow s
+        join public.digital_demand_dataset d using (dataset_id)
+        where s.digital_weight > 0
+          and (
+              d.quality_status <> 'reviewable'
+              or (
+                  select count(*)
+                  from public.digital_demand_area a
+                  where a.dataset_id = s.dataset_id
+                    and a.coverage_status = 'reviewable'
+              ) <> (select count(*) from public.area_profile)
+          )
+    ) then raise exception 'shadow digital weight applied before full area coverage'; end if;
+    if exists (
+        select 1 from public.digital_demand_dataset
+        where publication_state = 'approved'
+          and (approved_by is null or approved_at is null)
+    ) then raise exception 'approved digital-demand dataset lacks owner approval'; end if;
 
     raise notice 'PASS issue #6 owner-level Supabase contract validation';
 end;

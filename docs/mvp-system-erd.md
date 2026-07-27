@@ -1,14 +1,16 @@
 # MVP Data Models
 
-Date updated: 2026-07-02
+Date updated: 2026-07-27
 
-This document separates two related models:
+This document separates three related models:
 
 1. The application-facing model contains the processed tables currently used by
    the dashboard and frontend.
 2. The scoring pipeline model shows how census, geography, center, and
    k-anonymized encounter data produce V1 frontline demand and V2 planning
    scores.
+3. The private digital-demand model evaluates anonymous website behavior
+   without changing the production vulnerability or gap score.
 
 ## Application-Facing Data Model
 
@@ -290,6 +292,86 @@ erDiagram
     }
 ```
 
+## Private Digital-Demand Shadow Model
+
+```mermaid
+erDiagram
+    AREA_PROFILE ||--o{ PAGE_EVENT : "optional service-area context"
+    AREA_PROFILE ||--o{ FLYER_DOWNLOAD : "optional service-area context"
+    DIGITAL_DEMAND_DATASET ||--o{ DIGITAL_DEMAND_AREA : "contains"
+    AREA_PROFILE ||--o{ DIGITAL_DEMAND_AREA : "aggregates for"
+    DIGITAL_DEMAND_DATASET ||--o{ PRIORITY_SCORE_V2_SHADOW : "contains"
+    AREA_PROFILE ||--o{ PRIORITY_SCORE_V2_SHADOW : "evaluates"
+    AREA_VULNERABILITY_INDEX_REAL ||--o{ PRIORITY_SCORE_V2_SHADOW : "structural input"
+    DIGITAL_DEMAND_AREA ||--o| PRIORITY_SCORE_V2_SHADOW : "coverage-gated input"
+
+    PAGE_EVENT {
+        uuid id PK
+        timestamp created_at
+        int event_version
+        string anonymous_session_id
+        string event_type
+        string selected_area_id
+        string service_id
+        string service_area_id
+        string category
+        string source_view
+        boolean is_test
+    }
+
+    FLYER_DOWNLOAD {
+        uuid id PK
+        timestamp created_at
+        int event_version
+        string anonymous_session_id
+        string service_id
+        string selected_area_id
+        string service_area_id
+        string category
+        string distribution_location
+        string source_view
+        boolean is_test
+    }
+
+    DIGITAL_DEMAND_DATASET {
+        uuid dataset_id PK
+        string source_type
+        string publication_state
+        string scoring_version
+        date period_start
+        date period_end
+        json event_weights
+        json quality_thresholds
+        string quality_status
+    }
+
+    DIGITAL_DEMAND_AREA {
+        uuid dataset_id PK, FK
+        string area_id PK, FK
+        int unique_sessions
+        int active_days
+        int service_impressions
+        float weighted_intent
+        float intent_rate_per_100_impressions
+        float digital_demand_score
+        string coverage_status
+        string data_basis
+    }
+
+    PRIORITY_SCORE_V2_SHADOW {
+        uuid dataset_id PK, FK
+        string area_id PK, FK
+        float structural_vulnerability_score
+        float digital_demand_score
+        float structural_weight
+        float digital_weight
+        float priority_score_v2_shadow
+        string coverage_status
+        string score_data_basis
+        int shadow_rank
+    }
+```
+
 ## Relationship Notes
 
 - `AREA_PROFILE.area_id` is the main MVP area key.
@@ -309,6 +391,13 @@ erDiagram
   `OBSERVED_NEED_INDEX` contains the area-level V1 and V2 observed summaries.
 - `VULNERABILITY_INDEX_V2` is implemented as an experimental planning score but
   is not yet wired into `GAP_SCORE` or the application-facing views.
+- `PAGE_EVENT` and `FLYER_DOWNLOAD` are insert-only for browser roles. Their
+  area fields are intentionally not foreign keys at ingestion; the private
+  pipeline rejects missing or unknown areas before aggregation.
+- `DIGITAL_DEMAND_AREA` and `PRIORITY_SCORE_V2_SHADOW` are private. Digital
+  scores and the initial 15% weight remain disabled until all 12 areas are
+  reviewable; partial coverage uses structural-only fallback. Neither table
+  feeds `GAP_SCORE`.
 - `SERVICES_MASTER` is the canonical single services table: the 211 Grand
   Montréal directory merged with the open-data social/food/library service points,
   de-duplicated (3,664 actionable organizations; park amenities and name-only

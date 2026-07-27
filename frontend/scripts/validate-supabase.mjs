@@ -137,6 +137,9 @@ const keyColumns = {
 const privateObjects = [
   "flyer_downloads",
   "page_events",
+  "digital_demand_dataset",
+  "digital_demand_area",
+  "priority_score_v2_shadow",
   "census_tract",
   "ct_centroid",
   "database_center",

@@ -1,7 +1,8 @@
 # Supabase Operations
 
-This runbook implements issue `#6` for the current 19-table cloud contract. The
-schema is owned by versioned migrations; CSV/SQLite refresh jobs own rows only.
+This runbook implements issue `#6` for the 19-table core application contract
+plus five cloud-native analytics/shadow tables. The schema is owned by
+versioned migrations; CSV/SQLite refresh jobs own core application rows only.
 
 ## Security Boundary
 
@@ -16,9 +17,13 @@ The browser may read only these aggregated, app-ready tables:
 - `observed_need_category_summary` (aggregated synthetic demand by area/category)
 - `vulnerability_index_v2`
 
-The migrations enable RLS on all 19 tables, revoke browser-role privileges by
+The migrations enable RLS, revoke browser-role privileges by
 default, and grant `SELECT` only on those eight tables. Raw/source tables and both
 database views remain inaccessible to `anon` and `authenticated` roles.
+
+The browser has insert-only access to `page_events` and `flyer_downloads`. It
+has no access to `digital_demand_dataset`, `digital_demand_area`, or
+`priority_score_v2_shadow`.
 
 Use only the project URL and publishable key in the browser. Database passwords,
 direct Postgres URLs, secret keys, and service-role keys are owner/server-only.
@@ -47,11 +52,13 @@ direct Postgres URLs, secret keys, and service-role keys are owner/server-only.
 
 ## Refresh Semantics
 
-Cloud refresh uses **transactional replace** semantics:
+Core application refresh uses **transactional replace** semantics:
 
 - Migrations remain authoritative for tables, keys, indexes, views, grants, and
   RLS; the loader never drops database objects.
-- The loader truncates and reloads all 19 tables inside one transaction.
+- The loader truncates and reloads the 19 core tables inside one transaction.
+- Analytics and shadow tables are excluded so an application refresh cannot
+  erase collected behavior or owner approvals.
 - Source and target row counts must match for every table.
 - All eight app-ready tables must be nonempty.
 - Foreign keys are checked before commit.
@@ -88,7 +95,7 @@ psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 \
 
 Public-key validation checks the same interface the React application uses,
 including required columns, pagination, key uniqueness, area joins, raw-table
-isolation, and anonymous write denial:
+isolation, application-table write denial, and private shadow-table denial:
 
 ```bash
 cd frontend
@@ -122,3 +129,19 @@ The loader transaction preserves the previous cloud snapshot when a refresh
 fails. Correct the source data or migration, rerun locally, and retry the full
 refresh. Do not manually patch individual production rows without recording and
 reproducing the same correction in the source pipeline.
+
+## Digital-Demand Shadow Refresh
+
+Apply `202607270001_digital_demand_shadow.sql` before running the shadow
+pipeline. Then use the configured server-only project URL and secret key:
+
+```bash
+VITE_SUPABASE_URL=https://PROJECT.supabase.co \
+SUPABASE_SECRET_KEY=... \
+python3 scripts/build_digital_demand_shadow.py --from-supabase --publish
+```
+
+The pipeline writes deterministic private dataset, aggregate, and shadow rows.
+It never modifies `gap_score`. The weekly GitHub schedule remains disabled
+until the repository variable `DIGITAL_DEMAND_SHADOW_ENABLED` is exactly
+`true`; manual dispatch remains available for controlled validation.

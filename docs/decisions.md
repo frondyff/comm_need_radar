@@ -20,6 +20,8 @@
 | 2026-07-14 | Use official administrative polygons and a labeled centroid partition for `A001`/`A002` | Preserves the 12 stable scoring IDs without overlapping synthetic envelopes or presenting the derived divider as official |
 | 2026-07-14 | Keep GeoJSON for the 12-feature production map contract | The generated payload is 265 KB raw and 71 KB gzip; PMTiles adds complexity without a payload benefit at this scale |
 | 2026-07-23 | Use `feature/dashboard` as the canonical React UX and combine production work on `integration/production-web` | Preserves the accepted dashboard interaction model while importing Supabase, scoring, spatial, pipeline, and server API artifacts without reviving the obsolete TypeScript/MapLibre frontend |
+| 2026-07-27 | Evaluate anonymous `page_events` and `flyer_downloads` as a private digital-demand shadow layer | Real website behavior can add service-interest evidence, but exposure, self-selection, repeat-use, and campaign bias make it unsuitable for directly rewriting Census vulnerability |
+| 2026-07-27 | Keep production vulnerability and gap scoring unchanged; apply at most 15% digital weight only to reviewable private shadow rows | Preserves the structural production contract while owners evaluate coverage and rank effects; the code enforces structural-only fallback and caps configurable digital weight at 25% |
 
 ## Pending Decisions For Real Data Version
 
@@ -28,4 +30,4 @@
 | Final public service source | Laura | Prefer 211 Quebec if structured access is feasible |
 | Future high-resolution geography level | Laura and Frondy | Current release uses 11 official administrative polygons mapped to 12 stable project IDs; reconsider tracts when scoring supports them |
 | Validate V1/V2 weights and saturation thresholds | Frondy and Chloe | Current weights are implemented but experimental |
-| Wire V2 into gap scoring and application views | Frondy and Jessie | Defer until weights and production coverage are validated |
+| Wire V2 into gap scoring and application views | Frondy and Jessie | Defer until weights, production coverage, digital-demand quality artifacts, and representative-user interpretation are validated |
