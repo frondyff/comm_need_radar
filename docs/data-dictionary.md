@@ -318,6 +318,7 @@ Per-area demand summary derived from the synthetic visits.
 | `observed_focus_need_score` | REAL | Observed MVP-focus need |
 | `observed_data_basis` | TEXT | Data-basis note |
 | `insufficient_visit_data` | INT/BOOL | Sparse-data flag |
+| `observed_data_basis` | TEXT | Explicitly labels the committed input as synthetic demonstration data; must change when an approved production export replaces it |
 | `top_key_needs` | TEXT | Top needs list (used by the chatbot) |
 | `observed_need_rank` | INT | Rank among the 12 areas |
 

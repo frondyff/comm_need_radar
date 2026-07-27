@@ -96,6 +96,14 @@ within the social categories to merge the same facility listed by multiple sourc
 - The 4,255 centers re-shaped to the `docs/interfaces.md` service-table contract
   (real counterpart to the synthetic `service_table.csv`).
 
+### `data/processed/services_master.csv`
+- **Grain / size:** 3,664 canonical deduplicated service records.
+- **Use:** production Supabase/frontend service directory.
+- **Relationship to 4,255 rows:** the larger center table is the source/spatial
+  layer; `services_master` is the reviewed, normalized product contract.
+- **Loading:** queried from Supabase in 1,000-row pages; the frontend does not
+  query the legacy `service_table` or raw center tables.
+
 **Service-layer limitations:** ~82% of points are recreation/sport (activity proxies,
 not social services). True social services number **679** — strong for open data, but
 the *preferred* 211 directory is unavailable (see `docs/211-data-request.md`). OSM

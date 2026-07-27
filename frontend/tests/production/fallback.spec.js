@@ -16,6 +16,8 @@ test("dashboard falls back to demo data instead of rendering a blank screen", as
   await page.getByTestId("choose-planner-role").click();
   await expect(page.getByTestId("planner-view")).toBeVisible();
   await expect(page.getByTestId("data-source-status")).toHaveText("Demo data");
+  await expect(page.getByTestId("data-source-notice")).toBeVisible();
+  await expect(page.getByTestId("retry-live-data")).toBeVisible();
   await expect(page.getByText("Top priority areas (by Gap Score)")).toBeVisible();
   await expect(page.getByTestId("area-profile")).toBeVisible();
 });

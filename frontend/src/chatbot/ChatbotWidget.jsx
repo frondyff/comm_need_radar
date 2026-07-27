@@ -121,7 +121,7 @@ export function ChatbotWidget({ isEN, selectedAreaId, selectedAreaLabel }) {
 
   const Menu = ({ title, options }) => (
     <div>
-      <div style={{ fontSize: 12, color: "#64748B", margin: "2px 0 8px" }}>{title}</div>
+      <div style={{ fontSize: 12, color: "#475569", margin: "2px 0 8px" }}>{title}</div>
       {options.map(([label, onClick]) => (
         <button key={label} style={btnStyle} onClick={onClick}>{label}</button>
       ))}
@@ -138,13 +138,13 @@ export function ChatbotWidget({ isEN, selectedAreaId, selectedAreaLabel }) {
     if (includeAnywhere) opts.push(["Anywhere in the city", () => onPick({ areaId: null, areaLabel: null })]);
     areas.forEach(a => opts.push([a.areaLabel, () => onPick(a)]));
     if (opts.length === 0) {
-      return <div style={{ fontSize: 12.5, color: "#64748B" }}>Loading areas…</div>;
+      return <div style={{ fontSize: 12.5, color: "#475569" }}>Loading areas…</div>;
     }
     return <Menu title={title} options={opts} />;
   };
 
   function Body() {
-    if (loading) return <div style={{ fontSize: 13, color: "#64748B" }}>Loading…</div>;
+    if (loading) return <div style={{ fontSize: 13, color: "#475569" }}>Loading…</div>;
 
     if (screen === "bye") {
       return (
@@ -153,12 +153,12 @@ export function ChatbotWidget({ isEN, selectedAreaId, selectedAreaLabel }) {
             Summary of this session
           </div>
           {history.length === 0 ? (
-            <div style={{ fontSize: 12.5, color: "#64748B" }}>No questions asked.</div>
+            <div style={{ fontSize: 12.5, color: "#475569" }}>No questions asked.</div>
           ) : (
             history.map((h, i) => (
               <div key={i} style={{ marginBottom: 8 }}>
                 <div style={{ fontSize: 12, fontWeight: 700, color: "#1E3A8A" }}>{i + 1}. {h.q}</div>
-                <div style={{ fontSize: 11, color: "#64748B", whiteSpace: "pre-wrap" }}>
+                <div style={{ fontSize: 11, color: "#475569", whiteSpace: "pre-wrap" }}>
                   {String(h.a).split("\n")[0]}{String(h.a).includes("\n") ? " …" : ""}
                 </div>
               </div>
@@ -178,7 +178,7 @@ export function ChatbotWidget({ isEN, selectedAreaId, selectedAreaLabel }) {
           <div style={{ whiteSpace: "pre-wrap", fontSize: 13, lineHeight: 1.5, color: "#1E293B" }}>
             {result?.answer}
           </div>
-          <div style={{ marginTop: 8, fontSize: 11, color: "#64748B" }}>
+          <div style={{ marginTop: 8, fontSize: 11, color: "#475569" }}>
             📊 Source (table): {result?.source}
           </div>
           <button style={{ ...btnStyle, marginTop: 10 }} onClick={reset}>← Ask another question</button>
@@ -290,7 +290,7 @@ export function ChatbotWidget({ isEN, selectedAreaId, selectedAreaLabel }) {
           <div style={{ fontSize: 13, fontWeight: 700, color: "#1E3A8A" }}>
             {isEN ? "Community Radar assistant" : "Assistant Community Radar"}
           </div>
-          <div style={{ fontSize: 11, color: "#64748B", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+          <div style={{ fontSize: 11, color: "#475569", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
             {subtitle}
           </div>
         </div>

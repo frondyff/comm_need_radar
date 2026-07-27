@@ -127,10 +127,20 @@ test("planner workflow loads live areas, switches language, and completes a chat
   await expect(page.getByTestId("area-profile-housing")).toContainText("27.62%");
   await expect(page.getByTestId("area-profile-immigration")).toContainText("9.33%");
   const initialProfile = await page.getByTestId("area-profile").textContent();
-  await page.getByTestId("priority-area").nth(1).click();
+  const firstPolygon = page
+    .getByTestId("planner-boundary-map")
+    .locator(".leaflet-overlay-pane path")
+    .first();
+  await expect(firstPolygon).toBeVisible();
+  await firstPolygon.click({ force: true });
   await expect
     .poll(() => page.getByTestId("area-profile").textContent())
     .not.toBe(initialProfile);
+  const polygonProfile = await page.getByTestId("area-profile").textContent();
+  await page.getByTestId("priority-area").nth(1).click();
+  await expect
+    .poll(() => page.getByTestId("area-profile").textContent())
+    .not.toBe(polygonProfile);
 
   await page.getByRole("button", { name: "FR", exact: true }).click();
   await expect(page.getByText("Vue Planificateur (V2)")).toBeVisible();

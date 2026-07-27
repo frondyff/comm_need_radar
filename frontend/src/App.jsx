@@ -8,7 +8,7 @@ import { CategoryIcon, CATEGORY_COLORS, MAP_LEGEND_ITEMS, createServiceMarker, c
 import { ChatbotWidget } from "./chatbot/ChatbotWidget.jsx";
 import { FlyerPreview } from "./flyer/FlyerPreview";
 import { FlyerViewModel } from "./flyer/flyerData";
-import { loadDashboardData } from "./lib/dashboardAdapter.js";
+import { loadDashboardData, serviceMatchesSearch } from "./lib/dashboardAdapter.js";
 import { logFlyerDownload, logPageEvent } from "./lib/analytics.js";
 import { haversineKm } from "./lib/supabaseData.js";
 
@@ -196,7 +196,7 @@ function MultiSelectDropdown({ label, options, selected, onChange, isEN=true, da
               style={{width:"100%",boxSizing:"border-box",padding:"6px 8px",marginBottom:6,border:"1px solid #E2E8F0",borderRadius:6,fontSize:13,outline:"none"}}/>
           )}
           <div style={{maxHeight:260,overflowY:"auto"}}>
-            {visibleOptions.length===0 && <div style={{fontSize:12,color:"#94A3B8",padding:6}}>—</div>}
+            {visibleOptions.length===0 && <div style={{fontSize:12,color:"#475569",padding:6}}>—</div>}
             {visibleOptions.map(opt=>(
               <label key={opt} style={{display:"flex",alignItems:"center",gap:8,padding:"6px 6px",fontSize:13,cursor:"pointer",borderRadius:6,color:"#334155"}}
                 onMouseOver={e=>e.currentTarget.style.background="#F8FAFC"} onMouseOut={e=>e.currentTarget.style.background="transparent"}>
@@ -207,7 +207,7 @@ function MultiSelectDropdown({ label, options, selected, onChange, isEN=true, da
           </div>
           {active && (
             <button onClick={()=>onChange([])}
-              style={{marginTop:6,width:"100%",padding:"6px",fontSize:12,color:"#64748B",background:"#F8FAFC",border:"1px solid #E2E8F0",borderRadius:6,cursor:"pointer"}}>
+              style={{marginTop:6,width:"100%",padding:"6px",fontSize:12,color:"#475569",background:"#F8FAFC",border:"1px solid #E2E8F0",borderRadius:6,cursor:"pointer"}}>
               {isEN?"Clear":"Effacer"}
             </button>
           )}
@@ -367,14 +367,14 @@ function ChoroplethMap({ selectedBorough, selectedAreaId, onSelect, boroughScore
   };
 
   return (
-    <div style={{height:"100%",width:"100%",position:"relative",zIndex:0}}>
+    <div data-testid="planner-boundary-map" style={{height:"100%",width:"100%",position:"relative",zIndex:0}}>
       <MapContainer center={[45.53,-73.65]} zoom={11} style={{height:"100%",width:"100%"}} zoomControl={true}>
         <TileLayer attribution='© CartoDB · Boundaries © Ville de Montréal, CC BY 4.0' url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png" opacity={0.3}/>
         {geojson && (
           <GeoJSON key={`${selectedBorough}:${selectedAreaId || "ranked"}`} data={geojson} style={style} onEachFeature={onEachFeature}/>
         )}
         {mapStatus === "loading" && (
-          <div style={{position:"absolute",inset:0,display:"flex",alignItems:"center",justifyContent:"center",zIndex:1000,background:"rgba(255,255,255,0.7)",fontSize:13,color:"#64748B"}}>
+          <div style={{position:"absolute",inset:0,display:"flex",alignItems:"center",justifyContent:"center",zIndex:1000,background:"rgba(255,255,255,0.7)",fontSize:13,color:"#475569"}}>
             {isEN?"Loading map…":"Chargement de la carte…"}
           </div>
         )}
@@ -388,9 +388,32 @@ function ChoroplethMap({ selectedBorough, selectedAreaId, onSelect, boroughScore
   );
 }
 
-function PlannerView({ lang, setLang, onSwitch, onExit, location, onChangeLocation, services, categories, boroughScores, areas=[], sourceStatus }) {
+function DataSourceNotice({ sourceStatus, warnings = [], onRetry, isEN }) {
+  if (sourceStatus === "supabase" || sourceStatus === "loading") return null;
+  return (
+    <div data-testid="data-source-notice" role="status" style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:12,padding:"10px 16px",background:"#FFFBEB",borderBottom:"1px solid #FDE68A",color:"#92400E",fontSize:12}}>
+      <span>
+        {isEN
+          ? "Live data is unavailable. Clearly labeled demonstration data is being shown."
+          : "Les données en direct sont indisponibles. Des données de démonstration clairement identifiées sont affichées."}
+        {warnings[0] ? ` ${warnings[0]}` : ""}
+      </span>
+      <button type="button" data-testid="retry-live-data" onClick={onRetry} style={{padding:"5px 10px",borderRadius:6,border:"1px solid #D97706",background:"#fff",color:"#92400E",fontWeight:600,cursor:"pointer",whiteSpace:"nowrap"}}>
+        {isEN ? "Retry" : "Réessayer"}
+      </button>
+    </div>
+  );
+}
+
+function dataSourceLabel(sourceStatus, isEN) {
+  if (sourceStatus === "supabase") return "Supabase";
+  if (sourceStatus === "loading") return isEN ? "Loading…" : "Chargement…";
+  return isEN ? "Demo data" : "Données démo";
+}
+
+function PlannerView({ lang, setLang, onSwitch, onExit, location, onChangeLocation, services, categories, boroughScores, areas=[], sourceStatus, warnings=[], onRetry }) {
   const [selectedBorough, setSelectedBorough] = useState("Mercier-Hochelaga-Maisonneuve");
-  const [selectedAreaId, setSelectedAreaId] = useState("A005");
+  const [selectedAreaId, setSelectedAreaId] = useState(null);
   const [selectedAreaLabel, setSelectedAreaLabel] = useState("Mercier-Hochelaga-Maisonneuve");
   const boroughEntries = Object.entries(boroughScores);
   useEffect(() => {
@@ -463,8 +486,8 @@ function PlannerView({ lang, setLang, onSwitch, onExit, location, onChangeLocati
           <div style={{fontSize:12,color:"#60A5FA",fontWeight:600,textTransform:"uppercase",letterSpacing:0.6}}>{isEN?"Planner View (V2)":"Vue Planificateur (V2)"}</div>
         </div>
         <div style={{display:"flex",flexWrap:"wrap",gap:6,rowGap:6,alignItems:"center"}}>
-          <span data-testid="data-source-status" style={{fontSize:11,color:sourceStatus==="supabase"?"#6EE7B7":"#FCD34D",fontWeight:600}}>
-            {sourceStatus==="supabase"?"Supabase":(isEN?"Demo data":"Données démo")}
+          <span data-testid="data-source-status" style={{fontSize:11,color:sourceStatus==="supabase"?"#6EE7B7":sourceStatus==="loading"?"#93C5FD":"#FCD34D",fontWeight:600}}>
+            {dataSourceLabel(sourceStatus, isEN)}
           </span>
           <div style={{display:"flex",background:"rgba(255,255,255,0.08)",borderRadius:6,overflow:"hidden"}}>
             {["EN","FR"].map(l=><button key={l} onClick={()=>setLang(l)} style={{padding:"4px 10px",border:"none",background:lang===l?"#2563EB":"transparent",color:"#fff",fontWeight:lang===l?700:400,cursor:"pointer",fontSize:12}}>{l}</button>)}
@@ -473,6 +496,7 @@ function PlannerView({ lang, setLang, onSwitch, onExit, location, onChangeLocati
           <button onClick={onExit} style={{display:"flex",alignItems:"center",gap:3,padding:"4px 10px",borderRadius:6,border:"none",color:"#CBD5E1",background:"transparent",cursor:"pointer",fontSize:11,whiteSpace:"nowrap"}}><ChevronLeft size={12}/> Exit</button>
         </div>
       </div>
+      <DataSourceNotice sourceStatus={sourceStatus} warnings={warnings} onRetry={onRetry} isEN={isEN}/>
       <div style={{padding:"16px 20px"}}>
         {/* KPI cards */}
         <div style={{display:"flex",flexWrap:"wrap",background:"#fff",border:"1px solid #E2E8F0",borderRadius:8,marginBottom:16,overflow:"hidden"}}>
@@ -488,7 +512,7 @@ function PlannerView({ lang, setLang, onSwitch, onExit, location, onChangeLocati
               <div>
                 <div style={{color:"#334155",fontSize:11,marginBottom:4,textTransform:"uppercase",letterSpacing:0.5,fontWeight:600}}>{k.label}</div>
                 <div style={{fontWeight:700,fontSize:24,color:"#0F172A",fontFamily:MONO_FONT}}>{k.val}</div>
-                <div style={{fontSize:12,color:k.trend?k.color:"#64748B",marginTop:2,display:"flex",alignItems:"center",gap:3}}>
+                <div style={{fontSize:12,color:k.trend?k.color:"#475569",marginTop:2,display:"flex",alignItems:"center",gap:3}}>
                   {k.trend==="up" && <TrendingUp size={12}/>}
                   {k.sub}
                 </div>
@@ -503,7 +527,7 @@ function PlannerView({ lang, setLang, onSwitch, onExit, location, onChangeLocati
           <div style={{background:"#fff",border:"1px solid #E2E8F0",borderRadius:8,overflow:"hidden",display:"flex",flexDirection:"column"}}>
             <div style={{padding:"12px 16px",borderBottom:"1px solid #E2E8F0",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
               <span style={{fontWeight:600,fontSize:15}}>{isEN?"Gap Score heatmap — click a borough":"Carte de chaleur du Gap Score — cliquez un arrondissement"}</span>
-              <span style={{fontSize:13,color:"#64748B"}}>{isEN?"by Gap Score":"par Score d'écart"}</span>
+              <span style={{fontSize:13,color:"#475569"}}>{isEN?"by Gap Score":"par Score d'écart"}</span>
             </div>
             <div style={{flex:1,minHeight:460}}>
               <ChoroplethMap selectedBorough={selectedBorough} selectedAreaId={selectedAreaId} onSelect={selectMapArea} boroughScores={boroughScores} areas={areas} isEN={isEN}/>
@@ -518,7 +542,7 @@ function PlannerView({ lang, setLang, onSwitch, onExit, location, onChangeLocati
           {/* Street map — filtered to whichever area/borough is selected */}
           <div style={{borderRadius:8,overflow:"hidden",border:"1px solid #E2E8F0",position:"relative",zIndex:0,minHeight:460}}>
             <div style={{position:"absolute",top:8,left:8,zIndex:1001,background:"rgba(255,255,255,0.95)",borderRadius:6,padding:"5px 12px",fontSize:14,fontWeight:600,color:"#0F172A",border:"1px solid #E2E8F0",maxWidth:"70%"}}>
-              {isEN?"Service locations":"Emplacements des services"}{areaLevelServices.length>0?` — ${selectedAreaLabel}`:(selectedBorough?` — ${selectedBorough}`:"")} <span style={{fontWeight:400,color:"#64748B"}}>({boroughServices.length})</span>
+              {isEN?"Service locations":"Emplacements des services"}{areaLevelServices.length>0?` — ${selectedAreaLabel}`:(selectedBorough?` — ${selectedBorough}`:"")} <span style={{fontWeight:400,color:"#475569"}}>({boroughServices.length})</span>
             </div>
             <div style={{position:"absolute",top:8,right:8,zIndex:1001,background:"rgba(255,255,255,0.95)",borderRadius:6,padding:"8px 12px",border:"1px solid #E2E8F0",fontSize:12,minWidth:130}}>
               <div style={{fontWeight:600,marginBottom:5,color:"#0F172A"}}>{isEN?"Breakdown":"Répartition"}</div>
@@ -537,12 +561,12 @@ function PlannerView({ lang, setLang, onSwitch, onExit, location, onChangeLocati
               <FitBoundsToPoints points={boroughServices.map(s=>[s.lat,s.lng])}/>
               {boroughServices.map(s=>(
                 <Marker key={s.id} position={[s.lat,s.lng]} icon={createServiceMarker(s.category,false)} title={s.name}>
-                  <Popup><div style={{fontFamily:"system-ui",minWidth:140}}><div style={{fontWeight:700,fontSize:13,color:CATEGORY_COLORS[s.category],display:"flex",alignItems:"center",gap:5}}><CategoryIcon category={s.category} size={14} color={CATEGORY_COLORS[s.category]}/> {s.name}</div><div style={{fontSize:12,color:"#64748B"}}>{s.type}</div></div></Popup>
+                  <Popup><div style={{fontFamily:"system-ui",minWidth:140}}><div style={{fontWeight:700,fontSize:13,color:CATEGORY_COLORS[s.category],display:"flex",alignItems:"center",gap:5}}><CategoryIcon category={s.category} size={14} color={CATEGORY_COLORS[s.category]}/> {s.name}</div><div style={{fontSize:12,color:"#475569"}}>{s.type}</div></div></Popup>
                 </Marker>
               ))}
             </MapContainer>
             {boroughServices.length===0 && (
-              <div style={{position:"absolute",inset:0,display:"flex",alignItems:"center",justifyContent:"center",zIndex:1000,background:"rgba(255,255,255,0.6)",fontSize:13,color:"#64748B",textAlign:"center",padding:20}}>
+              <div style={{position:"absolute",inset:0,display:"flex",alignItems:"center",justifyContent:"center",zIndex:1000,background:"rgba(255,255,255,0.6)",fontSize:13,color:"#475569",textAlign:"center",padding:20}}>
                 {isEN?"No services matched to this borough yet.":"Aucun service associé à cet arrondissement pour l'instant."}
               </div>
             )}
@@ -565,7 +589,7 @@ function PlannerView({ lang, setLang, onSwitch, onExit, location, onChangeLocati
                     style={{display:"flex",width:"100%",fontFamily:"inherit",textAlign:"left",justifyContent:"space-between",alignItems:"center",padding:"10px 12px",borderRadius:8,cursor:"pointer",background:isSelected?"#EEF2FF":"#F1F5F9",border:`1px solid ${isSelected?"#2563EB":"#E2E8F0"}`,transition:"all 0.15s"}}>
                     <div style={{minWidth:0}}>
                       <div style={{fontSize:13,fontWeight:isSelected?600:400,color:isSelected?"#2563EB":"#0F172A",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{p.name}</div>
-                      {p.borough && p.borough!==p.name && <div style={{fontSize:11,color:"#94A3B8",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{p.borough}</div>}
+                      {p.borough && p.borough!==p.name && <div style={{fontSize:11,color:"#475569",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{p.borough}</div>}
                     </div>
                     <span style={{fontSize:13,fontWeight:700,color:"#2563EB",background:"#EEF2FF",padding:"3px 8px",borderRadius:4,fontFamily:MONO_FONT,flexShrink:0,marginLeft:8}}>{p.gapScore!=null?p.gapScore.toFixed(2):"—"}</span>
                   </button>
@@ -581,12 +605,12 @@ function PlannerView({ lang, setLang, onSwitch, onExit, location, onChangeLocati
             <div style={{fontWeight:600,fontSize:15}}>
               {isEN?"Area profile":"Profil de la zone"} — <span style={{color:"#2563EB"}}>{selectedAreaLabel}</span>
             </div>
-            <span style={{fontSize:13,color:"#64748B"}}>Gap Score: <b style={{fontFamily:MONO_FONT,color:"#0F172A"}}>{(selectedAreaData?.gapScore ?? areaData.score).toFixed(2)}</b></span>
+            <span style={{fontSize:13,color:"#475569"}}>Gap Score: <b style={{fontFamily:MONO_FONT,color:"#0F172A"}}>{(selectedAreaData?.gapScore ?? areaData.score).toFixed(2)}</b></span>
             {selectedAreaData?.priorityFlag && (
               <span style={{fontSize:11,fontWeight:600,padding:"3px 10px",borderRadius:20,...priorityFlagStyle(selectedAreaData.priorityFlag)}}>{selectedAreaData.priorityFlag}</span>
             )}
             {selectedAreaData?.rank!=null && (
-              <span style={{fontSize:12,color:"#94A3B8"}}>{isEN?`Rank #${selectedAreaData.rank} of ${areas.length} areas`:`Rang n°${selectedAreaData.rank} sur ${areas.length} zones`}</span>
+              <span style={{fontSize:12,color:"#475569"}}>{isEN?`Rank #${selectedAreaData.rank} of ${areas.length} areas`:`Rang n°${selectedAreaData.rank} sur ${areas.length} zones`}</span>
             )}
           </div>
 
@@ -616,7 +640,7 @@ function PlannerView({ lang, setLang, onSwitch, onExit, location, onChangeLocati
               silently hiding it (the summary above is fully bilingual). */}
           {selectedAreaData?.drivers?.length>0 && (
             <div>
-              <div style={{fontSize:11,fontWeight:600,color:"#94A3B8",textTransform:"uppercase",letterSpacing:0.6,marginBottom:8}}>{isEN?"Key drivers":"Facteurs clés"}</div>
+              <div style={{fontSize:11,fontWeight:600,color:"#475569",textTransform:"uppercase",letterSpacing:0.6,marginBottom:8}}>{isEN?"Key drivers":"Facteurs clés"}</div>
               <EnglishOnlyNote isEN={isEN}/>
               <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
                 {selectedAreaData.drivers.map(d=>(
@@ -671,6 +695,7 @@ export default function CommunityRadar() {
     sourceStatus: "demo",
     warnings: [],
   });
+  const [dashboardReloadKey, setDashboardReloadKey] = useState(0);
 
   // Passive analytics: one row the moment someone opens the app, before
   // they've clicked anything (captures browse-only / screenshot users).
@@ -697,11 +722,16 @@ export default function CommunityRadar() {
 
   useEffect(() => {
     let active = true;
+    setDashboardData(current => ({
+      ...current,
+      sourceStatus: "loading",
+      warnings: [],
+    }));
     loadDashboardData({ demoServices: SERVICES, demoBoroughScores: BOROUGH_SCORES }).then(data => {
       if (active) setDashboardData(data);
     });
     return () => { active = false; };
-  }, []);
+  }, [dashboardReloadKey]);
 
   const rawServices = dashboardData.services || SERVICES;
   const categories = dashboardData.categories || CATEGORIES;
@@ -781,7 +811,7 @@ export default function CommunityRadar() {
     const mc = (activeCategory.length===0 && activeOtherCategory.length===0)
       || activeCategory.includes(s.category)
       || activeOtherCategory.includes(s.type);
-    const ms = !search || s.name.toLowerCase().includes(search.toLowerCase()) || s.type.toLowerCase().includes(search.toLowerCase());
+    const ms = serviceMatchesSearch(s, search);
     const md = activeMaxDist==null || typeof s.distanceKm!=="number" || s.distanceKm<=activeMaxDist;
     return mg && mge && ma && mc && ms && md;
   }), [services, activeGroup, activeGender, activeAge, activeCategory, activeOtherCategory, search, activeMaxDist]);
@@ -864,7 +894,7 @@ export default function CommunityRadar() {
           </div>
         </div>
         <h1 style={{fontSize:30,fontWeight:800,color:"#0F172A",margin:"0 0 10px",letterSpacing:-0.5}}>{T.title}</h1>
-        <p style={{color:"#64748B",fontSize:13,marginBottom:20,letterSpacing:0.3}}>McGill University MMA · BUSA 649 · Community Project</p>
+        <p style={{color:"#475569",fontSize:13,marginBottom:20,letterSpacing:0.3}}>McGill University MMA · BUSA 649 · Community Project</p>
         <div style={{display:"flex",justifyContent:"center",marginBottom:36}}>
           <div style={{display:"flex",background:"#F1F5F9",borderRadius:8,overflow:"hidden",border:"1px solid #E2E8F0"}}>
             {["EN","FR"].map(l=><button key={l} onClick={()=>setLang(l)} style={{padding:"6px 16px",border:"none",background:lang===l?"linear-gradient(135deg,#2563EB,#1D4ED8)":"transparent",color:lang===l?"#fff":"#334155",fontWeight:lang===l?700:500,cursor:"pointer",fontSize:13,transition:"all 0.15s"}}>{l}</button>)}
@@ -903,6 +933,8 @@ export default function CommunityRadar() {
       boroughScores={boroughScores}
       areas={areas}
       sourceStatus={dashboardData.sourceStatus}
+      warnings={dashboardData.warnings}
+      onRetry={()=>setDashboardReloadKey(key=>key+1)}
     />
   );
 
@@ -919,13 +951,13 @@ export default function CommunityRadar() {
           </div>
         </div>
         <h1 style={{fontSize:26,fontWeight:800,color:"#0F172A",margin:"0 0 6px",letterSpacing:-0.4}}>{T.title}</h1>
-        <p style={{color:"#64748B",fontSize:13,marginBottom:12}}>McGill University MMA · BUSA 649 · Community Project</p>
+        <p style={{color:"#475569",fontSize:13,marginBottom:12}}>McGill University MMA · BUSA 649 · Community Project</p>
         <p style={{color:"#2563EB",fontSize:12,fontWeight:700,marginBottom:28,textTransform:"uppercase",letterSpacing:1.2}}>{isEN?"Step 2 of 2":"Étape 2 de 2"}</p>
         <div style={{background:"#fff",border:"1px solid #E2E8F0",borderRadius:14,padding:"2rem",boxShadow:"0 8px 30px rgba(15,23,42,0.08)",textAlign:"left"}}>
           <p style={{fontWeight:700,fontSize:16,color:"#0F172A",marginBottom:4,textAlign:"center"}}>
             {isEN?"Where are you distributing from?":"D'où distribuez-vous?"}
           </p>
-          <p style={{fontSize:13,color:"#64748B",marginBottom:20,textAlign:"center"}}>
+          <p style={{fontSize:13,color:"#475569",marginBottom:20,textAlign:"center"}}>
             {isEN?"This will be shown as 'You are here' on the flyer map":"Ce point apparaîtra comme 'Vous êtes ici' sur le dépliant"}
           </p>
           <div style={{display:"flex",flexDirection:"column",gap:10}}>
@@ -935,13 +967,13 @@ export default function CommunityRadar() {
                 <div style={{width:10,height:10,borderRadius:"50%",background:selectedLocation.id===loc.id?"#2563EB":"#059669",flexShrink:0}}/>
                 <div>
                   <div style={{fontWeight:600,fontSize:14}}>{loc.name}</div>
-                  <div style={{fontSize:12,color:"#64748B",marginTop:2}}>{loc.org}</div>
+                  <div style={{fontSize:12,color:"#475569",marginTop:2}}>{loc.org}</div>
                 </div>
               </button>
             ))}
           </div>
         </div>
-        <button onClick={()=>setStep(locationBackStep)} style={{marginTop:16,background:"transparent",border:"none",color:"#64748B",fontSize:13,cursor:"pointer"}}>
+        <button onClick={()=>setStep(locationBackStep)} style={{marginTop:16,background:"transparent",border:"none",color:"#475569",fontSize:13,cursor:"pointer"}}>
           ← {isEN?"Back":"Retour"}
         </button>
       </div>
@@ -960,8 +992,8 @@ export default function CommunityRadar() {
           <div style={{fontSize:12,color:"#60A5FA",fontWeight:600,textTransform:"uppercase",letterSpacing:0.6}}>{isEN?"Community View (V1)":"Vue Communautaire (V1)"}</div>
         </div>
         <div style={{display:"flex",flexWrap:"wrap",gap:6,rowGap:6,alignItems:"center"}}>
-          <span data-testid="data-source-status" style={{fontSize:11,color:dashboardData.sourceStatus==="supabase"?"#6EE7B7":"#FCD34D",fontWeight:600}}>
-            {dashboardData.sourceStatus==="supabase"?"Supabase":(isEN?"Demo data":"Données démo")}
+          <span data-testid="data-source-status" style={{fontSize:11,color:dashboardData.sourceStatus==="supabase"?"#6EE7B7":dashboardData.sourceStatus==="loading"?"#93C5FD":"#FCD34D",fontWeight:600}}>
+            {dataSourceLabel(dashboardData.sourceStatus, isEN)}
           </span>
           <LocationBadge location={selectedLocation} onChange={()=>handleChangeLocation("main")}/>
           <div style={{display:"flex",background:"rgba(255,255,255,0.1)",borderRadius:6,overflow:"hidden"}}>
@@ -971,6 +1003,7 @@ export default function CommunityRadar() {
           <button onClick={()=>setStep("role")} style={{display:"flex",alignItems:"center",gap:3,padding:"4px 10px",borderRadius:6,border:"none",color:"#CBD5E1",background:"transparent",cursor:"pointer",fontSize:11,whiteSpace:"nowrap"}}><ChevronLeft size={12}/> Exit</button>
         </div>
       </div>
+      <DataSourceNotice sourceStatus={dashboardData.sourceStatus} warnings={dashboardData.warnings} onRetry={()=>setDashboardReloadKey(key=>key+1)} isEN={isEN}/>
 
       <div style={{padding:"14px 20px"}}>
         {/* SEARCH */}
@@ -986,8 +1019,8 @@ export default function CommunityRadar() {
           <div style={{display:"flex",gap:20,flexWrap:"wrap",alignItems:"center"}}>
           {/* Group */}
           <div style={{display:"flex",flexWrap:"wrap",rowGap:6,alignItems:"center",gap:6}}>
-            <span style={{color:"#64748B",fontSize:12,fontWeight:600,whiteSpace:"nowrap"}}>{T.filterGroup}</span>
-            {[{val:"Indigenous",color:"#059669",bg:"#ECFDF5",border:"#059669"},{val:"Immigrant",color:"#164E63",bg:"#ECFEFF",border:"#0891B2"}].map(g=>(
+            <span style={{color:"#475569",fontSize:12,fontWeight:600,whiteSpace:"nowrap"}}>{T.filterGroup}</span>
+            {[{val:"Indigenous",color:"#047857",bg:"#ECFDF5",border:"#047857"},{val:"Immigrant",color:"#164E63",bg:"#ECFEFF",border:"#0891B2"}].map(g=>(
               <Chip key={g.val} active={activeGroup.includes(g.val)} color={g.color} bg={g.bg} border={g.border} onClick={()=>{toggleArr(activeGroup,setActiveGroup,g.val);logEvent("group_filter",g.val,meta);}}>
                 <span style={{width:12,height:12,borderRadius:3,border:`1.5px solid ${activeGroup.includes(g.val)?g.color:"#E2E8F0"}`,background:activeGroup.includes(g.val)?g.color:"transparent",display:"inline-flex",alignItems:"center",justifyContent:"center",color:"#fff",fontSize:8,fontWeight:700,flexShrink:0}}>{activeGroup.includes(g.val)?"✓":""}</span>
                 {isEN?g.val:GROUP_LABELS_FR[g.val]}
@@ -996,7 +1029,7 @@ export default function CommunityRadar() {
           </div>
           {/* Gender */}
           <div style={{display:"flex",flexWrap:"wrap",rowGap:6,alignItems:"center",gap:6}}>
-            <span style={{color:"#64748B",fontSize:12,fontWeight:600,whiteSpace:"nowrap"}}>{T.filterGender}</span>
+            <span style={{color:"#475569",fontSize:12,fontWeight:600,whiteSpace:"nowrap"}}>{T.filterGender}</span>
             {GENDER_OPTS.map(g=>(
               <Chip key={g.val} active={activeGender===g.val} color="#2563EB" bg="#EFF6FF" border="#2563EB" onClick={()=>setActiveGender(activeGender===g.val?null:g.val)}>
                 {g.icon} {isEN?g.label:GENDER_LABELS_FR[g.val]}
@@ -1005,7 +1038,7 @@ export default function CommunityRadar() {
           </div>
           {/* Age */}
           <div style={{display:"flex",flexWrap:"wrap",rowGap:6,alignItems:"center",gap:6}}>
-            <span style={{color:"#64748B",fontSize:12,fontWeight:600,whiteSpace:"nowrap"}}>{T.filterAge}</span>
+            <span style={{color:"#475569",fontSize:12,fontWeight:600,whiteSpace:"nowrap"}}>{T.filterAge}</span>
             {AGE_RANGES.map(a=>(
               <Chip key={a} active={activeAge.includes(a)} color="#2563EB" bg="#EFF6FF" border="#2563EB" onClick={()=>{toggleArr(activeAge,setActiveAge,a);logEvent("age_filter",a,meta);}}>
                 {a}
@@ -1024,7 +1057,7 @@ export default function CommunityRadar() {
               .distance-input{width:56px;padding:4px 4px;border:1px solid #BFDBFE;border-radius:6px;font-size:14px;font-weight:600;color:#2563EB;text-align:right;background:#fff;}
               .distance-input::placeholder{color:#93C5FD;font-weight:600;}
             `}</style>
-            <span style={{color:"#64748B",fontSize:13,fontWeight:600,whiteSpace:"nowrap"}}>{isEN?"Distance":"Distance"}</span>
+            <span style={{color:"#475569",fontSize:13,fontWeight:600,whiteSpace:"nowrap"}}>{isEN?"Distance":"Distance"}</span>
             <input data-testid="distance-filter" aria-label={isEN?"Maximum service distance":"Distance maximale du service"} type="range" className="distance-range" min={0} max={maxAvailableDist} step={0.1}
               value={activeMaxDist ?? maxAvailableDist}
               onChange={e=>setActiveMaxDist(Number(e.target.value)>=maxAvailableDist?null:Number(e.target.value))}
@@ -1048,7 +1081,7 @@ export default function CommunityRadar() {
           </div>
           {/* Category — original 5 chips untouched, plus an "Other" dropdown for everything else */}
           <div style={{display:"flex",flexWrap:"wrap",rowGap:6,alignItems:"center",gap:6}}>
-            <span style={{color:"#64748B",fontSize:12,fontWeight:600,whiteSpace:"nowrap"}}>{T.filterCat}</span>
+            <span style={{color:"#475569",fontSize:12,fontWeight:600,whiteSpace:"nowrap"}}>{T.filterCat}</span>
             {categories.filter(c=>c.label!=="Other").map(c=>(
               <Chip key={c.label} active={activeCategory.includes(c.label)} color={c.color} bg={c.bg} border={c.color} onClick={()=>{toggleArr(activeCategory,setActiveCategory,c.label);logEvent("category_filter",c.label,meta);}}>
                 <CategoryIcon category={c.label} size={13} color={c.color}/> {categoryLabel(c.label,isEN)}
@@ -1071,12 +1104,12 @@ export default function CommunityRadar() {
                   {mapCenter && <FlyTo center={mapCenter}/>}
                   {selectedLocation?.lat!=null && selectedLocation?.lng!=null && (
                     <Marker position={[selectedLocation.lat,selectedLocation.lng]} icon={createUserLocationMarker()} title={selectedLocation.name}>
-                      <Popup><div style={{fontFamily:"system-ui",fontSize:12,fontWeight:600}}>{isEN?"You are here":"Vous êtes ici"}</div><div style={{fontFamily:"system-ui",fontSize:11,color:"#64748B"}}>{selectedLocation.name}</div></Popup>
+                      <Popup><div style={{fontFamily:"system-ui",fontSize:12,fontWeight:600}}>{isEN?"You are here":"Vous êtes ici"}</div><div style={{fontFamily:"system-ui",fontSize:11,color:"#475569"}}>{selectedLocation.name}</div></Popup>
                     </Marker>
                   )}
                   {filtered.map(s=>(
                     <Marker key={s.id} position={[s.lat,s.lng]} icon={createServiceMarker(s.category,selected?.id===s.id)} title={s.name} eventHandlers={{click:()=>handleSelect(s)}}>
-                      <Popup><div style={{fontFamily:"system-ui",minWidth:150}}><div style={{fontWeight:700,fontSize:12,color:CATEGORY_COLORS[s.category],display:"flex",alignItems:"center",gap:5}}><CategoryIcon category={s.category} size={13} color={CATEGORY_COLORS[s.category]}/> {s.name}</div><div style={{fontSize:11,color:"#64748B"}}>{s.type} · {s.dist}</div><div style={{fontSize:11,color:"#64748B"}}>{s.hours}</div></div></Popup>
+                      <Popup><div style={{fontFamily:"system-ui",minWidth:150}}><div style={{fontWeight:700,fontSize:12,color:CATEGORY_COLORS[s.category],display:"flex",alignItems:"center",gap:5}}><CategoryIcon category={s.category} size={13} color={CATEGORY_COLORS[s.category]}/> {s.name}</div><div style={{fontSize:11,color:"#475569"}}>{s.type} · {s.dist}</div><div style={{fontSize:11,color:"#475569"}}>{s.hours}</div></div></Popup>
                     </Marker>
                   ))}
                 </MapContainer>
@@ -1087,16 +1120,16 @@ export default function CommunityRadar() {
             ) : (
               <>
                 <div style={{padding:"10px 16px",borderBottom:"1px solid #E2E8F0",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
-                  <span style={{fontWeight:700,fontSize:16}}>{T.nearby} <span style={{fontWeight:400,color:"#64748B",fontSize:13}}>({filtered.length})</span></span>
+                  <span style={{fontWeight:700,fontSize:16}}>{T.nearby} <span style={{fontWeight:400,color:"#475569",fontSize:13}}>({filtered.length})</span></span>
                   <div style={{display:"flex",alignItems:"center",gap:10}}>
                     {filtered.length>0 && (
-                      <span style={{fontSize:12,color:"#94A3B8"}}>{isEN?"Page":"Page"} {listPage+1}/{totalPages}</span>
+                      <span style={{fontSize:12,color:"#475569"}}>{isEN?"Page":"Page"} {listPage+1}/{totalPages}</span>
                     )}
                     <div style={{display:"flex",border:"1px solid #E2E8F0",borderRadius:6,overflow:"hidden"}}>
-                      <button onClick={()=>setViewMode("list")} style={{padding:"4px 9px",border:"none",background:viewMode==="list"?"#2563EB":"#fff",color:viewMode==="list"?"#fff":"#64748B",cursor:"pointer",fontSize:12,display:"flex",alignItems:"center",gap:4}}>
+                      <button onClick={()=>setViewMode("list")} style={{padding:"4px 9px",border:"none",background:viewMode==="list"?"#2563EB":"#fff",color:viewMode==="list"?"#fff":"#475569",cursor:"pointer",fontSize:12,display:"flex",alignItems:"center",gap:4}}>
                         ☰ {isEN?"List":"Liste"}
                       </button>
-                      <button onClick={()=>setViewMode("grid")} style={{padding:"4px 9px",border:"none",background:viewMode==="grid"?"#2563EB":"#fff",color:viewMode==="grid"?"#fff":"#64748B",cursor:"pointer",fontSize:12,display:"flex",alignItems:"center",gap:4}}>
+                      <button onClick={()=>setViewMode("grid")} style={{padding:"4px 9px",border:"none",background:viewMode==="grid"?"#2563EB":"#fff",color:viewMode==="grid"?"#fff":"#475569",cursor:"pointer",fontSize:12,display:"flex",alignItems:"center",gap:4}}>
                         ⊞ {isEN?"Grid":"Grille"}
                       </button>
                     </div>
@@ -1104,7 +1137,7 @@ export default function CommunityRadar() {
                 </div>
                 <div style={{overflowY:"auto",flex:1,padding:viewMode==="grid"?"10px":"0"}}>
                   {filtered.length===0
-                    ? <div style={{padding:20,color:"#64748B",textAlign:"center",fontSize:14}}>{isEN?"No services match.":"Aucun service ne correspond."}</div>
+                    ? <div style={{padding:20,color:"#475569",textAlign:"center",fontSize:14}}>{isEN?"No services match.":"Aucun service ne correspond."}</div>
                     : viewMode==="list"
                       ? pagedFiltered.map((s,i)=>(
                           <button type="button" data-testid="service-card" key={s.id} onClick={()=>handleSelect(s)}
@@ -1113,7 +1146,7 @@ export default function CommunityRadar() {
                               <div style={{width:38,height:38,borderRadius:"50%",background:selected?.id===s.id?"#2563EB":"#F1F5F9",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><CategoryIcon category={s.category} size={19} color={selected?.id===s.id?"#fff":CATEGORY_COLORS[s.category]}/></div>
                               <div style={{flex:1,minWidth:0}}>
                                 <div style={{fontWeight:600,color:selected?.id===s.id?"#2563EB":"#0F172A",fontSize:15,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{s.name}</div>
-                                <div style={{color:"#64748B",fontSize:13,margin:"3px 0 6px"}}>{s.dist}{s.gender!=="All"?` · ${s.gender} only`:""}</div>
+                                <div style={{color:"#475569",fontSize:13,margin:"3px 0 6px"}}>{s.dist}{s.gender!=="All"?` · ${s.gender} only`:""}</div>
                                 <div style={{display:"flex",gap:4,flexWrap:"wrap"}}>
                                   {s.tags.slice(0,1).map(t=><span key={t} style={{padding:"2px 8px",borderRadius:4,border:`1px solid ${selected?.id===s.id?"#2563EB":"#E2E8F0"}`,color:selected?.id===s.id?"#2563EB":"#334155",fontSize:12}}>{t.length>44?t.slice(0,43)+"…":t}</span>)}
                                 </div>
@@ -1127,8 +1160,8 @@ export default function CommunityRadar() {
                               style={{width:"100%",fontFamily:"inherit",textAlign:"left",padding:"12px",borderRadius:8,border:`1.5px solid ${selected?.id===s.id?"#2563EB":"#E2E8F0"}`,background:selected?.id===s.id?"#EFF6FF":"#fff",cursor:"pointer",transition:"all 0.15s"}}>
                               <div style={{width:36,height:36,borderRadius:"50%",background:selected?.id===s.id?"#2563EB":"#F1F5F9",display:"flex",alignItems:"center",justifyContent:"center",marginBottom:8}}><CategoryIcon category={s.category} size={18} color={selected?.id===s.id?"#fff":CATEGORY_COLORS[s.category]}/></div>
                               <div style={{fontWeight:600,fontSize:13,color:selected?.id===s.id?"#2563EB":"#0F172A",marginBottom:3,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{s.name}</div>
-                              <div style={{fontSize:11,color:"#64748B",marginBottom:6}}>{s.type}</div>
-                              <div style={{fontSize:11,color:"#64748B",marginBottom:6}}>{s.dist}</div>
+                              <div style={{fontSize:11,color:"#475569",marginBottom:6}}>{s.type}</div>
+                              <div style={{fontSize:11,color:"#475569",marginBottom:6}}>{s.dist}</div>
                               <div style={{display:"flex",gap:3,flexWrap:"wrap"}}>
                                 {s.tags.slice(0,1).map(t=><span key={t} style={{padding:"2px 6px",borderRadius:3,border:`1px solid ${selected?.id===s.id?"#2563EB":"#E2E8F0"}`,color:selected?.id===s.id?"#2563EB":"#334155",fontSize:10}}>{t.length>30?t.slice(0,29)+"…":t}</span>)}
                               </div>
@@ -1180,7 +1213,7 @@ export default function CommunityRadar() {
                     { id:"flyer", label: isEN?"Flyer preview":"Aperçu du dépliant" },
                   ].map(tab=>(
                     <button key={tab.id} onClick={()=>setRightTab(tab.id)}
-                      style={{flex:1,padding:"11px",border:"none",background:rightTab===tab.id?"#fff":"#F8FAFC",borderBottom:rightTab===tab.id?"2px solid #059669":"2px solid transparent",color:rightTab===tab.id?"#059669":"#64748B",fontWeight:rightTab===tab.id?600:400,cursor:"pointer",fontSize:13,transition:"all 0.15s"}}>
+                      style={{flex:1,padding:"11px",border:"none",background:rightTab===tab.id?"#fff":"#F8FAFC",borderBottom:rightTab===tab.id?"2px solid #047857":"2px solid transparent",color:rightTab===tab.id?"#047857":"#475569",fontWeight:rightTab===tab.id?600:400,cursor:"pointer",fontSize:13,transition:"all 0.15s"}}>
                       {tab.label}
                     </button>
                   ))}
@@ -1192,11 +1225,11 @@ export default function CommunityRadar() {
                     {/* Dark header band */}
                     <div style={{background:"#F8FAFC",padding:"18px 20px",display:"flex",alignItems:"center",gap:14,borderBottom:"1px solid #E2E8F0"}}>
                       <div style={{width:46,height:46,borderRadius:10,background:"rgba(5,150,105,0.2)",border:"1.5px solid rgba(5,150,105,0.4)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
-                        <CategoryIcon category={selected.category} size={22} color="#34D399"/>
+                        <CategoryIcon category={selected.category} size={22} color="#047857"/>
                       </div>
                       <div>
                         <div style={{fontWeight:700,fontSize:16,color:"#0F172A",lineHeight:1.3}}>{selected.name}</div>
-                        <div style={{fontSize:11,color:"#34D399",fontWeight:600,marginTop:3,textTransform:"uppercase",letterSpacing:0.6}}>{selected.type}</div>
+                        <div style={{fontSize:11,color:"#047857",fontWeight:600,marginTop:3,textTransform:"uppercase",letterSpacing:0.6}}>{selected.type}</div>
                       </div>
                     </div>
 
@@ -1217,7 +1250,7 @@ export default function CommunityRadar() {
                         <div key={row.label} style={{display:"flex",gap:12,padding:"11px 0",borderBottom:i<arr.length-1?"1px solid #F1F5F9":"none",alignItems:"flex-start"}}>
                           <span style={{fontSize:16,flexShrink:0,marginTop:1}}>{row.icon}</span>
                           <div style={{minWidth:0}}>
-                            <div style={{fontSize:10,fontWeight:600,color:"#94A3B8",textTransform:"uppercase",letterSpacing:0.6,marginBottom:2}}>{row.label}</div>
+                            <div style={{fontSize:10,fontWeight:600,color:"#475569",textTransform:"uppercase",letterSpacing:0.6,marginBottom:2}}>{row.label}</div>
                             <div style={{fontSize:13,color:"#1E293B",lineHeight:1.4}}>{row.value}</div>
                           </div>
                         </div>
@@ -1225,7 +1258,7 @@ export default function CommunityRadar() {
 
                       {selected.tags?.length > 0 && (
                         <div style={{paddingTop:12,paddingBottom:12}}>
-                          <div style={{fontSize:10,fontWeight:600,color:"#94A3B8",textTransform:"uppercase",letterSpacing:0.6,marginBottom:8}}>{isEN?"Services offered":"Services offerts"}</div>
+                          <div style={{fontSize:10,fontWeight:600,color:"#475569",textTransform:"uppercase",letterSpacing:0.6,marginBottom:8}}>{isEN?"Services offered":"Services offerts"}</div>
                           <EnglishOnlyNote isEN={isEN}/>
                           <ul style={{margin:0,paddingLeft:18,display:"flex",flexDirection:"column",gap:7}}>
                             {selected.tags.map(t=>(
@@ -1240,7 +1273,7 @@ export default function CommunityRadar() {
                     <div style={{padding:"14px 20px",borderTop:"1px solid #F1F5F9",background:"#FAFAFA"}}>
                       <div style={{color:"#CBD5E1",fontSize:11,fontStyle:"italic",marginBottom:10}}>{T.updated}</div>
                       <button data-testid="preview-flyer" onClick={()=>setRightTab("flyer")}
-                        style={{width:"100%",padding:"11px",borderRadius:8,border:"none",background:"#059669",color:"#fff",fontWeight:600,cursor:"pointer",fontSize:14}}>
+                        style={{width:"100%",padding:"11px",borderRadius:8,border:"none",background:"#047857",color:"#fff",fontWeight:600,cursor:"pointer",fontSize:14}}>
                         {isEN?"Preview Flyer →":"Prévisualiser le dépliant →"}
                       </button>
                     </div>
@@ -1253,10 +1286,10 @@ export default function CommunityRadar() {
                     <ScaledFlyerPreview flyer={flyer}/>
 
                     <div style={{width:"100%",margin:"0 auto"}}>
-                      {flyerDone && <div style={{marginBottom:8,padding:"7px 10px",background:"#ECFDF5",borderRadius:6,color:"#059669",fontSize:12}}>✓ {isEN?"PDF downloaded successfully":"PDF téléchargé avec succès"}</div>}
+                      {flyerDone && <div style={{marginBottom:8,padding:"7px 10px",background:"#ECFDF5",borderRadius:6,color:"#047857",fontSize:12}}>✓ {isEN?"PDF downloaded successfully":"PDF téléchargé avec succès"}</div>}
                       {flyerDownloadError && <div style={{marginBottom:8,padding:"7px 10px",background:"#FEF2F2",borderRadius:6,color:"#B91C1C",fontSize:12}}>{flyerDownloadError}</div>}
                       <button data-testid="download-flyer" onClick={handleDownload} disabled={isDownloadingFlyer}
-                        style={{width:"100%",padding:"16px",borderRadius:8,border:"none",background:isDownloadingFlyer?"#94A3B8":"#059669",color:"#fff",fontWeight:600,cursor:isDownloadingFlyer?"wait":"pointer",fontSize:16}}>
+                        style={{width:"100%",padding:"16px",borderRadius:8,border:"none",background:isDownloadingFlyer?"#64748B":"#047857",color:"#fff",fontWeight:600,cursor:isDownloadingFlyer?"wait":"pointer",fontSize:16}}>
                         {isDownloadingFlyer ? (isEN ? "Preparing flyer..." : "Préparation du dépliant...") : T.generate}
                       </button>
                     </div>

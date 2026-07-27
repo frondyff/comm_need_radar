@@ -58,12 +58,14 @@ workflow:
 1. Re-runs the repository release gates.
 2. Exports the exact commit with `git archive`, avoiding Vercel's team-member
    restriction on external Git authors.
-3. Creates a production-environment deployment with `--skip-domain`.
-4. Runs critical smoke and Chromium desktop/mobile journeys against the
+3. Synchronizes the GitHub `SUPABASE_SECRET_KEY` secret into the canonical
+   Vercel production environment without logging its value.
+4. Creates a production-environment deployment with `--skip-domain`.
+5. Runs critical smoke and Chromium desktop/mobile journeys against the
    protected candidate.
-5. Confirms production still points at the previously captured deployment.
-6. Promotes the candidate and repeats critical checks on the canonical URL.
-7. In enforce mode, rolls back to the immediately previous production
+6. Confirms production still points at the previously captured deployment.
+7. Promotes the candidate and repeats critical checks on the canonical URL.
+8. In enforce mode, rolls back to the immediately previous production
    deployment if canonical checks fail.
 
 The release workflow is serialized. Do not manually promote another deployment
