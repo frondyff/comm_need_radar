@@ -20,6 +20,56 @@ L.Icon.Default.mergeOptions({
 });
 
 const MONO_FONT = "ui-monospace,SFMono-Regular,'JetBrains Mono',Menlo,Consolas,monospace";
+// Visually enlarges the on-page flyer preview only. It measures the
+// preview's natural (unscaled) height, then applies a CSS `transform:
+// scale()` to an inner wrapper — transform never changes layout box size
+// (offsetWidth/offsetHeight), so the FLYER_PREVIEW_ELEMENT_ID node that the
+// PDF exporter grabs is still captured at its original, unscaled
+// dimensions. The outer wrapper is sized to the *scaled* height so it
+// still reserves the right amount of space in the flex layout below it.
+function ScaledFlyerPreview({ flyer, scale = 1.16 }) {
+  const outerRef = useRef(null);
+  const innerRef = useRef(null);
+  const [size, setSize] = useState(null); // natural (unscaled) size of the flyer
+  const [containerWidth, setContainerWidth] = useState(null);
+
+  useEffect(() => {
+    const el = innerRef.current;
+    if (!el) return;
+    const measure = () => setSize({ w: el.offsetWidth, h: el.offsetHeight });
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [flyer]);
+
+  useEffect(() => {
+    const el = outerRef.current;
+    if (!el) return;
+    const measure = () => setContainerWidth(el.offsetWidth);
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
+  // Never let the scaled flyer overflow the width actually available on
+  // screen — this matters most on narrow/mobile viewports, where the full
+  // desired `scale` would push the flyer past the edges and get clipped.
+  // Cap the effective scale at whatever ratio still fits the container.
+  const effectiveScale = size && containerWidth
+    ? Math.min(scale, containerWidth / size.w)
+    : scale;
+
+  return (
+    <div ref={outerRef} style={{ width:"100%", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"flex-start", height: size ? size.h*effectiveScale : "auto", overflow:"hidden" }}>
+      <div ref={innerRef} style={{ transform:`scale(${effectiveScale})`, transformOrigin:"top center", width: size ? size.w : "auto", flexShrink:0 }}>
+        <FlyerPreview flyer={flyer}/>
+      </div>
+    </div>
+  );
+}
+
 function FlyTo({ center }) {
   const map = useMap();
   useEffect(() => { if (center) map.flyTo(center, 15, { duration: 1 }); }, [center]);
@@ -63,13 +113,19 @@ const SERVICES = [
 const CATEGORIES = [
   { label:"Shelter", color:CATEGORY_COLORS.Shelter, bg:"#FEF2F2" },
   { label:"Food", color:CATEGORY_COLORS.Food, bg:"#FFFBEB" },
-  { label:"Medical", color:CATEGORY_COLORS.Medical, bg:"#EFF6FF" },
+  { label:"Medical", color:CATEGORY_COLORS.Medical, bg:"#EEF2FF" },
   { label:"Legal", color:CATEGORY_COLORS.Legal, bg:"#ECFDF5" },
   { label:"Translation", color:CATEGORY_COLORS.Translation, bg:"#F5F3FF" },
 ];
 
 const AGE_RANGES = ["Under 25","25–44","45–64","65+"];
 const GENDER_OPTS = [{val:"Male",label:"Male",icon:"♂"},{val:"Female",label:"Female",icon:"♀"},{val:"All",label:"All",icon:"⚥"}];
+const GENDER_LABELS_FR = { Male:"Homme", Female:"Femme", All:"Tous" };
+const GROUP_LABELS_FR = { Indigenous:"Autochtone", Immigrant:"Immigrant" };
+// The 5 quick-filter category chips are a fixed set we control (unlike the
+// ~20 free-text "Other" values from the DB), so these can be translated.
+const CATEGORY_LABELS_FR = { Shelter:"Hébergement", Food:"Nourriture", Medical:"Médical", Legal:"Juridique", Translation:"Traduction", Other:"Autre" };
+function categoryLabel(label, isEN) { return isEN ? label : (CATEGORY_LABELS_FR[label] || label); }
 
 const BACKEND = "http://localhost:8000";
 async function logEvent(type, detail, meta={}) {
@@ -109,7 +165,7 @@ function Chip({ active, color, bg, border, onClick, children }) {
 // Checkbox-based multi-select dropdown — used for the real ~20 category
 // values, which are too many to lay out as a row of chips. Includes a
 // search box once there are enough options that scrolling alone gets tedious.
-function MultiSelectDropdown({ label, options, selected, onChange }) {
+function MultiSelectDropdown({ label, options, selected, onChange, isEN=true, dataIsEnglishOnly=false }) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const ref = useRef(null);
@@ -129,9 +185,14 @@ function MultiSelectDropdown({ label, options, selected, onChange }) {
         {label}{active?` (${selected.length})`:""} <span style={{fontSize:10}}>▾</span>
       </button>
       {open && (
-        <div style={{position:"absolute",top:"calc(100% + 4px)",left:0,background:"#fff",border:"1px solid #E2E8F0",borderRadius:8,boxShadow:"0 8px 24px rgba(15,23,42,0.12)",padding:8,minWidth:230,zIndex:100}}>
+        <div style={{position:"absolute",top:"calc(100% + 4px)",right:0,background:"#fff",border:"1px solid #E2E8F0",borderRadius:8,boxShadow:"0 8px 24px rgba(15,23,42,0.12)",padding:8,minWidth:230,maxWidth:"min(320px, 90vw)",zIndex:3000}}>
+          {!isEN && dataIsEnglishOnly && (
+            <div style={{fontSize:10,fontStyle:"italic",color:"#B45309",background:"#FFFBEB",border:"1px solid #FDE68A",borderRadius:5,padding:"4px 7px",marginBottom:6}}>
+              Anglais seulement / English only
+            </div>
+          )}
           {options.length>8 && (
-            <input autoFocus value={query} onChange={e=>setQuery(e.target.value)} placeholder={label==="Autre"?"Rechercher…":"Search…"}
+            <input autoFocus value={query} onChange={e=>setQuery(e.target.value)} placeholder={isEN?"Search…":"Rechercher…"}
               style={{width:"100%",boxSizing:"border-box",padding:"6px 8px",marginBottom:6,border:"1px solid #E2E8F0",borderRadius:6,fontSize:13,outline:"none"}}/>
           )}
           <div style={{maxHeight:260,overflowY:"auto"}}>
@@ -147,7 +208,7 @@ function MultiSelectDropdown({ label, options, selected, onChange }) {
           {active && (
             <button onClick={()=>onChange([])}
               style={{marginTop:6,width:"100%",padding:"6px",fontSize:12,color:"#64748B",background:"#F8FAFC",border:"1px solid #E2E8F0",borderRadius:6,cursor:"pointer"}}>
-              Clear
+              {isEN?"Clear":"Effacer"}
             </button>
           )}
         </div>
@@ -162,7 +223,7 @@ function LocationBadge({ location, onChange, changeLabel="change" }) {
   return (
     <div style={{fontSize:12,color:"#fff",background:"rgba(255,255,255,0.1)",padding:"4px 10px",borderRadius:6,display:"flex",alignItems:"center",gap:5}}>
       <span style={{width:6,height:6,borderRadius:"50%",background:"#059669",display:"inline-block",flexShrink:0}}/>
-      <span style={{fontWeight:600,whiteSpace:"nowrap"}}>{location.name}</span>
+      <span style={{fontWeight:600,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",maxWidth:150}}>{location.name}</span>
       <button
         type="button"
         onClick={onChange}
@@ -224,7 +285,7 @@ function boundaryScoreKey(feature, boroughScores) {
   return [boroughName, alias].find(name => name && boroughScores[name]) || alias || boroughName || null;
 }
 
-function ChoroplethMap({ selectedBorough, selectedAreaId, onSelect, boroughScores, areas=[] }) {
+function ChoroplethMap({ selectedBorough, selectedAreaId, onSelect, boroughScores, areas=[], isEN=true }) {
   const [geojson, setGeojson] = useState(null);
   const [mapStatus, setMapStatus] = useState("loading");
   const mapRef = useRef(null);
@@ -314,12 +375,12 @@ function ChoroplethMap({ selectedBorough, selectedAreaId, onSelect, boroughScore
         )}
         {mapStatus === "loading" && (
           <div style={{position:"absolute",inset:0,display:"flex",alignItems:"center",justifyContent:"center",zIndex:1000,background:"rgba(255,255,255,0.7)",fontSize:13,color:"#64748B"}}>
-            Loading map…
+            {isEN?"Loading map…":"Chargement de la carte…"}
           </div>
         )}
         {mapStatus === "error" && (
           <div style={{position:"absolute",inset:0,display:"flex",alignItems:"center",justifyContent:"center",zIndex:1000,background:"rgba(255,255,255,0.9)",fontSize:13,color:"#9F1239"}}>
-            Boundary map unavailable
+            {isEN?"Boundary map unavailable":"Carte des limites indisponible"}
           </div>
         )}
       </MapContainer>
@@ -394,33 +455,33 @@ function PlannerView({ lang, setLang, onSwitch, onExit, location, onChangeLocati
       : validServices;
   return (
     <div style={{minHeight:"100vh",background:"#FFFFFF",fontFamily:"system-ui,sans-serif",fontSize:14}}>
-      <div style={{background:"#0B1220",padding:"10px 20px",display:"flex",alignItems:"center",justifyContent:"space-between",position:"sticky",top:0,zIndex:1000,borderBottom:"1px solid #1E293B"}}>
-        <div style={{display:"flex",alignItems:"center",gap:10}}>
+      <div style={{background:"#0B1220",padding:"10px 20px",display:"flex",flexWrap:"wrap",rowGap:8,alignItems:"center",justifyContent:"space-between",position:"sticky",top:0,zIndex:1000,borderBottom:"1px solid #1E293B"}}>
+        <div style={{display:"flex",flexWrap:"wrap",alignItems:"center",gap:10,rowGap:6}}>
           <Radar size={20} color="#2563EB"/>
           <div style={{fontWeight:700,fontSize:16,color:"#fff",letterSpacing:0.2}}>Community Radar</div>
           <div style={{width:1,height:16,background:"#334155",margin:"0 4px"}}/>
-          <div style={{fontSize:12,color:"#60A5FA",fontWeight:600,textTransform:"uppercase",letterSpacing:0.6}}>Planner View (V2)</div>
+          <div style={{fontSize:12,color:"#60A5FA",fontWeight:600,textTransform:"uppercase",letterSpacing:0.6}}>{isEN?"Planner View (V2)":"Vue Planificateur (V2)"}</div>
         </div>
-        <div style={{display:"flex",gap:6,alignItems:"center"}}>
+        <div style={{display:"flex",flexWrap:"wrap",gap:6,rowGap:6,alignItems:"center"}}>
           <span style={{fontSize:11,color:sourceStatus==="supabase"?"#6EE7B7":"#FCD34D",fontWeight:600}}>
-            {sourceStatus==="supabase"?"Supabase":"Demo data"}
+            {sourceStatus==="supabase"?"Supabase":(isEN?"Demo data":"Données démo")}
           </span>
           <div style={{display:"flex",background:"rgba(255,255,255,0.08)",borderRadius:6,overflow:"hidden"}}>
             {["EN","FR"].map(l=><button key={l} onClick={()=>setLang(l)} style={{padding:"4px 10px",border:"none",background:lang===l?"#2563EB":"transparent",color:"#fff",fontWeight:lang===l?700:400,cursor:"pointer",fontSize:12}}>{l}</button>)}
           </div>
-          <button onClick={onSwitch} style={{padding:"4px 12px",borderRadius:6,border:"1px solid #334155",color:"#CBD5E1",background:"transparent",cursor:"pointer",fontSize:12}}>Community View (V1)</button>
-          <button onClick={onExit} style={{display:"flex",alignItems:"center",gap:3,padding:"4px 10px",borderRadius:6,border:"none",color:"#CBD5E1",background:"transparent",cursor:"pointer",fontSize:11}}><ChevronLeft size={12}/> Exit</button>
+          <button onClick={onSwitch} style={{padding:"4px 12px",borderRadius:6,border:"1px solid #334155",color:"#CBD5E1",background:"transparent",cursor:"pointer",fontSize:12,whiteSpace:"nowrap"}}>{isEN?"Community View (V1)":"Vue Communautaire (V1)"}</button>
+          <button onClick={onExit} style={{display:"flex",alignItems:"center",gap:3,padding:"4px 10px",borderRadius:6,border:"none",color:"#CBD5E1",background:"transparent",cursor:"pointer",fontSize:11,whiteSpace:"nowrap"}}><ChevronLeft size={12}/> Exit</button>
         </div>
       </div>
       <div style={{padding:"16px 20px"}}>
         {/* KPI cards */}
-        <div style={{display:"flex",background:"#fff",border:"1px solid #E2E8F0",borderRadius:8,marginBottom:16,overflow:"hidden"}}>
+        <div style={{display:"flex",flexWrap:"wrap",background:"#fff",border:"1px solid #E2E8F0",borderRadius:8,marginBottom:16,overflow:"hidden"}}>
           {[
-            { label:"Tracts analyzed", val: areas.length>0 ? String(areas.length) : "512", sub: areas.length>0 ? `${boroughEntries.length} boroughs` : "of 512 citywide", icon:Layers, color:"#4F46E5", bg:"#EEF2FF" },
-            { label:"Average gap score", val: avgGapScore!=null ? avgGapScore.toFixed(2) : "0.42", sub: avgGapScore!=null ? `across ${areas.length} areas` : "0.03 vs last quarter", icon:Activity, color:"#E11D48", bg:"#FFF1F2" },
-            { label:"High-priority areas", val: areas.length>0 ? String(highPriorityCount) : "23", sub: areas.length>0 ? "flagged high / gap score ≥ 0.60" : "6 newly flagged", icon:AlertTriangle, color:"#D97706", bg:"#FFFBEB" },
+            { label: isEN?"Tracts analyzed":"Zones analysées", val: areas.length>0 ? String(areas.length) : "512", sub: areas.length>0 ? (isEN?`${boroughEntries.length} boroughs`:`${boroughEntries.length} arrondissements`) : (isEN?"of 512 citywide":"sur 512 dans la ville"), icon:Layers, color:"#2563EB", bg:"#EEF2FF" },
+            { label: isEN?"Average gap score":"Score d'écart moyen", val: avgGapScore!=null ? avgGapScore.toFixed(2) : "0.42", sub: avgGapScore!=null ? (isEN?`across ${areas.length} areas`:`sur ${areas.length} zones`) : (isEN?"0.03 vs last quarter":"0,03 par rapport au dernier trimestre"), icon:Activity, color:"#E11D48", bg:"#FFF1F2" },
+            { label: isEN?"High-priority areas":"Zones haute priorité", val: areas.length>0 ? String(highPriorityCount) : "23", sub: areas.length>0 ? (isEN?"flagged high / gap score ≥ 0.60":"signalées haute / score ≥ 0,60") : (isEN?"6 newly flagged":"6 nouvellement signalées"), icon:AlertTriangle, color:"#D97706", bg:"#FFFBEB" },
           ].map((k,i)=>(
-            <div key={k.label} style={{flex:1,padding:"14px 20px",display:"flex",gap:12,alignItems:"flex-start",borderLeft:i>0?"1px solid #E2E8F0":"none"}}>
+            <div key={k.label} style={{flex:"1 1 220px",minWidth:220,padding:"14px 20px",display:"flex",gap:12,alignItems:"flex-start",borderLeft:i>0?"1px solid #E2E8F0":"none"}}>
               <div style={{width:34,height:34,borderRadius:8,background:k.bg,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
                 <k.icon size={18} color={k.color} strokeWidth={2.25}/>
               </div>
@@ -437,7 +498,7 @@ function PlannerView({ lang, setLang, onSwitch, onExit, location, onChangeLocati
         </div>
 
         {/* Map row */}
-        <div style={{display:"grid",gridTemplateColumns:"1.1fr 1fr 340px",gap:12,marginBottom:12}}>
+        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit, minmax(300px, 1fr))",gap:12,marginBottom:12}}>
           {/* Real choropleth */}
           <div style={{background:"#fff",border:"1px solid #E2E8F0",borderRadius:8,overflow:"hidden",display:"flex",flexDirection:"column"}}>
             <div style={{padding:"12px 16px",borderBottom:"1px solid #E2E8F0",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
@@ -445,7 +506,7 @@ function PlannerView({ lang, setLang, onSwitch, onExit, location, onChangeLocati
               <span style={{fontSize:13,color:"#64748B"}}>{isEN?"by Gap Score":"par Score d'écart"}</span>
             </div>
             <div style={{flex:1,minHeight:460}}>
-              <ChoroplethMap selectedBorough={selectedBorough} selectedAreaId={selectedAreaId} onSelect={selectMapArea} boroughScores={boroughScores} areas={areas}/>
+              <ChoroplethMap selectedBorough={selectedBorough} selectedAreaId={selectedAreaId} onSelect={selectMapArea} boroughScores={boroughScores} areas={areas} isEN={isEN}/>
             </div>
             <div style={{padding:"10px 16px",borderTop:"1px solid #E2E8F0",display:"flex",alignItems:"center",gap:8,fontSize:13,color:"#334155"}}>
               <span>{isEN?"Low":"Faible"}</span>
@@ -465,7 +526,7 @@ function PlannerView({ lang, setLang, onSwitch, onExit, location, onChangeLocati
                 const count = boroughServices.filter(s=>s.category===c.label).length;
                 return (
                   <div key={c.label} style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:12,padding:"2px 0"}}>
-                    <span style={{display:"flex",alignItems:"center",gap:5,color:"#334155"}}><span style={{width:8,height:8,borderRadius:"50%",background:c.color,display:"inline-block",flexShrink:0}}/>{c.label}</span>
+                    <span style={{display:"flex",alignItems:"center",gap:5,color:"#334155"}}><span style={{width:8,height:8,borderRadius:"50%",background:c.color,display:"inline-block",flexShrink:0}}/>{categoryLabel(c.label,isEN)}</span>
                     <span style={{fontWeight:600,color:"#0F172A",fontFamily:MONO_FONT}}>{count}</span>
                   </div>
                 );
@@ -486,7 +547,7 @@ function PlannerView({ lang, setLang, onSwitch, onExit, location, onChangeLocati
               </div>
             )}
             <div style={{position:"absolute",bottom:8,left:8,zIndex:1000,background:"rgba(255,255,255,0.95)",borderRadius:6,padding:"5px 10px",border:"1px solid #E2E8F0",fontSize:12,display:"flex",gap:10,flexWrap:"wrap"}}>
-              {categories.map(c=><span key={c.label} style={{display:"flex",alignItems:"center",gap:4}}><span style={{width:9,height:9,borderRadius:"50%",background:c.color,display:"inline-block"}}/>{c.label}</span>)}
+              {categories.map(c=><span key={c.label} style={{display:"flex",alignItems:"center",gap:4}}><span style={{width:9,height:9,borderRadius:"50%",background:c.color,display:"inline-block"}}/>{categoryLabel(c.label,isEN)}</span>)}
             </div>
           </div>
 
@@ -501,12 +562,12 @@ function PlannerView({ lang, setLang, onSwitch, onExit, location, onChangeLocati
                   : selectRankedBorough(p.borough);
                 return (
                   <div key={p.id} onClick={onClick}
-                    style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"10px 12px",borderRadius:8,cursor:"pointer",background:isSelected?"#EFF6FF":"#F1F5F9",border:`1px solid ${isSelected?"#2563EB":"#E2E8F0"}`,transition:"all 0.15s"}}>
+                    style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"10px 12px",borderRadius:8,cursor:"pointer",background:isSelected?"#EEF2FF":"#F1F5F9",border:`1px solid ${isSelected?"#2563EB":"#E2E8F0"}`,transition:"all 0.15s"}}>
                     <div style={{minWidth:0}}>
                       <div style={{fontSize:13,fontWeight:isSelected?600:400,color:isSelected?"#2563EB":"#0F172A",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{p.name}</div>
                       {p.borough && p.borough!==p.name && <div style={{fontSize:11,color:"#94A3B8",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{p.borough}</div>}
                     </div>
-                    <span style={{fontSize:13,fontWeight:700,color:"#2563EB",background:"#EFF6FF",padding:"3px 8px",borderRadius:4,fontFamily:MONO_FONT,flexShrink:0,marginLeft:8}}>{p.gapScore!=null?p.gapScore.toFixed(2):"—"}</span>
+                    <span style={{fontSize:13,fontWeight:700,color:"#2563EB",background:"#EEF2FF",padding:"3px 8px",borderRadius:4,fontFamily:MONO_FONT,flexShrink:0,marginLeft:8}}>{p.gapScore!=null?p.gapScore.toFixed(2):"—"}</span>
                   </div>
                 );
               })}
@@ -545,7 +606,7 @@ function PlannerView({ lang, setLang, onSwitch, onExit, location, onChangeLocati
           </div>
 
           {selectedAreaData && (selectedAreaData.summaryEn || selectedAreaData.summaryFr) && (
-            <div style={{fontSize:13,color:"#1E3A8A",lineHeight:1.5,background:"#EFF6FF",borderLeft:"3px solid #2563EB",borderRadius:6,padding:"12px 14px",marginBottom:selectedAreaData.drivers?.length>0?12:0}}>
+            <div style={{fontSize:13,color:"#312E81",lineHeight:1.5,background:"#EEF2FF",borderLeft:"3px solid #2563EB",borderRadius:6,padding:"12px 14px",marginBottom:selectedAreaData.drivers?.length>0?12:0}}>
               {isEN ? (selectedAreaData.summaryEn || selectedAreaData.summaryFr) : (selectedAreaData.summaryFr || selectedAreaData.summaryEn)}
             </div>
           )}
@@ -559,7 +620,7 @@ function PlannerView({ lang, setLang, onSwitch, onExit, location, onChangeLocati
               <EnglishOnlyNote isEN={isEN}/>
               <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
                 {selectedAreaData.drivers.map(d=>(
-                  <span key={d} style={{padding:"4px 10px",borderRadius:20,background:"#EFF6FF",color:"#1E3A8A",fontSize:12,fontWeight:500,border:"1px solid #BFDBFE"}}>{d}</span>
+                  <span key={d} style={{padding:"4px 10px",borderRadius:20,background:"#EEF2FF",color:"#312E81",fontSize:12,fontWeight:500,border:"1px solid #BFDBFE"}}>{d}</span>
                 ))}
               </div>
             </div>
@@ -622,6 +683,7 @@ export default function CommunityRadar() {
   const [activeCategory, setActiveCategory] = useState([]);
   const [activeOtherCategory, setActiveOtherCategory] = useState([]);
   const [search, setSearch] = useState("");
+  const [activeMaxDist, setActiveMaxDist] = useState(null); // null = no distance limit yet
   const [selected, setSelected] = useState(SERVICES[0]);
   const [showMap, setShowMap] = useState(false);
   const [flyerDone, setFlyerDone] = useState(false);
@@ -682,7 +744,6 @@ export default function CommunityRadar() {
     generate: isEN?"Download flyer (PDF)":"Générer un dépliant (PDF)",
     flyerPreview: isEN?"Flyer preview":"Aperçu du dépliant",
     download: isEN?"⬇  Download PDF flyer":"⬇  Télécharger le dépliant PDF",
-    updated: isEN?"Info updated June 2026":"Info juin 2026",
     phone: isEN?"211 or other":"211 ou autre",
     qr: isEN?"QR code (our app)":"Code QR",
     langs: isEN?"Languages:":"Langues:",
@@ -695,6 +756,24 @@ export default function CommunityRadar() {
   // the loaded data, so it adapts automatically as new values show up.
   const otherCategoryOptions = [...new Set(services.filter(s=>s.category==="Other").map(s=>s.type).filter(Boolean))].sort();
 
+  // Upper bound for the distance slider — rounds up to the nearest 0.5 km
+  // past the farthest *reasonable* service currently loaded. A handful of
+  // records have missing/bad coordinates (e.g. defaulting near [0,0]),
+  // which computes a wildly large haversine distance and would blow the
+  // whole slider range out to thousands of km — so those outliers are
+  // ignored here and just excluded from the slider's max, not from the list.
+  const REASONABLE_MAX_DIST_KM = 50;
+  const maxAvailableDist = useMemo(() => {
+    const values = services.map(s => s.distanceKm).filter(v => typeof v === "number" && !Number.isNaN(v) && v <= REASONABLE_MAX_DIST_KM);
+    if (values.length === 0) return REASONABLE_MAX_DIST_KM;
+    return Math.max(1, Math.ceil((Math.max(...values) + 0.001) * 2) / 2);
+  }, [services]);
+
+  // Reset the distance filter back to "no limit" whenever the underlying
+  // service list changes (e.g. a new distribution location), so it can't
+  // silently hide everything after the distances shift.
+  useEffect(() => { setActiveMaxDist(null); }, [services]);
+
   const filtered = useMemo(() => services.filter(s => {
     const mg = activeGroup.length===0 || s.group.some(g=>activeGroup.includes(g));
     const mge = !activeGender || s.gender===activeGender || s.gender==="All";
@@ -703,8 +782,9 @@ export default function CommunityRadar() {
       || activeCategory.includes(s.category)
       || activeOtherCategory.includes(s.type);
     const ms = !search || s.name.toLowerCase().includes(search.toLowerCase()) || s.type.toLowerCase().includes(search.toLowerCase());
-    return mg && mge && ma && mc && ms;
-  }), [services, activeGroup, activeGender, activeAge, activeCategory, activeOtherCategory, search]);
+    const md = activeMaxDist==null || typeof s.distanceKm!=="number" || s.distanceKm<=activeMaxDist;
+    return mg && mge && ma && mc && ms && md;
+  }), [services, activeGroup, activeGender, activeAge, activeCategory, activeOtherCategory, search, activeMaxDist]);
 
   // The selected centre is always one the user can see in the current result
   // list. This prevents a filter or data refresh from leaving an old service
@@ -732,7 +812,7 @@ export default function CommunityRadar() {
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const pagedFiltered = filtered.slice(listPage * PAGE_SIZE, (listPage + 1) * PAGE_SIZE);
-  useEffect(() => { setListPage(0); }, [activeGroup, activeGender, activeAge, activeCategory, activeOtherCategory, search]);
+  useEffect(() => { setListPage(0); }, [activeGroup, activeGender, activeAge, activeCategory, activeOtherCategory, search, activeMaxDist]);
 
   const handleSelect = s => { setSelected(s); setFlyerDone(false); setFlyerDownloadError(""); setMapCenter([s.lat,s.lng]); setRightTab("info"); logEvent("service_card_opened",s.name,meta); };
 
@@ -773,29 +853,36 @@ export default function CommunityRadar() {
 
   // ROLE SELECTION 
   if (step==="role") return (
-    <div style={{minHeight:"100vh",background:"#FFFFFF",display:"flex",alignItems:"center",justifyContent:"center",fontFamily:"system-ui,sans-serif",padding:"2rem"}}>
-      <div style={{maxWidth:520,width:"100%",textAlign:"center"}}>
-        <div style={{marginBottom:8}}>
-            <Radar size={44} color="#2563EB" />
-        </div>
-        <h1 style={{fontSize:28,fontWeight:700,color:"#0F172A",margin:"0 0 16px"}}>{T.title}</h1>
-        <p style={{color:"#64748B",fontSize:13,marginBottom:16}}>McGill University MMA · BUSA 649 · Community Project</p>
-        <div style={{display:"flex",justifyContent:"center",marginBottom:32}}>
-          <div style={{display:"flex",background:"#F1F5F9",borderRadius:8,overflow:"hidden",border:"1px solid #E2E8F0"}}>
-            {["EN","FR"].map(l=><button key={l} onClick={()=>setLang(l)} style={{padding:"5px 14px",border:"none",background:lang===l?"#2563EB":"transparent",color:lang===l?"#fff":"#334155",fontWeight:lang===l?700:400,cursor:"pointer",fontSize:13}}>{l}</button>)}
+    <div style={{minHeight:"100vh",background:"#FFFFFF",display:"flex",alignItems:"center",justifyContent:"center",fontFamily:"system-ui,sans-serif",padding:"2rem",position:"relative",overflow:"hidden"}}>
+      {/* subtle tech grid lines */}
+      <div style={{position:"absolute",inset:0,backgroundImage:"linear-gradient(to right,rgba(15,23,42,0.045) 1px,transparent 1px),linear-gradient(to bottom,rgba(15,23,42,0.045) 1px,transparent 1px)",backgroundSize:"32px 32px",pointerEvents:"none"}} />
+
+      <div style={{maxWidth:520,width:"100%",textAlign:"center",position:"relative",zIndex:1}}>
+        <div style={{marginBottom:18,display:"flex",justifyContent:"center"}}>
+          <div style={{width:64,height:64,borderRadius:16,background:"linear-gradient(135deg,#2563EB,#1D4ED8)",display:"flex",alignItems:"center",justifyContent:"center",boxShadow:"0 10px 24px rgba(37,99,235,0.28)"}}>
+            <Radar size={30} color="#fff" />
           </div>
         </div>
-        <p style={{fontWeight:600,fontSize:17,color:"#0F172A",marginBottom:16}}>{T.chooseRole}</p>
-        <div style={{display:"flex",flexDirection:"column",gap:12}}>
+        <h1 style={{fontSize:30,fontWeight:800,color:"#0F172A",margin:"0 0 10px",letterSpacing:-0.5}}>{T.title}</h1>
+        <p style={{color:"#64748B",fontSize:13,marginBottom:20,letterSpacing:0.3}}>McGill University MMA · BUSA 649 · Community Project</p>
+        <div style={{display:"flex",justifyContent:"center",marginBottom:36}}>
+          <div style={{display:"flex",background:"#F1F5F9",borderRadius:8,overflow:"hidden",border:"1px solid #E2E8F0"}}>
+            {["EN","FR"].map(l=><button key={l} onClick={()=>setLang(l)} style={{padding:"6px 16px",border:"none",background:lang===l?"linear-gradient(135deg,#2563EB,#1D4ED8)":"transparent",color:lang===l?"#fff":"#334155",fontWeight:lang===l?700:500,cursor:"pointer",fontSize:13,transition:"all 0.15s"}}>{l}</button>)}
+          </div>
+        </div>
+        <p style={{fontWeight:600,fontSize:13,color:"#334155",marginBottom:16,textTransform:"uppercase",letterSpacing:1.4}}>{T.chooseRole}</p>
+        <div style={{display:"flex",flexDirection:"column",gap:14}}>
           <button onClick={()=>{setRole("v1");logEvent("role_selected","v1",{});handleChangeLocation("main","role");}}
-            style={{padding:"20px 24px",borderRadius:8,border:"1.5px solid #0891B2",background:"#ECFEFF",color:"#164E63",textAlign:"left",cursor:"pointer"}}>
-            <div style={{fontWeight:700,fontSize:16,marginBottom:4}}>V1 — {T.roleV1}</div>
-            <div style={{fontSize:13,opacity:0.8}}>{T.roleV1sub}</div>
+            style={{padding:"22px 24px 22px 28px",borderRadius:12,border:"1.5px solid #BFDBFE",background:"linear-gradient(135deg,#EFF6FF,#F0F9FF)",color:"#1E3A8A",textAlign:"left",cursor:"pointer",position:"relative",overflow:"hidden"}}>
+            <div style={{position:"absolute",left:0,top:0,bottom:0,width:4,background:"linear-gradient(180deg,#3B82F6,#1D4ED8)"}} />
+            <div style={{fontWeight:700,fontSize:16,marginBottom:4,color:"#1E3A8A"}}>V1 — {T.roleV1}</div>
+            <div style={{fontSize:13,color:"#4A6FA5"}}>{T.roleV1sub}</div>
           </button>
           <button onClick={()=>{setRole("v2");logEvent("role_selected","v2",{});setStep("v2");}}
-            style={{padding:"20px 24px",borderRadius:8,border:"1.5px solid #059669",background:"#ECFDF5",color:"#059669",textAlign:"left",cursor:"pointer"}}>
-            <div style={{fontWeight:700,fontSize:16,marginBottom:4}}>V2 — {T.roleV2}</div>
-            <div style={{fontSize:13,opacity:0.8}}>{T.roleV2sub}</div>
+            style={{padding:"22px 24px 22px 28px",borderRadius:12,border:"1.5px solid #FDE1B8",background:"linear-gradient(135deg,#FFF7ED,#FFFBEB)",color:"#7C2D12",textAlign:"left",cursor:"pointer",position:"relative",overflow:"hidden"}}>
+            <div style={{position:"absolute",left:0,top:0,bottom:0,width:4,background:"linear-gradient(180deg,#F59E0B,#C2410C)"}} />
+            <div style={{fontWeight:700,fontSize:16,marginBottom:4,color:"#7C2D12"}}>V2 — {T.roleV2}</div>
+            <div style={{fontSize:13,color:"#9A5B33"}}>{T.roleV2sub}</div>
           </button>
         </div>
       </div>
@@ -821,16 +908,21 @@ export default function CommunityRadar() {
 
   // LOCATION SELECTION
   if (step==="location") return (
-    <div style={{minHeight:"100vh",background:"#FFFFFF",display:"flex",alignItems:"center",justifyContent:"center",fontFamily:"system-ui,sans-serif",padding:"2rem"}}>
-      <div style={{maxWidth:520,width:"100%",textAlign:"center"}}>
-        <div style={{marginBottom:8}}>
-            <LocateFixed size={44} color="#2563EB" />
+    <div style={{minHeight:"100vh",background:"#FFFFFF",display:"flex",alignItems:"center",justifyContent:"center",fontFamily:"system-ui,sans-serif",padding:"2rem",position:"relative",overflow:"hidden"}}>
+      {/* subtle tech grid lines, consistent with the cover screen */}
+      <div style={{position:"absolute",inset:0,backgroundImage:"linear-gradient(to right,rgba(15,23,42,0.045) 1px,transparent 1px),linear-gradient(to bottom,rgba(15,23,42,0.045) 1px,transparent 1px)",backgroundSize:"32px 32px",pointerEvents:"none"}} />
+
+      <div style={{maxWidth:520,width:"100%",textAlign:"center",position:"relative",zIndex:1}}>
+        <div style={{marginBottom:14,display:"flex",justifyContent:"center"}}>
+          <div style={{width:56,height:56,borderRadius:14,background:"linear-gradient(135deg,#2563EB,#1D4ED8)",display:"flex",alignItems:"center",justifyContent:"center",boxShadow:"0 10px 24px rgba(37,99,235,0.28)"}}>
+            <LocateFixed size={26} color="#fff" />
+          </div>
         </div>
-        <h1 style={{fontSize:28,fontWeight:700,color:"#0F172A",margin:"0 0 6px"}}>{T.title}</h1>
-        <p style={{color:"#64748B",fontSize:13,marginBottom:16}}>McGill University MMA · BUSA 649 · Community Project</p>
-        <p style={{color:"#64748B",fontSize:14,marginBottom:32}}>{isEN?"Step 2 of 2":"Étape 2 de 2"}</p>
-        <div style={{background:"#fff",border:"1px solid #E2E8F0",borderRadius:8,padding:"2rem",boxShadow:"0 2px 16px rgba(0,0,0,0.06)",textAlign:"left"}}>
-          <p style={{fontWeight:600,fontSize:16,color:"#0F172A",marginBottom:4,textAlign:"center"}}>
+        <h1 style={{fontSize:26,fontWeight:800,color:"#0F172A",margin:"0 0 6px",letterSpacing:-0.4}}>{T.title}</h1>
+        <p style={{color:"#64748B",fontSize:13,marginBottom:12}}>McGill University MMA · BUSA 649 · Community Project</p>
+        <p style={{color:"#2563EB",fontSize:12,fontWeight:700,marginBottom:28,textTransform:"uppercase",letterSpacing:1.2}}>{isEN?"Step 2 of 2":"Étape 2 de 2"}</p>
+        <div style={{background:"#fff",border:"1px solid #E2E8F0",borderRadius:14,padding:"2rem",boxShadow:"0 8px 30px rgba(15,23,42,0.08)",textAlign:"left"}}>
+          <p style={{fontWeight:700,fontSize:16,color:"#0F172A",marginBottom:4,textAlign:"center"}}>
             {isEN?"Where are you distributing from?":"D'où distribuez-vous?"}
           </p>
           <p style={{fontSize:13,color:"#64748B",marginBottom:20,textAlign:"center"}}>
@@ -839,8 +931,8 @@ export default function CommunityRadar() {
           <div style={{display:"flex",flexDirection:"column",gap:10}}>
             {DIST_LOCATIONS.map(loc=>(
               <button key={loc.id} onClick={()=>handleLocationSelected(loc)}
-                style={{padding:"14px 18px",borderRadius:8,border:`1.5px solid ${selectedLocation.id===loc.id?"#2563EB":"#E2E8F0"}`,background:selectedLocation.id===loc.id?"#EFF6FF":"#fff",color:"#0F172A",textAlign:"left",cursor:"pointer",display:"flex",alignItems:"center",gap:12}}>
-                <div style={{width:10,height:10,borderRadius:"50%",background:"#059669",flexShrink:0}}/>
+                style={{padding:"14px 18px",borderRadius:10,border:`1.5px solid ${selectedLocation.id===loc.id?"#2563EB":"#E2E8F0"}`,background:selectedLocation.id===loc.id?"#EFF6FF":"#fff",color:"#0F172A",textAlign:"left",cursor:"pointer",display:"flex",alignItems:"center",gap:12,boxShadow:selectedLocation.id===loc.id?"0 4px 14px rgba(37,99,235,0.14)":"none",transition:"all 0.15s"}}>
+                <div style={{width:10,height:10,borderRadius:"50%",background:selectedLocation.id===loc.id?"#2563EB":"#059669",flexShrink:0}}/>
                 <div>
                   <div style={{fontWeight:600,fontSize:14}}>{loc.name}</div>
                   <div style={{fontSize:12,color:"#64748B",marginTop:2}}>{loc.org}</div>
@@ -860,20 +952,20 @@ export default function CommunityRadar() {
   return (
     <div style={{minHeight:"100vh",background:"#FFFFFF",fontFamily:"system-ui,sans-serif",fontSize:14}}>
       {/* TOP BAR */}
-      <div style={{background:"#0B1220",padding:"10px 20px",display:"flex",alignItems:"center",justifyContent:"space-between",position:"sticky",top:0,zIndex:1000,borderBottom:"1px solid #1E293B"}}>
-        <div style={{display:"flex",alignItems:"center",gap:10}}>
+      <div style={{background:"#0B1220",padding:"10px 20px",display:"flex",flexWrap:"wrap",rowGap:8,alignItems:"center",justifyContent:"space-between",position:"sticky",top:0,zIndex:1000,borderBottom:"1px solid #1E293B"}}>
+        <div style={{display:"flex",flexWrap:"wrap",alignItems:"center",gap:10,rowGap:6}}>
           <Radar size={20} color="#2563EB"/>
           <div style={{fontWeight:700,fontSize:16,color:"#fff"}}>{T.title} </div>
           <div style={{width:1,height:16,background:"#334155",margin:"0 4px"}}/>
-          <div style={{fontSize:12,color:"#60A5FA",fontWeight:600,textTransform:"uppercase",letterSpacing:0.6}}>Community View (V1)</div>
+          <div style={{fontSize:12,color:"#60A5FA",fontWeight:600,textTransform:"uppercase",letterSpacing:0.6}}>{isEN?"Community View (V1)":"Vue Communautaire (V1)"}</div>
         </div>
-        <div style={{display:"flex",gap:6,alignItems:"center"}}>
+        <div style={{display:"flex",flexWrap:"wrap",gap:6,rowGap:6,alignItems:"center"}}>
           <LocationBadge location={selectedLocation} onChange={()=>handleChangeLocation("main")}/>
           <div style={{display:"flex",background:"rgba(255,255,255,0.1)",borderRadius:6,overflow:"hidden"}}>
             {["EN","FR"].map(l=><button key={l} onClick={()=>setLang(l)} style={{padding:"4px 10px",border:"none",background:lang===l?"#2563EB":"transparent",color:"#fff",fontWeight:lang===l?700:400,cursor:"pointer",fontSize:12}}>{l}</button>)}
           </div>
-          <button onClick={()=>setStep("v2")} style={{padding:"4px 12px",borderRadius:6,border:"1px solid #334155",color:"#CBD5E1",background:"transparent",cursor:"pointer",fontSize:12}}>V2 Planner</button>
-          <button onClick={()=>setStep("role")} style={{display:"flex",alignItems:"center",gap:3,padding:"4px 10px",borderRadius:6,border:"none",color:"#CBD5E1",background:"transparent",cursor:"pointer",fontSize:11}}><ChevronLeft size={12}/> Exit</button>
+          <button onClick={()=>setStep("v2")} style={{padding:"4px 12px",borderRadius:6,border:"1px solid #334155",color:"#CBD5E1",background:"transparent",cursor:"pointer",fontSize:12,whiteSpace:"nowrap"}}>{isEN?"V2 Planner":"V2 Planificateur"}</button>
+          <button onClick={()=>setStep("role")} style={{display:"flex",alignItems:"center",gap:3,padding:"4px 10px",borderRadius:6,border:"none",color:"#CBD5E1",background:"transparent",cursor:"pointer",fontSize:11,whiteSpace:"nowrap"}}><ChevronLeft size={12}/> Exit</button>
         </div>
       </div>
 
@@ -883,33 +975,33 @@ export default function CommunityRadar() {
           <Search size={16} color="#2563EB" style={{position:"absolute",left:14,top:"50%",transform:"translateY(-50%)"}}/>
           <input value={search} onChange={e=>{setSearch(e.target.value);logEvent("search",e.target.value,meta);}}
             placeholder={T.search}
-            style={{width:"100%",padding:"12px 14px 12px 42px",borderRadius:8,border:"2px solid #2563EB",background:"#fff",fontSize:14,outline:"none",boxShadow:"0 2px 8px rgba(37,99,235,0.12)",boxSizing:"border-box"}}/>
+            style={{width:"100%",padding:"12px 14px 12px 42px",borderRadius:8,border:"2px solid #2563EB",background:"#fff",fontSize:14,outline:"none",boxShadow:"0 2px 8px rgba(37,99,235,0.14)",boxSizing:"border-box"}}/>
         </div>
 
         {/* FILTERS */}
         <div style={{background:"#F1F5F9",borderRadius:8,padding:"10px 14px",marginBottom:14,border:"1px solid #E2E8F0"}}>
           <div style={{display:"flex",gap:20,flexWrap:"wrap",alignItems:"center"}}>
           {/* Group */}
-          <div style={{display:"flex",alignItems:"center",gap:6}}>
+          <div style={{display:"flex",flexWrap:"wrap",rowGap:6,alignItems:"center",gap:6}}>
             <span style={{color:"#64748B",fontSize:12,fontWeight:600,whiteSpace:"nowrap"}}>{T.filterGroup}</span>
             {[{val:"Indigenous",color:"#059669",bg:"#ECFDF5",border:"#059669"},{val:"Immigrant",color:"#164E63",bg:"#ECFEFF",border:"#0891B2"}].map(g=>(
               <Chip key={g.val} active={activeGroup.includes(g.val)} color={g.color} bg={g.bg} border={g.border} onClick={()=>{toggleArr(activeGroup,setActiveGroup,g.val);logEvent("group_filter",g.val,meta);}}>
                 <span style={{width:12,height:12,borderRadius:3,border:`1.5px solid ${activeGroup.includes(g.val)?g.color:"#E2E8F0"}`,background:activeGroup.includes(g.val)?g.color:"transparent",display:"inline-flex",alignItems:"center",justifyContent:"center",color:"#fff",fontSize:8,fontWeight:700,flexShrink:0}}>{activeGroup.includes(g.val)?"✓":""}</span>
-                {g.val}
+                {isEN?g.val:GROUP_LABELS_FR[g.val]}
               </Chip>
             ))}
           </div>
           {/* Gender */}
-          <div style={{display:"flex",alignItems:"center",gap:6}}>
+          <div style={{display:"flex",flexWrap:"wrap",rowGap:6,alignItems:"center",gap:6}}>
             <span style={{color:"#64748B",fontSize:12,fontWeight:600,whiteSpace:"nowrap"}}>{T.filterGender}</span>
             {GENDER_OPTS.map(g=>(
               <Chip key={g.val} active={activeGender===g.val} color="#2563EB" bg="#EFF6FF" border="#2563EB" onClick={()=>setActiveGender(activeGender===g.val?null:g.val)}>
-                {g.icon} {g.label}
+                {g.icon} {isEN?g.label:GENDER_LABELS_FR[g.val]}
               </Chip>
             ))}
           </div>
           {/* Age */}
-          <div style={{display:"flex",alignItems:"center",gap:6}}>
+          <div style={{display:"flex",flexWrap:"wrap",rowGap:6,alignItems:"center",gap:6}}>
             <span style={{color:"#64748B",fontSize:12,fontWeight:600,whiteSpace:"nowrap"}}>{T.filterAge}</span>
             {AGE_RANGES.map(a=>(
               <Chip key={a} active={activeAge.includes(a)} color="#2563EB" bg="#EFF6FF" border="#2563EB" onClick={()=>{toggleArr(activeAge,setActiveAge,a);logEvent("age_filter",a,meta);}}>
@@ -917,21 +1009,55 @@ export default function CommunityRadar() {
               </Chip>
             ))}
           </div>
+          {/* Distance */}
+          <div style={{display:"flex",flexWrap:"wrap",rowGap:6,alignItems:"center",gap:10}}>
+            <style>{`
+              .distance-range{-webkit-appearance:none;appearance:none;width:150px;height:10px;border-radius:999px;background:#E2E8F0;outline:none;cursor:pointer;}
+              .distance-range::-webkit-slider-runnable-track{height:10px;border-radius:999px;background:transparent;}
+              .distance-range::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:24px;height:24px;border-radius:50%;background:#2563EB;border:3px solid #fff;box-shadow:0 1px 4px rgba(15,23,42,0.35);cursor:pointer;margin-top:-7px;}
+              .distance-range::-moz-range-track{height:10px;border-radius:999px;background:#E2E8F0;}
+              .distance-range::-moz-range-progress{height:10px;border-radius:999px 0 0 999px;background:#2563EB;}
+              .distance-range::-moz-range-thumb{width:24px;height:24px;border-radius:50%;background:#2563EB;border:3px solid #fff;box-shadow:0 1px 4px rgba(15,23,42,0.35);cursor:pointer;}
+              .distance-input{width:56px;padding:4px 4px;border:1px solid #BFDBFE;border-radius:6px;font-size:14px;font-weight:600;color:#2563EB;text-align:right;background:#fff;}
+              .distance-input::placeholder{color:#93C5FD;font-weight:600;}
+            `}</style>
+            <span style={{color:"#64748B",fontSize:13,fontWeight:600,whiteSpace:"nowrap"}}>{isEN?"Distance":"Distance"}</span>
+            <input type="range" className="distance-range" min={0} max={maxAvailableDist} step={0.1}
+              value={activeMaxDist ?? maxAvailableDist}
+              onChange={e=>setActiveMaxDist(Number(e.target.value)>=maxAvailableDist?null:Number(e.target.value))}
+              onMouseUp={()=>logEvent("distance_filter",activeMaxDist,meta)}
+              onTouchEnd={()=>logEvent("distance_filter",activeMaxDist,meta)}
+              style={{background:`linear-gradient(to right,#2563EB ${((activeMaxDist ?? maxAvailableDist)/maxAvailableDist)*100}%,#E2E8F0 ${((activeMaxDist ?? maxAvailableDist)/maxAvailableDist)*100}%)`}}/>
+            <span style={{display:"flex",alignItems:"center",gap:5,fontSize:13,fontWeight:600,color:"#2563EB",background:"#EFF6FF",padding:"4px 8px 4px 12px",borderRadius:20,fontFamily:MONO_FONT}}>
+              ≤
+              <input type="number" className="distance-input" min={0} max={maxAvailableDist} step={0.1}
+                placeholder={isEN?"Any":"Toutes"}
+                value={activeMaxDist==null ? "" : Number(activeMaxDist.toFixed(1))}
+                onChange={e=>{
+                  const raw = e.target.value;
+                  if (raw==="") { setActiveMaxDist(null); return; }
+                  const num = Math.min(maxAvailableDist, Math.max(0, Number(raw)));
+                  if (!Number.isNaN(num)) setActiveMaxDist(num);
+                }}
+                onBlur={()=>logEvent("distance_filter",activeMaxDist,meta)}/>
+              km
+            </span>
+          </div>
           {/* Category — original 5 chips untouched, plus an "Other" dropdown for everything else */}
-          <div style={{display:"flex",alignItems:"center",gap:6}}>
+          <div style={{display:"flex",flexWrap:"wrap",rowGap:6,alignItems:"center",gap:6}}>
             <span style={{color:"#64748B",fontSize:12,fontWeight:600,whiteSpace:"nowrap"}}>{T.filterCat}</span>
             {categories.filter(c=>c.label!=="Other").map(c=>(
               <Chip key={c.label} active={activeCategory.includes(c.label)} color={c.color} bg={c.bg} border={c.color} onClick={()=>{toggleArr(activeCategory,setActiveCategory,c.label);logEvent("category_filter",c.label,meta);}}>
-                <CategoryIcon category={c.label} size={13} color={c.color}/> {c.label}
+                <CategoryIcon category={c.label} size={13} color={c.color}/> {categoryLabel(c.label,isEN)}
               </Chip>
             ))}
-            <MultiSelectDropdown label={isEN?"Other":"Autre"} options={otherCategoryOptions} selected={activeOtherCategory} onChange={vals=>{setActiveOtherCategory(vals);logEvent("other_category_filter",vals.join(","),meta);}}/>
+            <MultiSelectDropdown label={isEN?"Other":"Autre"} options={otherCategoryOptions} selected={activeOtherCategory} onChange={vals=>{setActiveOtherCategory(vals);logEvent("other_category_filter",vals.join(","),meta);}} isEN={isEN} dataIsEnglishOnly/>
           </div>
           </div>
         </div>
 
         {/* MAIN: list | right panel */}
-        <div style={{display:"grid",gridTemplateColumns:"minmax(0, 1fr) minmax(0, 1fr)",gap:14}}>
+        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit, minmax(320px, 1fr))",gap:14}}>
           {/* LEFT: list or map */}
           <div style={{background:"#fff",border:"1px solid #E2E8F0",borderRadius:8,overflow:"hidden",display:"flex",flexDirection:"column",minWidth:0}}>
             {showMap ? (
@@ -965,17 +1091,17 @@ export default function CommunityRadar() {
                     )}
                     <div style={{display:"flex",border:"1px solid #E2E8F0",borderRadius:6,overflow:"hidden"}}>
                       <button onClick={()=>setViewMode("list")} style={{padding:"4px 9px",border:"none",background:viewMode==="list"?"#2563EB":"#fff",color:viewMode==="list"?"#fff":"#64748B",cursor:"pointer",fontSize:12,display:"flex",alignItems:"center",gap:4}}>
-                        ☰ List
+                        ☰ {isEN?"List":"Liste"}
                       </button>
                       <button onClick={()=>setViewMode("grid")} style={{padding:"4px 9px",border:"none",background:viewMode==="grid"?"#2563EB":"#fff",color:viewMode==="grid"?"#fff":"#64748B",cursor:"pointer",fontSize:12,display:"flex",alignItems:"center",gap:4}}>
-                        ⊞ Grid
+                        ⊞ {isEN?"Grid":"Grille"}
                       </button>
                     </div>
                   </div>
                 </div>
                 <div style={{overflowY:"auto",flex:1,padding:viewMode==="grid"?"10px":"0"}}>
                   {filtered.length===0
-                    ? <div style={{padding:20,color:"#64748B",textAlign:"center",fontSize:14}}>No services match.</div>
+                    ? <div style={{padding:20,color:"#64748B",textAlign:"center",fontSize:14}}>{isEN?"No services match.":"Aucun service ne correspond."}</div>
                     : viewMode==="list"
                       ? pagedFiltered.map((s,i)=>(
                           <div key={s.id} onClick={()=>handleSelect(s)}
@@ -984,7 +1110,7 @@ export default function CommunityRadar() {
                               <div style={{width:38,height:38,borderRadius:"50%",background:selected?.id===s.id?"#2563EB":"#F1F5F9",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><CategoryIcon category={s.category} size={19} color={selected?.id===s.id?"#fff":CATEGORY_COLORS[s.category]}/></div>
                               <div style={{flex:1,minWidth:0}}>
                                 <div style={{fontWeight:600,color:selected?.id===s.id?"#2563EB":"#0F172A",fontSize:15,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{s.name}</div>
-                                <div style={{color:"#64748B",fontSize:13,margin:"3px 0 6px"}}>{s.dist} · {s.hours}{s.gender!=="All"?` · ${s.gender} only`:""}</div>
+                                <div style={{color:"#64748B",fontSize:13,margin:"3px 0 6px"}}>{s.dist}{s.gender!=="All"?` · ${s.gender} only`:""}</div>
                                 <div style={{display:"flex",gap:4,flexWrap:"wrap"}}>
                                   {s.tags.slice(0,1).map(t=><span key={t} style={{padding:"2px 8px",borderRadius:4,border:`1px solid ${selected?.id===s.id?"#2563EB":"#E2E8F0"}`,color:selected?.id===s.id?"#2563EB":"#334155",fontSize:12}}>{t.length>44?t.slice(0,43)+"…":t}</span>)}
                                 </div>
@@ -992,14 +1118,14 @@ export default function CommunityRadar() {
                             </div>
                           </div>
                         ))
-                      : <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
+                      : <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit, minmax(140px, 1fr))",gap:8}}>
                           {pagedFiltered.map(s=>(
                             <div key={s.id} onClick={()=>handleSelect(s)}
                               style={{padding:"12px",borderRadius:8,border:`1.5px solid ${selected?.id===s.id?"#2563EB":"#E2E8F0"}`,background:selected?.id===s.id?"#EFF6FF":"#fff",cursor:"pointer",transition:"all 0.15s"}}>
                               <div style={{width:36,height:36,borderRadius:"50%",background:selected?.id===s.id?"#2563EB":"#F1F5F9",display:"flex",alignItems:"center",justifyContent:"center",marginBottom:8}}><CategoryIcon category={s.category} size={18} color={selected?.id===s.id?"#fff":CATEGORY_COLORS[s.category]}/></div>
                               <div style={{fontWeight:600,fontSize:13,color:selected?.id===s.id?"#2563EB":"#0F172A",marginBottom:3,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{s.name}</div>
                               <div style={{fontSize:11,color:"#64748B",marginBottom:6}}>{s.type}</div>
-                              <div style={{fontSize:11,color:"#64748B",marginBottom:6}}>{s.dist} · {s.hours}</div>
+                              <div style={{fontSize:11,color:"#64748B",marginBottom:6}}>{s.dist}</div>
                               <div style={{display:"flex",gap:3,flexWrap:"wrap"}}>
                                 {s.tags.slice(0,1).map(t=><span key={t} style={{padding:"2px 6px",borderRadius:3,border:`1px solid ${selected?.id===s.id?"#2563EB":"#E2E8F0"}`,color:selected?.id===s.id?"#2563EB":"#334155",fontSize:10}}>{t.length>30?t.slice(0,29)+"…":t}</span>)}
                               </div>
@@ -1011,6 +1137,11 @@ export default function CommunityRadar() {
                 <div style={{padding:"12px 16px",borderTop:"1px solid #E2E8F0",display:"flex",flexDirection:"column",gap:8}}>
                   {totalPages > 1 && (
                     <div style={{display:"flex",gap:8}}>
+                      <button onClick={()=>setListPage(0)} disabled={listPage===0}
+                        style={{padding:"7px 10px",borderRadius:8,border:"1px solid #E2E8F0",background:listPage===0?"#F8FAFC":"#fff",color:listPage===0?"#CBD5E1":"#334155",cursor:listPage===0?"default":"pointer",fontSize:13}}
+                        title={isEN?"First page":"Première page"}>
+                        ⇤
+                      </button>
                       <button onClick={()=>setListPage(p=>Math.max(0,p-1))} disabled={listPage===0}
                         style={{flex:1,padding:"7px",borderRadius:8,border:"1px solid #E2E8F0",background:listPage===0?"#F8FAFC":"#fff",color:listPage===0?"#CBD5E1":"#334155",cursor:listPage===0?"default":"pointer",fontSize:13}}>
                         ← {isEN?"Prev":"Précédent"}
@@ -1018,6 +1149,11 @@ export default function CommunityRadar() {
                       <button onClick={()=>setListPage(p=>Math.min(totalPages-1,p+1))} disabled={listPage>=totalPages-1}
                         style={{flex:1,padding:"7px",borderRadius:8,border:"1px solid #E2E8F0",background:listPage>=totalPages-1?"#F8FAFC":"#fff",color:listPage>=totalPages-1?"#CBD5E1":"#334155",cursor:listPage>=totalPages-1?"default":"pointer",fontSize:13}}>
                         {isEN?"Next":"Suivant"} →
+                      </button>
+                      <button onClick={()=>setListPage(totalPages-1)} disabled={listPage>=totalPages-1}
+                        style={{padding:"7px 10px",borderRadius:8,border:"1px solid #E2E8F0",background:listPage>=totalPages-1?"#F8FAFC":"#fff",color:listPage>=totalPages-1?"#CBD5E1":"#334155",cursor:listPage>=totalPages-1?"default":"pointer",fontSize:13}}
+                        title={isEN?"Last page":"Dernière page"}>
+                        ⇥
                       </button>
                     </div>
                   )}
@@ -1110,14 +1246,14 @@ export default function CommunityRadar() {
 
                 {/* Flyer preview tab */}
                 {rightTab==="flyer" && (
-                  <div style={{flex:1,overflowY:"auto",background:"#F1F5F9",padding:"16px",display:"flex",flexDirection:"column",gap:12}}>
-                    <FlyerPreview flyer={flyer}/>
+                  <div style={{flex:1,overflowY:"auto",background:"#fff",padding:"16px",display:"flex",flexDirection:"column",justifyContent:"flex-start",gap:12}}>
+                    <ScaledFlyerPreview flyer={flyer}/>
 
-                    <div>
-                      {flyerDone && <div style={{marginBottom:8,padding:"7px 10px",background:"#ECFDF5",borderRadius:6,color:"#059669",fontSize:12}}>✓ PDF downloaded successfully</div>}
+                    <div style={{width:"100%",margin:"0 auto"}}>
+                      {flyerDone && <div style={{marginBottom:8,padding:"7px 10px",background:"#ECFDF5",borderRadius:6,color:"#059669",fontSize:12}}>✓ {isEN?"PDF downloaded successfully":"PDF téléchargé avec succès"}</div>}
                       {flyerDownloadError && <div style={{marginBottom:8,padding:"7px 10px",background:"#FEF2F2",borderRadius:6,color:"#B91C1C",fontSize:12}}>{flyerDownloadError}</div>}
                       <button onClick={handleDownload} disabled={isDownloadingFlyer}
-                        style={{width:"100%",padding:"12px",borderRadius:8,border:"none",background:isDownloadingFlyer?"#94A3B8":"#059669",color:"#fff",fontWeight:600,cursor:isDownloadingFlyer?"wait":"pointer",fontSize:15}}>
+                        style={{width:"100%",padding:"16px",borderRadius:8,border:"none",background:isDownloadingFlyer?"#94A3B8":"#059669",color:"#fff",fontWeight:600,cursor:isDownloadingFlyer?"wait":"pointer",fontSize:16}}>
                         {isDownloadingFlyer ? (isEN ? "Preparing flyer..." : "Préparation du dépliant...") : T.generate}
                       </button>
                     </div>

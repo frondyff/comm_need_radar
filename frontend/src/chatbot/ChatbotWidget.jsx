@@ -30,8 +30,58 @@ const btnStyle = {
   fontSize: 12.5, fontWeight: 600, cursor: "pointer",
 };
 
+// Speech-bubble greeting shown while hovering/focusing the collapsed button,
+// positioned relative to floatingButtonStyle's own fixed bottom/right (20px,
+// 52x52) so it always sits directly above it regardless of viewport size.
+const greetingBubbleStyle = {
+  position: "fixed",
+  bottom: 82,
+  right: 20,
+  zIndex: 2000,
+  width: 240,
+  maxWidth: "calc(100vw - 40px)",
+  background: "#fff",
+  border: "1px solid #DBEAFE",
+  borderRadius: 12,
+  padding: "12px 14px",
+  boxShadow: "0 6px 24px rgba(15,23,42,0.15)",
+  fontSize: 12.5,
+  color: "#1E293B",
+};
+const greetingTailStyle = {
+  position: "absolute",
+  bottom: -6,
+  right: 22,
+  width: 12,
+  height: 12,
+  background: "#fff",
+  borderRight: "1px solid #DBEAFE",
+  borderBottom: "1px solid #DBEAFE",
+  transform: "rotate(45deg)",
+};
+
+function ChatGreetingBubble({ isEN }) {
+  return (
+    <div style={greetingBubbleStyle} role="status">
+      <div style={{ fontWeight: 700, marginBottom: 4, color: "#1E3A8A" }}>
+        {isEN ? "Hello! \u{1F44B}" : "Bonjour\u00A0! \u{1F44B}"}
+      </div>
+      <div style={{ lineHeight: 1.4 }}>
+        {isEN
+          ? "Need help? Ask me anything about services or areas."
+          : "Besoin d'aide\u00A0? Posez-moi une question sur les services ou les zones."}
+      </div>
+      <div style={{ marginTop: 6, fontSize: 10.5, fontStyle: "italic", color: "#B45309" }}>
+        {isEN ? "Currently English only." : "Actuellement en anglais seulement."}
+      </div>
+      <div style={greetingTailStyle} />
+    </div>
+  );
+}
+
 export function ChatbotWidget({ isEN, selectedAreaId, selectedAreaLabel }) {
   const [chatOpen, setChatOpen] = useState(false);
+  const [hovering, setHovering] = useState(false);
   const [screen, setScreen] = useState("root");
   const [category, setCategory] = useState(null);
   const [pickedArea, setPickedArea] = useState(null);
@@ -211,9 +261,20 @@ export function ChatbotWidget({ isEN, selectedAreaId, selectedAreaLabel }) {
 
   if (!chatOpen) {
     return (
-      <button onClick={() => setChatOpen(true)} aria-label={isEN ? "Open chat" : "Ouvrir le chat"} style={floatingButtonStyle}>
-        <Bot size={24} color="#fff" />
-      </button>
+      <>
+        {hovering && <ChatGreetingBubble isEN={isEN} />}
+        <button
+          onClick={() => setChatOpen(true)}
+          onMouseEnter={() => setHovering(true)}
+          onMouseLeave={() => setHovering(false)}
+          onFocus={() => setHovering(true)}
+          onBlur={() => setHovering(false)}
+          aria-label={isEN ? "Open chat" : "Ouvrir le chat"}
+          style={floatingButtonStyle}
+        >
+          <Bot size={24} color="#fff" />
+        </button>
+      </>
     );
   }
 

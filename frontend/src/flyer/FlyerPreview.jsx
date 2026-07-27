@@ -22,6 +22,60 @@ function FitFlyerBounds({ points }) {
   return null;
 }
 
+// Multiple organizations can share one building/address (e.g. a community
+// centre housing several orgs), which puts their markers at the exact same
+// lat/lng — and since the selected-service marker renders on top and is
+// bigger, it can fully hide identically-placed nearby markers underneath
+// it. A fixed real-world offset (in meters) isn't reliable here because the
+// same number of meters can shrink to just a couple of screen pixels at
+// certain zoom levels. This instead measures the actual on-screen pixel
+// distance to the main marker and nudges only markers that are closer than
+// `minPixelGap` apart, recomputing whenever the map pans or zooms.
+function DeclutteredNearbyMarkers({ mainPosition, nearbyServices, minPixelGap = 22 }) {
+  const map = useMap();
+  const [positions, setPositions] = useState(() => nearbyServices.map((d) => [d.lat, d.lng]));
+
+  useEffect(() => {
+    let animationFrame;
+    const recompute = () => {
+      const mainPoint = map.latLngToContainerPoint(mainPosition);
+      const next = nearbyServices.map((destination, index) => {
+        const original = [destination.lat, destination.lng];
+        const point = map.latLngToContainerPoint(original);
+        const dx = point.x - mainPoint.x;
+        const dy = point.y - mainPoint.y;
+        const distancePx = Math.sqrt(dx * dx + dy * dy);
+        if (distancePx >= minPixelGap) return original;
+        const angle = (2 * Math.PI * index) / Math.max(nearbyServices.length, 1) + Math.PI / 5;
+        const nudged = L.point(mainPoint.x + minPixelGap * Math.cos(angle), mainPoint.y + minPixelGap * Math.sin(angle));
+        const nudgedLatLng = map.containerPointToLatLng(nudged);
+        return [nudgedLatLng.lat, nudgedLatLng.lng];
+      });
+      setPositions(next);
+    };
+    const scheduleUpdate = () => {
+      cancelAnimationFrame(animationFrame);
+      animationFrame = requestAnimationFrame(recompute);
+    };
+    ["moveend", "zoomend", "resize"].forEach((eventName) => map.on(eventName, scheduleUpdate));
+    scheduleUpdate();
+    return () => {
+      cancelAnimationFrame(animationFrame);
+      ["moveend", "zoomend", "resize"].forEach((eventName) => map.off(eventName, scheduleUpdate));
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [map, mainPosition[0], mainPosition[1], JSON.stringify(nearbyServices.map((d) => [d.id, d.lat, d.lng]))]);
+
+  return nearbyServices.map((destination, index) => (
+    <Marker
+      key={destination.id}
+      position={positions[index] || [destination.lat, destination.lng]}
+      icon={createServiceMarker(destination.category, false)}
+      opacity={0.65}
+    />
+  ));
+}
+
 export function FlyerPreview({ flyer }) {
   if (!flyer) return null;
   return <UniversalFlyerPreview flyer={flyer} />;
@@ -84,7 +138,7 @@ function FlyerMap({ location, service, nearbyServices }) {
       <FlyerMapZoomControls />
       <FlyerServiceLabel service={service} color={selectedServiceColor} />
       <Marker position={[location.lat, location.lng]} icon={createUserLocationMarker()} />
-      {nearbyServices.map((destination) => <Marker key={destination.id} position={[destination.lat, destination.lng]} icon={createServiceMarker(destination.category, false)} opacity={0.65} />)}
+      <DeclutteredNearbyMarkers mainPosition={[service.lat, service.lng]} nearbyServices={nearbyServices} />
       <Marker position={[service.lat, service.lng]} icon={createServiceMarker(service.category, true)} />
     </MapContainer>
     <FlyerMapLegend items={legendItems} />
