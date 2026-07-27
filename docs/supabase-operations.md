@@ -145,4 +145,6 @@ The pipeline atomically replaces web-derived visitor-tag aggregates,
 `observed_need_index`, `observed_need_category_summary`, and
 `vulnerability_index_v2`. It never modifies `gap_score`. The weekly GitHub
 schedule remains disabled until `WEB_OBSERVED_DEMAND_ENABLED` is exactly
-`true`; manual dispatch remains available for controlled validation.
+`true`. Manual dispatch is a dry run unless `publish=true` is selected.
+Scheduled publication additionally requires
+`WEB_OBSERVED_DEMAND_PUBLISH_ENABLED=true`.

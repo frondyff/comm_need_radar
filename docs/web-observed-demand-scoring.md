@@ -110,5 +110,7 @@ Outputs are gitignored under `data/derived/web_observed_demand/`.
 
 The migration is
 `supabase/migrations/202607270001_web_observed_demand.sql`. The scheduled
-workflow runs only when `WEB_OBSERVED_DEMAND_ENABLED` is exactly `true`; manual
-dispatch remains available for a reviewed pilot run.
+workflow runs only when `WEB_OBSERVED_DEMAND_ENABLED` is exactly `true`.
+Workflow dispatches are dry runs by default. Publication requires the explicit
+manual `publish=true` input, or
+`WEB_OBSERVED_DEMAND_PUBLISH_ENABLED=true` for a scheduled run.
