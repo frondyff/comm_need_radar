@@ -4,15 +4,37 @@ export const DASHBOARD_CATEGORIES = [
   { label: "Shelter", color: "#DC2626", bg: "#FEF2F2" },
   { label: "Food", color: "#D97706", bg: "#FFFBEB" },
   { label: "Medical", color: "#2563EB", bg: "#EFF6FF" },
-  { label: "Legal", color: "#059669", bg: "#ECFDF5" },
+  { label: "Legal", color: "#047857", bg: "#ECFDF5" },
   { label: "Translation", color: "#9333EA", bg: "#F5F3FF" },
-  { label: "Other", color: "#64748B", bg: "#F8FAFC" },
+  { label: "Other", color: "#475569", bg: "#F8FAFC" },
 ];
 
 const DEFAULT_REFERENCE_POINT = { lat: 45.5088, lng: -73.5878 };
 
 function normalizeText(value) {
   return String(value || "").trim();
+}
+
+function normalizeSearchText(value) {
+  return normalizeText(value)
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "")
+    .replace(/[^\p{Letter}\p{Number}]+/gu, " ")
+    .trim()
+    .replace(/\s+/g, " ")
+    .toLowerCase();
+}
+
+export function serviceMatchesSearch(service, searchTerm) {
+  const query = normalizeSearchText(searchTerm);
+  if (!query) return true;
+  return [
+    service?.name,
+    service?.type,
+    service?.address,
+    ...(service?.tags ?? []),
+    ...(service?.categoryTags ?? []),
+  ].some(value => normalizeSearchText(value).includes(query));
 }
 
 // Some source rows come in ALL CAPS ("(VILLE-MARIE EST), ÎLE ...") or

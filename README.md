@@ -181,6 +181,10 @@ production web baseline.
 - [Supabase Operations](docs/supabase-operations.md)
 - [Spatial Join Validation](docs/spatial-join-validation.md)
 - [Chatbot](docs/chatbot.md)
+- [Scoring Validation](docs/scoring-validation-2026-07-27.md)
+- [User-Testing Plan](docs/user-testing-plan.md)
+- [Final Technical Report](docs/final-report.md)
+- [Presentation Outline](docs/presentation-outline.md)
 
 ## Collaboration Rules
 

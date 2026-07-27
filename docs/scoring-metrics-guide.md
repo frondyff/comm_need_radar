@@ -430,7 +430,7 @@ elif indigenous census missing but observed ran successfully:
 
 else (both census layers complete):
     v2 = 0.6 × mvp_focus_census_index + 0.4 × observed_score
-    basis = structural_and_observed_focus
+    basis = structural_and_observed_focus_synthetic_demonstration
 ```
 
 **Example — all 12 areas, v2 vs gap ranking:**

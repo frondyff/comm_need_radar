@@ -6,9 +6,9 @@ export const CATEGORY_COLORS = Object.freeze({
   Shelter: "#DC2626",
   Food: "#D97706",
   Medical: "#2563EB",
-  Legal: "#059669",
+  Legal: "#047857",
   Translation: "#9333EA",
-  Other: "#64748B",
+  Other: "#475569",
 });
 
 export const USER_LOCATION_COLOR = "#0F172A";

@@ -1,4 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
+import { parseModelJson, validateModelAnswer } from "./chatContract.js";
 
 type ChatRequest = {
   message?: string;
@@ -90,18 +91,6 @@ function deterministicAnswer(area: GapRow, services: ServiceRow[], serviceCatego
     return `${area.area_name} a un score d'ecart de ${area.gap_score.toFixed(1)} et un rang ${area.gap_rank}. Services verifies proches: ${topServices.join("; ") || "aucun service dans le contexte limite"}. Confirmez les details directement avec le fournisseur avant reference.`;
   }
   return `${area.area_name} has a gap score of ${area.gap_score.toFixed(1)} and ranks #${area.gap_rank}. Verified nearby services${serviceCategory !== "All" ? ` for ${serviceCategory}` : ""}: ${topServices.join("; ") || "none in the bounded context"}. Confirm details with the provider before referral.`;
-}
-
-function parseModelJson(content: string) {
-  const trimmed = content.trim().replace(/^```json\s*/i, "").replace(/```$/i, "");
-  return JSON.parse(trimmed) as {
-    answer?: string;
-    service_ids?: string[];
-    evidence?: Array<{ service_id?: string; fields_used?: string[] }>;
-    verification_questions?: string[];
-    limitations?: string[];
-    language?: "en" | "fr";
-  };
 }
 
 async function loadPagedServices(client: any): Promise<ServiceRow[]> {
@@ -291,26 +280,23 @@ export default async function handler(req: any, res: any) {
       throw new Error("LLM response missing content");
     }
     const parsed = parseModelJson(content);
-    const serviceIds = Array.isArray(parsed.service_ids) ? parsed.service_ids : [];
-    if (!parsed.answer || serviceIds.some((serviceId) => !allowedServiceIds.has(serviceId))) {
-      throw new Error("LLM response failed evidence validation");
-    }
+    const verified = validateModelAnswer(parsed, allowedServiceIds);
     return json(res, 200, {
-      answer: parsed.answer,
-      service_ids: serviceIds,
-      evidence: Array.isArray(parsed.evidence) ? parsed.evidence : [],
-      verification_questions: Array.isArray(parsed.verification_questions) ? parsed.verification_questions : [],
-      limitations: Array.isArray(parsed.limitations) ? parsed.limitations : [],
+      answer: verified.answer,
+      service_ids: verified.serviceIds,
+      evidence: verified.evidence,
+      verification_questions: verified.verificationQuestions,
+      limitations: verified.limitations,
       fallback_used: false,
       source: "llm"
     });
-  } catch (error) {
+  } catch {
     return json(res, 200, {
       answer: fallbackAnswer,
       service_ids: candidates.slice(0, 3).map((service) => service.service_id),
       evidence: [],
       verification_questions: ["Confirm provider availability before referral."],
-      limitations: [`LLM fallback used: ${error instanceof Error ? error.message : "unknown error"}`],
+      limitations: ["Model response could not be verified; deterministic fallback was used."],
       fallback_used: true,
       source: "deterministic"
     });

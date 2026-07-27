@@ -76,14 +76,7 @@ async function loadTable(client, table, orderColumn) {
   return rows.map(normalizeRow);
 }
 
-async function loadRealAreaIndicators() {
-  const response = await fetch("/api/area-vulnerability", {
-    headers: { Accept: "application/json" },
-  });
-  if (!response.ok) {
-    throw new Error(`Unable to load real area indicators: HTTP ${response.status}`);
-  }
-  const payload = await response.json();
+export function validateRealAreaIndicators(payload) {
   if (!Array.isArray(payload?.areas) || payload.areas.length !== 12) {
     throw new Error("Real area indicator response did not contain 12 areas");
   }
@@ -108,6 +101,16 @@ async function loadRealAreaIndicators() {
   return rows;
 }
 
+async function loadRealAreaIndicators() {
+  const response = await fetch("/api/area-vulnerability", {
+    headers: { Accept: "application/json" },
+  });
+  if (!response.ok) {
+    throw new Error(`Unable to load real area indicators: HTTP ${response.status}`);
+  }
+  return validateRealAreaIndicators(await response.json());
+}
+
 export async function loadAppData() {
   const client = getSupabaseClient();
   if (!client) throw new Error("Supabase environment variables are not configured");
@@ -123,7 +126,7 @@ export async function loadAppData() {
     areas.length === 0 ? "area_profile" : "",
     gap.length === 0 ? "gap_score" : "",
     accessibility.length === 0 ? "accessibility" : "",
-    services.length === 0 ? "service_table" : "",
+    services.length === 0 ? "services_master" : "",
     vulnerability.length === 0 ? "area_vulnerability_index_real" : "",
   ].filter(Boolean);
   if (missing.length > 0) {

@@ -40,6 +40,7 @@ env:
   VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
   VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
   VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+  SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
   GRILL_MODE: ${{ inputs.mode || vars.PROD_GRILL_MODE || 'report' }}
 
 jobs:
@@ -64,7 +65,7 @@ jobs:
 
       - name: Validate required release secrets
         run: |
-          for name in VERCEL_TOKEN VERCEL_ORG_ID VERCEL_PROJECT_ID VERCEL_AUTOMATION_BYPASS_SECRET; do
+          for name in VERCEL_TOKEN VERCEL_ORG_ID VERCEL_PROJECT_ID VERCEL_AUTOMATION_BYPASS_SECRET SUPABASE_SECRET_KEY; do
             if [[ -z "${!name}" ]]; then
               echo "::error::Missing required secret ${name}"
               exit 1
@@ -83,9 +84,11 @@ jobs:
           pip install -r requirements.txt
           python -m unittest discover -s tests
           python scripts/validate_spatial_joins.py
+          python scripts/validate_scoring_bias.py
           cd frontend
           npm ci
           npm run typecheck:api
+          npm run test:unit
           npm run validate:boundaries
           npm run validate:dashboard-adapter
           npm run validate:chatbot
@@ -127,6 +130,9 @@ jobs:
         working-directory: ${{ runner.temp }}/release-source
         run: |
           npx --yes vercel@latest link --yes --project "$VERCEL_PROJECT_NAME" --token "$VERCEL_TOKEN"
+          printf '%s' "$SUPABASE_SECRET_KEY" \
+            | npx --yes vercel@latest env add SUPABASE_SECRET_KEY production \
+                --sensitive --force --yes --token "$VERCEL_TOKEN"
           candidate_url="$(npx --yes vercel@latest deploy --prod --skip-domain --yes --token "$VERCEL_TOKEN" --meta releaseSha=${{ steps.release.outputs.sha }})"
           echo "url=${candidate_url}" >> "$GITHUB_OUTPUT"
           node "$GITHUB_WORKSPACE/frontend/scripts/vercel-release-state.mjs" wait "$candidate_url" READY > "$RUNNER_TEMP/candidate-deployment.json"

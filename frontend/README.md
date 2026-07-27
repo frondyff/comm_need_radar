@@ -263,6 +263,33 @@ The production build splits maps, Supabase, and PDF generation into separate
 chunks. The PDF engine has a 600 KB budget and is loaded only when a user asks
 to download a flyer; it is not part of the initial application bundle.
 
+## Testing and CI
+
+```bash
+npm run test:unit
+npm run typecheck:api
+npm run validate:boundaries
+npm run validate:dashboard-adapter
+npm run test:prod:e2e
+npm run build
+```
+
+For a local static preview, set `AREA_VULNERABILITY_FIXTURE=true` when running
+Playwright. That explicit test-only switch serves the checked-in processed
+census indicators for `/api/area-vulnerability`; all other Supabase reads stay
+live. Candidate and production runs leave the switch unset and must pass
+against the real Vercel serverless route.
+
+`Production Web` runs install, API typecheck, unit tests, contract validators,
+the production build, Python tests, spatial validation, and a high-severity
+production dependency audit. `Production Grill` adds scheduled browser,
+accessibility, visual, Lighthouse, security, live-data, and load coverage.
+
+The map chunk is approximately 155 KB. The PDF engine is approximately 576 KB,
+below its explicit 600 KB lazy-chunk budget. Branch protection remains tracked
+under issue #1; the private repository's current GitHub plan does not expose the
+branch-protection API.
+
 ---
 
 ## McGill University · BUSA 649 · Team Next Level

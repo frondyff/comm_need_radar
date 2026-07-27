@@ -17,8 +17,12 @@ async function expectNoSeriousViolations(page, label) {
     .map(violation => {
       const examples = violation.nodes
         .slice(0, 3)
-        .map(node => node.target.join(" "))
-        .join(", ");
+        .map(node => [
+          node.target.join(" "),
+          node.html,
+          node.failureSummary,
+        ].filter(Boolean).join("\n"))
+        .join("\n\n");
       return `${violation.id} (${violation.impact}): ${violation.nodes.length} node(s); ${examples}`;
     })
     .join("\n");
