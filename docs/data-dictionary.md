@@ -20,8 +20,9 @@ lives in `data/raw/source_metadata.csv`; this document summarizes and explains i
 | Census and geography | **Real** | StatCan 2021 Census + boundary files |
 | Services / organizations | **Real** | 211 directory + Montreal/Quebec open data + OpenStreetMap |
 | Structural vulnerability (from census) | **Real** | computed from real census indicators |
-| Visits / service usage | **Synthetic** | no public source exists for who visits which service |
-| Observed need and V2 demand scores | **Synthetic-based** | derived from the synthetic visit layer |
+| Committed visits / service-usage fixture | **Synthetic** | no public partner source exists for who visits which service |
+| Web-observed demand | **Real, experimental** | anonymous `page_events` and `flyer_downloads`, exposure-normalized and k-anonymized |
+| Observed need and V2 demand scores | **Source-dependent** | synthetic fixture until atomically replaced by a web-observed publication |
 | Accessibility and gap (current MVP) | **Placeholder** | built on MVP inputs until scoring migrates to real services |
 | CISV, transit | **Real (reference)** | used for validation / future use, not in the app yet |
 
@@ -46,6 +47,7 @@ Every chatbot answer and every table below is labelled with which of these it is
 | Canadian Index of Social Vulnerability 2021 | Statistics Canada | Open Government Licence – Canada | `cisv_reference` |
 | Transit stops (GTFS) | Societe de transport de Montreal (STM) | Open (STM) | `stm_stop` |
 | Service usage / visits | **none — synthetic** | model-generated placeholder | `database_visitor_tag` |
+| Anonymous website behavior | Community Needs Radar production application | First-party aggregate | `database_visitor_tag` web rows → observed/V2 |
 
 ---
 
@@ -92,6 +94,11 @@ the k-anonymized synthetic visit records (no real usage data exists);
 `build_observed_need_index.py` aggregates them into the observed-need index and
 category summary; `build_vulnerability_index_v2.py` combines structural + observed
 into the V2 score.
+
+**G2. Web-observed replacement.** `build_web_observed_demand.py` reads real
+versioned website analytics, deduplicates and exposure-normalizes them, stores
+k-anonymized area snapshots in `database_visitor_tag`, replaces the synthetic
+observed materialization, and applies the same original 60/40 V2 composite.
 
 **H. Access, gap, assembly.** The accessibility and gap tables are produced by the
 processing pipeline (`src/comm_need_radar/processing/pipeline.py`);
@@ -250,8 +257,10 @@ Detailed structural vulnerability per area, with raw and scaled census inputs.
 | `vulnerability_rank` | INT | Rank among the 12 areas |
 
 #### `vulnerability_index_v2` — 12 rows. Source: build_vulnerability_index_v2.py.
-Experimental combined score = structural (real census) + observed (synthetic
-visits). Weights: structural 0.6, observed 0.4.
+Experimental combined score = structural (real census) + observed demand.
+Observed provenance is explicit: the committed fixture is synthetic; a
+published web-observed snapshot is real first-party behavior. Weights:
+structural 0.6, observed 0.4.
 
 | Column | Type | Description |
 | --- | --- | --- |
@@ -259,17 +268,17 @@ visits). Weights: structural 0.6, observed 0.4.
 | `structural_vulnerability_index` | REAL | Real census-based layer |
 | `immigrant_census_concern_score`, `indigenous_census_concern_score`, `mvp_focus_census_index` | REAL | Structural sub-scores |
 | `v1_demand_score` | REAL | V1 demand (0.7 visit volume + 0.3 top-category pressure) |
-| `visit_volume_score`, `top_category_pressure_score`, `focus_category_share_score`, `severity_breadth_score`, `recency_score` | REAL | Observed-need sub-scores (from synthetic visits) |
+| `visit_volume_score`, `top_category_pressure_score`, `focus_category_share_score`, `severity_breadth_score`, `recency_score` | REAL | Partner/fixture sub-scores; web publication uses the exposure-normalized demand score directly |
 | `v2_observed_score` | REAL | Combined observed layer |
 | `observed_focus_need_score` | REAL | Observed MVP-focus need |
 | `vulnerability_index_v2` | REAL | Final combined score |
 | `structural_weight`, `observed_weight` | REAL | Blend weights (0.6 / 0.4) |
-| `insufficient_visit_data` | INT/BOOL | Flag when synthetic visits are too sparse |
+| `insufficient_visit_data` | INT/BOOL | Flag when the selected observed source has insufficient coverage |
 | `v2_data_basis` | TEXT | Data-basis note |
 | `v2_top_concern` | TEXT | Top concern |
 | `vulnerability_rank_v2` | INT | Rank among the 12 areas |
 
-### 4.4 Visits and observed need (SYNTHETIC)
+### 4.4 Visits and observed need
 
 #### `database_visitor_tag` — 1,408 rows. Source: SYNTHETIC (generate_synthetic_visitor_tags.py).
 Model-generated, k-anonymized visit-group records. No real service-usage data
@@ -288,6 +297,13 @@ real center id.
 | `language_need_flag` | INT/BOOL | Language help needed |
 | `settlement_need_flag` | INT/BOOL | Settlement help needed |
 | `indigenous_specific_need_flag` | INT/BOOL | Indigenous-specific need |
+| `source_type` | TEXT | `synthetic_demonstration`, `partner_encounter`, or `web_behavior` |
+| `area_id` | TEXT | Direct area for web aggregate rows |
+| `weighted_demand_total` | REAL | Accumulated web-event weights; not a person count |
+| `service_impression_count` | INT | Web exposure denominator |
+| `intent_rate_per_100_impressions` | REAL | Exposure-normalized web demand rate |
+| `digital_demand_score` | REAL | Coverage-gated web observed score, 0–100 |
+| `coverage_status`, `scoring_version` | TEXT | Quality state and reproducible formula version |
 
 #### `v_visit_needs_by_center` (VIEW) — 1,408 rows.
 Joins `database_visitor_tag` to `database_center` for "visits by center" queries.
@@ -295,8 +311,9 @@ Columns: `center_id`, `center_name`, `service_categories`,
 `indigenous_led_or_specific`, `key_need`, `population_group`, `k_anon_count`,
 `severity`.
 
-#### `observed_need_index` — 12 rows. Source: build_observed_need_index.py (on synthetic visits).
-Per-area demand summary derived from the synthetic visits.
+#### `observed_need_index` — 12 rows.
+Per-area demand summary. It is built from the synthetic fixture locally and is
+atomically replaced by the real web-observed pipeline when published.
 
 | Column | Type | Description |
 | --- | --- | --- |
@@ -322,8 +339,10 @@ Per-area demand summary derived from the synthetic visits.
 | `top_key_needs` | TEXT | Top needs list (used by the chatbot) |
 | `observed_need_rank` | INT | Rank among the 12 areas |
 
-#### `observed_need_category_summary` — 110 rows. Source: build_observed_need_index.py (on synthetic visits).
-Per-area, per-need breakdown; the table the chatbot uses for "demand for X in area Y".
+#### `observed_need_category_summary`
+Per-area, per-need breakdown. The committed fixture has 110 synthetic rows;
+web publication atomically replaces it with variable-count, k-anonymized
+`source_type=web_behavior` rows.
 
 | Column | Type | Description |
 | --- | --- | --- |
@@ -332,6 +351,9 @@ Per-area, per-need breakdown; the table the chatbot uses for "demand for X in ar
 | `encounter_count` | INT | Visits for that need in that area |
 | `encounter_share_pct` | REAL | Share of the area's visits |
 | `category_rank` | INT | Rank of the need within the area |
+| `weighted_demand_total` | REAL | Accumulated web-event weight; not a person count |
+| `weighted_demand_share_pct` | REAL | Category share of accumulated web demand |
+| `source_type` | TEXT | `web_behavior` for real published website aggregates |
 
 ### 4.5 Accessibility and gap (MVP / mixed)
 
@@ -412,11 +434,10 @@ Team activity/collaboration log (project management, not project data). Columns:
 - The **211 directory data is licensed** (© 211 Grand Montreal / Centraide,
   academic use). The raw PDF and raw extracts are kept out of the public repo
   (gitignored); only the processed `services_master` derives from it.
-- The **visit / usage layer is synthetic** and every table built from it
-  (`database_visitor_tag`, `observed_need_index`, `observed_need_category_summary`,
-  the observed half of `vulnerability_index_v2`) is placeholder data, because no
-  public source for service usage exists. It is labelled everywhere, including in
-  the chatbot's source line.
+- The committed **visit / usage fixture is synthetic**. A reviewed web-observed
+  publication replaces the observed materializations with
+  `source_type=web_behavior` aggregates; synthetic and web records are explicitly
+  labelled and never blended.
 - **Accessibility and gap** currently run on MVP inputs; migrating them onto
   `services_master` (each row already carries `area_id`) is the planned step that
   makes them fully real.

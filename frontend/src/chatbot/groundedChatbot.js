@@ -17,8 +17,8 @@ export const CATEGORIES = {
 
 const SOURCE = {
   services: "services_master (real 211 + open-data services)",
-  demandCat: "observed_need_category_summary (synthetic visit data)",
-  demandArea: "observed_need_index (synthetic visit data)",
+  demandCat: "observed_need_category_summary (source-labelled aggregate)",
+  demandArea: "observed_need_index (source-labelled aggregate)",
   profile: "area_profile (real, census-based)",
   gap: "gap_score (real)",
   areaFull: "area_profile + gap_score (real)",
@@ -44,6 +44,7 @@ const cap = s => (s ? s[0].toUpperCase() + s.slice(1) : s);
 const phone = p => (p ? `  (${String(p).split(/\s+/).join(" ")})` : "");
 const notConfigured = () => ({ answer: "The live data source is not configured.", source: "n/a" });
 const failed = e => ({ answer: `Could not load data: ${e.message}`, source: "n/a" });
+const isWebObserved = basis => String(basis || "").startsWith("real_web_behavior");
 
 export async function listServices({ category, areaId, areaLabel, audience = {} }) {
   const c = client();
@@ -77,14 +78,17 @@ export async function demandInArea({ category, areaId, areaLabel }) {
   const { need, label } = CATEGORIES[category];
   const { data, error } = await c
     .from("observed_need_category_summary")
-    .select("encounter_count")
+    .select("encounter_count, source_type")
     .eq("area_id", areaId)
     .eq("key_need", need)
     .maybeSingle();
   if (error) return failed(error);
   const n = data?.encounter_count ?? 0;
+  const unit = data?.source_type === "web_behavior"
+    ? "anonymous sessions showed interest"
+    : "recorded visits were";
   return {
-    answer: `In ${areaLabel}, about ${num(n)} recorded visits were for ${label} services.`,
+    answer: `In ${areaLabel}, about ${num(n)} ${unit} for ${label} services.`,
     source: SOURCE.demandCat,
   };
 }
@@ -95,14 +99,17 @@ export async function demandByArea({ category }) {
   const { need, label } = CATEGORIES[category];
   const { data, error } = await c
     .from("observed_need_category_summary")
-    .select("encounter_count, area_profile(area_name)")
+    .select("encounter_count, source_type, area_profile(area_name)")
     .eq("key_need", need)
     .order("encounter_count", { ascending: false })
     .limit(5);
   if (error) return failed(error);
   if (!data || data.length === 0) return { answer: `No demand recorded for ${label}.`, source: SOURCE.demandCat };
   const lines = data
-    .map((r, i) => `${i + 1}. ${r.area_profile?.area_name ?? r.area_id} (${num(r.encounter_count)} visits)`)
+    .map((r, i) => {
+      const unit = r.source_type === "web_behavior" ? "sessions" : "visits";
+      return `${i + 1}. ${r.area_profile?.area_name ?? r.area_id} (${num(r.encounter_count)} ${unit})`;
+    })
     .join("\n");
   return { answer: `Areas with the highest demand for ${label} services:\n${lines}`, source: SOURCE.demandCat };
 }
@@ -112,13 +119,16 @@ export async function areaDemand({ areaId, areaLabel }) {
   if (!c) return notConfigured();
   const { data, error } = await c
     .from("observed_need_index")
-    .select("rolling_visit_count, top_key_needs")
+    .select("rolling_visit_count, top_key_needs, observed_data_basis")
     .eq("area_id", areaId)
     .maybeSingle();
   if (error) return failed(error);
   if (!data) return { answer: `No demand data for ${areaLabel}.`, source: SOURCE.demandArea };
+  const unit = isWebObserved(data.observed_data_basis)
+    ? "anonymous website sessions"
+    : "recorded visits";
   return {
-    answer: `In ${areaLabel}, about ${num(data.rolling_visit_count)} recorded visits in total. Most reported needs: ${data.top_key_needs}.`,
+    answer: `In ${areaLabel}, about ${num(data.rolling_visit_count)} ${unit} contributed to the observed-demand aggregate. Most reported needs: ${data.top_key_needs}.`,
     source: SOURCE.demandArea,
   };
 }

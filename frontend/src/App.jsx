@@ -9,7 +9,7 @@ import { ChatbotWidget } from "./chatbot/ChatbotWidget.jsx";
 import { FlyerPreview } from "./flyer/FlyerPreview";
 import { FlyerViewModel } from "./flyer/flyerData";
 import { loadDashboardData, serviceMatchesSearch } from "./lib/dashboardAdapter.js";
-import { logFlyerDownload, logPageEvent } from "./lib/analytics.js";
+import { logFlyerDownload, logPageEvent, logServiceImpressions } from "./lib/analytics.js";
 import { haversineKm } from "./lib/supabaseData.js";
 
 delete L.Icon.Default.prototype._getIconUrl;
@@ -132,14 +132,30 @@ async function logEvent(type, detail, meta={}) {
   try { await fetch(`${BACKEND}/log/event`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({event_type:type,detail:String(detail||""),user_group:meta.group||null,user_age_range:meta.age||null})}); }
   catch(e) { console.log("📊",type,detail); }
   // Real analytics: write a row to the passive-events table in Supabase.
-  logPageEvent({ eventType: type, detail, location: meta.location });
+  logPageEvent({
+    eventType: type,
+    detail,
+    location: meta.location,
+    selectedAreaId: meta.selectedAreaId,
+    service: meta.service,
+    category: meta.category,
+    sourceView: meta.sourceView,
+  });
 }
 async function logFlyer(service, filters, meta={}) {
   try { await fetch(`${BACKEND}/log/flyer`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({service_name:service.name,service_type:service.type,service_category:service.category,group_filter:filters.group||null,gender_filter:filters.gender||null,user_group:meta.group||null,user_age_range:meta.age||null,location:filters.location||null})}); }
   catch(e) { console.log("📊 flyer",service.name); }
   // Real analytics: write a row to Supabase so the team can see which
   // filters social workers had active when they downloaded a flyer.
-  logFlyerDownload({ service, filters, location: filters.locationObj, language: filters.language });
+  logFlyerDownload({
+    service,
+    filters,
+    location: filters.locationObj,
+    language: filters.language,
+    selectedAreaId: service?.areaId || meta.selectedAreaId,
+    category: service?.category,
+    sourceView: "flyer_download",
+  });
 }
 
 // The underlying data (service descriptions, gap_drivers, etc.) only exists
@@ -740,7 +756,15 @@ export default function CommunityRadar() {
 
   const isEN = lang === "EN";
   const selectedLocation = distLocation || DEFAULT_DIST_LOCATION;
-  const meta = { group: activeGroup, age: activeAge, location: selectedLocation?.name };
+  const meta = {
+    group: activeGroup,
+    age: activeAge,
+    location: selectedLocation?.name,
+    selectedAreaId: selected?.areaId,
+    service: selected,
+    category: selected?.category,
+    sourceView: showMap ? "community_map" : "community_list",
+  };
 
   // Distance was previously baked in at load time from a fixed downtown
   // point, so it never actually reflected the chosen distribution location.
@@ -842,9 +866,28 @@ export default function CommunityRadar() {
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const pagedFiltered = filtered.slice(listPage * PAGE_SIZE, (listPage + 1) * PAGE_SIZE);
+  const impressionKey = pagedFiltered.map(service => service.id).join("|");
+  useEffect(() => {
+    logServiceImpressions({
+      services: pagedFiltered,
+      sourceView: showMap ? "community_map" : "community_list",
+    });
+  }, [impressionKey, showMap]);
   useEffect(() => { setListPage(0); }, [activeGroup, activeGender, activeAge, activeCategory, activeOtherCategory, search, activeMaxDist]);
 
-  const handleSelect = s => { setSelected(s); setFlyerDone(false); setFlyerDownloadError(""); setMapCenter([s.lat,s.lng]); setRightTab("info"); logEvent("service_card_opened",s.name,meta); };
+  const handleSelect = s => {
+    setSelected(s);
+    setFlyerDone(false);
+    setFlyerDownloadError("");
+    setMapCenter([s.lat,s.lng]);
+    setRightTab("info");
+    logEvent("service_card_opened", "service_selected", {
+      ...meta,
+      selectedAreaId: s.areaId,
+      service: s,
+      category: s.category,
+    });
+  };
 
   const handleChangeLocation = (returnStep, backStep=returnStep) => {
     setLocationReturnStep(returnStep);
@@ -915,6 +958,11 @@ export default function CommunityRadar() {
             <div style={{fontSize:13,color:"#9A5B33"}}>{T.roleV2sub}</div>
           </button>
         </div>
+        <p data-testid="analytics-privacy-note" style={{fontSize:11,lineHeight:1.5,color:"#64748B",margin:"18px auto 0",maxWidth:470}}>
+          {isEN
+            ? "Anonymous session activity helps evaluate service interest. We do not record names or search text, and website activity does not change the live vulnerability score."
+            : "L’activité anonyme de la session aide à évaluer l’intérêt pour les services. Nous n’enregistrons ni noms ni texte de recherche, et l’activité du site ne modifie pas l’indice de vulnérabilité en vigueur."}
+        </p>
       </div>
     </div>
   );
@@ -1009,7 +1057,9 @@ export default function CommunityRadar() {
         {/* SEARCH */}
         <div style={{position:"relative",marginBottom:14}}>
           <Search size={16} color="#2563EB" style={{position:"absolute",left:14,top:"50%",transform:"translateY(-50%)"}}/>
-          <input data-testid="service-search" aria-label={T.search} value={search} onChange={e=>{setSearch(e.target.value);logEvent("search",e.target.value,meta);}}
+          <input data-testid="service-search" aria-label={T.search} value={search}
+            onChange={e=>setSearch(e.target.value)}
+            onBlur={()=>logEvent("search",search?"query_entered":"query_empty",{...meta,selectedAreaId:null,service:null,category:null,sourceView:"community_search"})}
             placeholder={T.search}
             style={{width:"100%",padding:"12px 14px 12px 42px",borderRadius:8,border:"2px solid #2563EB",background:"#fff",fontSize:14,outline:"none",boxShadow:"0 2px 8px rgba(37,99,235,0.14)",boxSizing:"border-box"}}/>
         </div>
@@ -1083,11 +1133,11 @@ export default function CommunityRadar() {
           <div style={{display:"flex",flexWrap:"wrap",rowGap:6,alignItems:"center",gap:6}}>
             <span style={{color:"#475569",fontSize:12,fontWeight:600,whiteSpace:"nowrap"}}>{T.filterCat}</span>
             {categories.filter(c=>c.label!=="Other").map(c=>(
-              <Chip key={c.label} active={activeCategory.includes(c.label)} color={c.color} bg={c.bg} border={c.color} onClick={()=>{toggleArr(activeCategory,setActiveCategory,c.label);logEvent("category_filter",c.label,meta);}}>
+              <Chip key={c.label} active={activeCategory.includes(c.label)} color={c.color} bg={c.bg} border={c.color} onClick={()=>{toggleArr(activeCategory,setActiveCategory,c.label);logEvent("category_filter",c.label,{...meta,selectedAreaId:null,service:null,category:c.label});}}>
                 <CategoryIcon category={c.label} size={13} color={c.color}/> {categoryLabel(c.label,isEN)}
               </Chip>
             ))}
-            <MultiSelectDropdown label={isEN?"Other":"Autre"} options={otherCategoryOptions} selected={activeOtherCategory} onChange={vals=>{setActiveOtherCategory(vals);logEvent("other_category_filter",vals.join(","),meta);}} isEN={isEN} dataIsEnglishOnly/>
+            <MultiSelectDropdown label={isEN?"Other":"Autre"} options={otherCategoryOptions} selected={activeOtherCategory} onChange={vals=>{setActiveOtherCategory(vals);logEvent("other_category_filter",vals.length?"categories_selected":"categories_cleared",{...meta,selectedAreaId:null,service:null,category:"Other"});}} isEN={isEN} dataIsEnglishOnly/>
           </div>
           </div>
         </div>
