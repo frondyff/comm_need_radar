@@ -1,0 +1,229 @@
+name: Release Production
+
+on:
+  workflow_run:
+    workflows:
+      - Production Web
+    types:
+      - completed
+    branches:
+      - integration/production-web
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: Git ref to release
+        required: true
+        default: integration/production-web
+      mode:
+        description: New grill checks either report or enforce promotion safety
+        required: true
+        type: choice
+        default: report
+        options:
+          - report
+          - enforce
+
+permissions:
+  actions: read
+  contents: read
+  issues: write
+
+concurrency:
+  group: comm-need-radar-production-release
+  cancel-in-progress: false
+
+env:
+  CANONICAL_URL: https://comm-need-radar.vercel.app
+  LEGACY_BASE_URL: https://comm-mvp.vercel.app
+  VERCEL_PROJECT_NAME: comm-need-radar
+  VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+  VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+  VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+  VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+  GRILL_MODE: ${{ inputs.mode || vars.PROD_GRILL_MODE || 'report' }}
+
+jobs:
+  release:
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || inputs.ref || 'integration/production-web' }}
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Validate required release secrets
+        run: |
+          for name in VERCEL_TOKEN VERCEL_ORG_ID VERCEL_PROJECT_ID VERCEL_AUTOMATION_BYPASS_SECRET; do
+            if [[ -z "${!name}" ]]; then
+              echo "::error::Missing required secret ${name}"
+              exit 1
+            fi
+          done
+
+      - name: Resolve release SHA
+        id: release
+        run: |
+          release_sha="$(git rev-parse HEAD)"
+          echo "sha=${release_sha}" >> "$GITHUB_OUTPUT"
+          echo "Releasing ${release_sha}" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Install and run repository release gates
+        run: |
+          pip install -r requirements.txt
+          python -m unittest discover -s tests
+          python scripts/validate_spatial_joins.py
+          cd frontend
+          npm ci
+          npm run typecheck:api
+          npm run validate:boundaries
+          npm run validate:dashboard-adapter
+          npm run validate:chatbot
+          npm run test:flyer
+          npm run test:release-state
+          npm run build
+          npm audit --omit=dev --audit-level=high
+
+      - name: Install release browser
+        working-directory: frontend
+        run: npx playwright install --with-deps chromium
+
+      - name: Capture current production deployment
+        id: prior
+        run: |
+          node frontend/scripts/vercel-release-state.mjs get comm-need-radar.vercel.app > "$RUNNER_TEMP/prior-deployment.json"
+          prior_id="$(node -p "JSON.parse(require('fs').readFileSync('$RUNNER_TEMP/prior-deployment.json','utf8')).id")"
+          prior_url="$(node -p "JSON.parse(require('fs').readFileSync('$RUNNER_TEMP/prior-deployment.json','utf8')).url")"
+          prior_sha="$(node -p "JSON.parse(require('fs').readFileSync('$RUNNER_TEMP/prior-deployment.json','utf8')).releaseSha || ''")"
+          echo "id=${prior_id}" >> "$GITHUB_OUTPUT"
+          echo "url=${prior_url}" >> "$GITHUB_OUTPUT"
+          if [[ "$prior_sha" == "${{ steps.release.outputs.sha }}" ]]; then
+            echo "already_current=true" >> "$GITHUB_OUTPUT"
+            echo "Production already serves this release SHA; skipping duplicate deployment." >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "already_current=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Create exact source archive without Git author metadata
+        if: steps.prior.outputs.already_current != 'true'
+        run: |
+          release_dir="$RUNNER_TEMP/release-source"
+          mkdir -p "$release_dir"
+          git archive "${{ steps.release.outputs.sha }}" | tar -x -C "$release_dir"
+
+      - name: Stage production candidate without assigning domains
+        if: steps.prior.outputs.already_current != 'true'
+        id: candidate
+        working-directory: ${{ runner.temp }}/release-source
+        run: |
+          npx --yes vercel@latest link --yes --project "$VERCEL_PROJECT_NAME" --token "$VERCEL_TOKEN"
+          candidate_url="$(npx --yes vercel@latest deploy --prod --skip-domain --yes --token "$VERCEL_TOKEN" --meta releaseSha=${{ steps.release.outputs.sha }})"
+          echo "url=${candidate_url}" >> "$GITHUB_OUTPUT"
+          node "$GITHUB_WORKSPACE/frontend/scripts/vercel-release-state.mjs" wait "$candidate_url" READY > "$RUNNER_TEMP/candidate-deployment.json"
+          candidate_id="$(node -p "JSON.parse(require('fs').readFileSync('$RUNNER_TEMP/candidate-deployment.json','utf8')).id")"
+          echo "id=${candidate_id}" >> "$GITHUB_OUTPUT"
+          echo "Candidate: ${candidate_url}" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Grill candidate without writing production analytics
+        if: steps.prior.outputs.already_current != 'true'
+        id: candidate_tests
+        working-directory: frontend
+        env:
+          BASE_URL: ${{ steps.candidate.outputs.url }}
+        run: |
+          set +e
+          npm run test:prod:smoke
+          smoke_status=$?
+          npm run test:prod:e2e
+          browser_status=$?
+          set -e
+          status=0
+          if [[ "$smoke_status" -ne 0 || "$browser_status" -ne 0 ]]; then
+            status=1
+          fi
+          echo "status=${status}" >> "$GITHUB_OUTPUT"
+          if [[ "$status" -ne 0 && "$GRILL_MODE" == "enforce" ]]; then
+            echo "::error::Candidate failed critical production tests; promotion blocked."
+            exit 1
+          fi
+          if [[ "$status" -ne 0 ]]; then
+            echo "::warning::Candidate failures are report-only during baseline rollout."
+          fi
+
+      - name: Verify production did not move during candidate testing
+        if: steps.prior.outputs.already_current != 'true'
+        run: node frontend/scripts/vercel-release-state.mjs assert comm-need-radar.vercel.app "${{ steps.prior.outputs.id }}"
+
+      - name: Promote tested candidate
+        if: steps.prior.outputs.already_current != 'true'
+        working-directory: ${{ runner.temp }}/release-source
+        run: |
+          npx --yes vercel@latest promote "${{ steps.candidate.outputs.url }}" --yes --token "$VERCEL_TOKEN"
+          npx --yes vercel@latest promote status --token "$VERCEL_TOKEN"
+          node "$GITHUB_WORKSPACE/frontend/scripts/vercel-release-state.mjs" assert comm-need-radar.vercel.app "${{ steps.candidate.outputs.id }}"
+
+      - name: Verify canonical production and roll back critical failures
+        if: steps.prior.outputs.already_current != 'true'
+        id: canonical_tests
+        working-directory: frontend
+        env:
+          BASE_URL: https://comm-need-radar.vercel.app
+        run: |
+          set +e
+          npm run test:prod:smoke
+          smoke_status=$?
+          npm run test:prod:e2e
+          browser_status=$?
+          set -e
+          status=0
+          if [[ "$smoke_status" -ne 0 || "$browser_status" -ne 0 ]]; then
+            status=1
+          fi
+          if [[ "$status" -ne 0 && "$GRILL_MODE" == "enforce" ]]; then
+            cd "$RUNNER_TEMP/release-source"
+            npx --yes vercel@latest rollback "${{ steps.prior.outputs.url }}" --yes --timeout 60s --token "$VERCEL_TOKEN"
+            node "$GITHUB_WORKSPACE/frontend/scripts/vercel-release-state.mjs" assert comm-need-radar.vercel.app "${{ steps.prior.outputs.id }}"
+            echo "::error::Canonical smoke failed; production was rolled back to ${{ steps.prior.outputs.id }}."
+            exit 1
+          fi
+          if [[ "$status" -ne 0 ]]; then
+            echo "::warning::Canonical failures are report-only during baseline rollout."
+            exit 1
+          fi
+          if [[ "${{ steps.candidate_tests.outputs.status }}" -ne 0 ]]; then
+            echo "::warning::The release completed in report mode with candidate failures."
+            exit 1
+          fi
+
+      - if: always() && steps.prior.outputs.already_current != 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-grill-${{ github.run_id }}
+          path: |
+            frontend/playwright-report
+            frontend/test-results
+          retention-days: 14
+
+      - name: Open or update a release failure issue
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh label create production-health --repo "$GITHUB_REPOSITORY" --color B60205 --description "Automated production health failures" --force
+          run_url="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+          issue_number="$(gh issue list --repo "$GITHUB_REPOSITORY" --label production-health --state open --limit 1 --json number --jq '.[0].number // ""')"
+          if [[ -n "$issue_number" ]]; then
+            gh issue comment "$issue_number" --repo "$GITHUB_REPOSITORY" --body "Production release workflow failed: ${run_url}"
+          else
+            gh issue create --repo "$GITHUB_REPOSITORY" --title "[production-health] comm-need-radar release failure" --label production-health --body "The production release workflow failed. Inspect: ${run_url}"
+          fi

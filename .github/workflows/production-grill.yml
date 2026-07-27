@@ -1,0 +1,231 @@
+name: Production Grill
+
+on:
+  schedule:
+    - cron: "*/30 * * * *"
+    - cron: "17 7 * * *"
+  workflow_dispatch:
+    inputs:
+      suite:
+        description: Test depth
+        required: true
+        type: choice
+        default: full
+        options:
+          - smoke
+          - full
+
+permissions:
+  actions: read
+  contents: read
+  issues: write
+
+concurrency:
+  group: production-grill-${{ github.event_name }}-${{ github.event.schedule || inputs.suite || 'manual' }}
+  cancel-in-progress: false
+
+env:
+  BASE_URL: https://comm-need-radar.vercel.app
+  LEGACY_BASE_URL: https://comm-mvp.vercel.app
+  VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+  FULL_SUITE: ${{ github.event.schedule == '17 7 * * *' || inputs.suite == 'full' }}
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+      - run: npm run test:prod:smoke
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: production-smoke-${{ github.run_id }}
+          path: frontend/test-results/production-critical.json
+          retention-days: 14
+
+  browser:
+    if: github.event.schedule == '17 7 * * *' || inputs.suite == 'full'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium firefox webkit
+      - run: npm run test:prod:nightly
+      - run: npm run test:prod:visual
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: production-browser-${{ github.run_id }}
+          path: |
+            frontend/playwright-report
+            frontend/test-results
+          retention-days: 14
+
+  security:
+    if: github.event.schedule == '17 7 * * *' || inputs.suite == 'full'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+      - run: npm run test:prod:security
+      - run: npm audit --omit=dev --audit-level=high
+      - name: Record full dependency audit
+        continue-on-error: true
+        run: npm audit --json > test-results/npm-audit-full.json
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: production-security-${{ github.run_id }}
+          path: frontend/test-results
+          retention-days: 14
+
+  live-data:
+    if: github.event.schedule == '17 7 * * *' || inputs.suite == 'full'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+        working-directory: frontend
+      - name: Pull the canonical production environment
+        run: |
+          npx --yes vercel@latest link --yes --project comm-need-radar --token "$VERCEL_TOKEN"
+          npx --yes vercel@latest env pull frontend/.env.production.local --yes --environment production --token "$VERCEL_TOKEN"
+      - name: Validate live dashboard and Supabase security contracts
+        working-directory: frontend
+        env:
+          NODE_ENV: production
+        run: |
+          npm run validate:supabase-dashboard
+          npm run validate:supabase-contract
+          npm run validate:supabase-analytics-writes
+
+  lighthouse:
+    if: github.event.schedule == '17 7 * * *' || inputs.suite == 'full'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - name: Locate Playwright Chromium for Lighthouse
+        run: echo "CHROME_PATH=$(find "$HOME/.cache/ms-playwright" -type f -name chrome -print -quit)" >> "$GITHUB_ENV"
+      - name: Desktop Lighthouse budgets
+        env:
+          LIGHTHOUSE_PRESET: desktop
+        run: npm run test:prod:lighthouse
+      - name: Mobile Lighthouse budgets
+        env:
+          LIGHTHOUSE_PRESET: mobile
+        run: npm run test:prod:lighthouse
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: production-lighthouse-${{ github.run_id }}
+          path: frontend/test-results/lighthouse-*
+          retention-days: 14
+
+  load:
+    if: github.event.schedule == '17 7 * * *' || inputs.suite == 'full'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: grafana/setup-k6-action@v1
+      - name: Run bounded nightly load
+        env:
+          BASE_URL: https://comm-need-radar.vercel.app
+          LOAD_PROFILE: nightly
+          VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+        run: |
+          mkdir -p frontend/test-results
+          k6 run --summary-export frontend/test-results/k6-summary.json frontend/tests/production/load.js
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: production-load-${{ github.run_id }}
+          path: frontend/test-results/k6-summary.json
+          retention-days: 14
+
+  production-health:
+    if: always()
+    needs:
+      - smoke
+      - browser
+      - security
+      - live-data
+      - lighthouse
+      - load
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      CURRENT_FAILED: ${{ contains(needs.*.result, 'failure') }}
+    steps:
+      - name: Publish run summary and manage the deduplicated health issue
+        shell: bash
+        run: |
+          run_url="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+          previous="$(gh run list --repo "$GITHUB_REPOSITORY" --workflow production-grill.yml --status completed --limit 1 --json conclusion --jq '.[0].conclusion // ""')"
+          issue_number="$(gh issue list --repo "$GITHUB_REPOSITORY" --label production-health --state open --limit 1 --json number --jq '.[0].number // ""')"
+
+          if [[ "$CURRENT_FAILED" == "true" ]]; then
+            echo "Production checks failed: ${run_url}" >> "$GITHUB_STEP_SUMMARY"
+            if [[ "$previous" == "failure" ]]; then
+              gh label create production-health --repo "$GITHUB_REPOSITORY" --color B60205 --description "Automated production health failures" --force
+              if [[ -n "$issue_number" ]]; then
+                gh issue comment "$issue_number" --repo "$GITHUB_REPOSITORY" --body "Another consecutive production-grill failure: ${run_url}"
+              else
+                gh issue create --repo "$GITHUB_REPOSITORY" --title "[production-health] comm-need-radar automated checks failing" --label production-health --body "Two consecutive production-grill runs failed. Latest run: ${run_url}"
+              fi
+            fi
+          else
+            echo "Production checks passed: ${run_url}" >> "$GITHUB_STEP_SUMMARY"
+            if [[ "$previous" == "success" && -n "$issue_number" ]]; then
+              gh issue comment "$issue_number" --repo "$GITHUB_REPOSITORY" --body "Production recovered with two consecutive successful runs. Latest run: ${run_url}"
+              gh issue close "$issue_number" --repo "$GITHUB_REPOSITORY" --reason completed
+            fi
+          fi

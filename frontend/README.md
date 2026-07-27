@@ -4,7 +4,7 @@ A React web app for social workers and planners to find community services and g
 
 ---
 
-**Production:** https://comm-mvp.vercel.app
+**Production:** https://comm-need-radar.vercel.app
 
 ## Quick start
 

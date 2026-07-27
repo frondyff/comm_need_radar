@@ -32,6 +32,8 @@ jobs:
       - run: npm run validate:boundaries
       - run: npm run validate:dashboard-adapter
       - run: npm run validate:chatbot
+      - run: npm run test:flyer
+      - run: npm run test:release-state
       - run: npm run build
       - run: npm audit --omit=dev --audit-level=high
 

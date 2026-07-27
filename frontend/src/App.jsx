@@ -62,7 +62,7 @@ function ScaledFlyerPreview({ flyer, scale = 1.16 }) {
     : scale;
 
   return (
-    <div ref={outerRef} style={{ width:"100%", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"flex-start", height: size ? size.h*effectiveScale : "auto", overflow:"hidden" }}>
+    <div data-testid="flyer-preview-shell" ref={outerRef} style={{ width:"100%", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"flex-start", height: size ? size.h*effectiveScale : "auto", overflow:"hidden" }}>
       <div ref={innerRef} style={{ transform:`scale(${effectiveScale})`, transformOrigin:"top center", width: size ? size.w : "auto", flexShrink:0 }}>
         <FlyerPreview flyer={flyer}/>
       </div>
@@ -454,7 +454,7 @@ function PlannerView({ lang, setLang, onSwitch, onExit, location, onChangeLocati
       ? validServices.filter(s => boroughNamesMatch(s.borough, selectedBorough))
       : validServices;
   return (
-    <div style={{minHeight:"100vh",background:"#FFFFFF",fontFamily:"system-ui,sans-serif",fontSize:14}}>
+    <div data-testid="planner-view" style={{minHeight:"100vh",background:"#FFFFFF",fontFamily:"system-ui,sans-serif",fontSize:14}}>
       <div style={{background:"#0B1220",padding:"10px 20px",display:"flex",flexWrap:"wrap",rowGap:8,alignItems:"center",justifyContent:"space-between",position:"sticky",top:0,zIndex:1000,borderBottom:"1px solid #1E293B"}}>
         <div style={{display:"flex",flexWrap:"wrap",alignItems:"center",gap:10,rowGap:6}}>
           <Radar size={20} color="#2563EB"/>
@@ -463,7 +463,7 @@ function PlannerView({ lang, setLang, onSwitch, onExit, location, onChangeLocati
           <div style={{fontSize:12,color:"#60A5FA",fontWeight:600,textTransform:"uppercase",letterSpacing:0.6}}>{isEN?"Planner View (V2)":"Vue Planificateur (V2)"}</div>
         </div>
         <div style={{display:"flex",flexWrap:"wrap",gap:6,rowGap:6,alignItems:"center"}}>
-          <span style={{fontSize:11,color:sourceStatus==="supabase"?"#6EE7B7":"#FCD34D",fontWeight:600}}>
+          <span data-testid="data-source-status" style={{fontSize:11,color:sourceStatus==="supabase"?"#6EE7B7":"#FCD34D",fontWeight:600}}>
             {sourceStatus==="supabase"?"Supabase":(isEN?"Demo data":"Données démo")}
           </span>
           <div style={{display:"flex",background:"rgba(255,255,255,0.08)",borderRadius:6,overflow:"hidden"}}>
@@ -536,7 +536,7 @@ function PlannerView({ lang, setLang, onSwitch, onExit, location, onChangeLocati
               <TileLayer attribution='© CartoDB' url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"/>
               <FitBoundsToPoints points={boroughServices.map(s=>[s.lat,s.lng])}/>
               {boroughServices.map(s=>(
-                <Marker key={s.id} position={[s.lat,s.lng]} icon={createServiceMarker(s.category,false)}>
+                <Marker key={s.id} position={[s.lat,s.lng]} icon={createServiceMarker(s.category,false)} title={s.name}>
                   <Popup><div style={{fontFamily:"system-ui",minWidth:140}}><div style={{fontWeight:700,fontSize:13,color:CATEGORY_COLORS[s.category],display:"flex",alignItems:"center",gap:5}}><CategoryIcon category={s.category} size={14} color={CATEGORY_COLORS[s.category]}/> {s.name}</div><div style={{fontSize:12,color:"#64748B"}}>{s.type}</div></div></Popup>
                 </Marker>
               ))}
@@ -561,14 +561,14 @@ function PlannerView({ lang, setLang, onSwitch, onExit, location, onChangeLocati
                   ? selectMapArea({ scoreKey:p.borough, areaId:p.id, areaName:p.name })
                   : selectRankedBorough(p.borough);
                 return (
-                  <div key={p.id} onClick={onClick}
-                    style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"10px 12px",borderRadius:8,cursor:"pointer",background:isSelected?"#EEF2FF":"#F1F5F9",border:`1px solid ${isSelected?"#2563EB":"#E2E8F0"}`,transition:"all 0.15s"}}>
+                  <button type="button" key={p.id} onClick={onClick} data-testid="priority-area"
+                    style={{display:"flex",width:"100%",fontFamily:"inherit",textAlign:"left",justifyContent:"space-between",alignItems:"center",padding:"10px 12px",borderRadius:8,cursor:"pointer",background:isSelected?"#EEF2FF":"#F1F5F9",border:`1px solid ${isSelected?"#2563EB":"#E2E8F0"}`,transition:"all 0.15s"}}>
                     <div style={{minWidth:0}}>
                       <div style={{fontSize:13,fontWeight:isSelected?600:400,color:isSelected?"#2563EB":"#0F172A",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{p.name}</div>
                       {p.borough && p.borough!==p.name && <div style={{fontSize:11,color:"#94A3B8",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{p.borough}</div>}
                     </div>
                     <span style={{fontSize:13,fontWeight:700,color:"#2563EB",background:"#EEF2FF",padding:"3px 8px",borderRadius:4,fontFamily:MONO_FONT,flexShrink:0,marginLeft:8}}>{p.gapScore!=null?p.gapScore.toFixed(2):"—"}</span>
-                  </div>
+                  </button>
                 );
               })}
             </div>
@@ -576,7 +576,7 @@ function PlannerView({ lang, setLang, onSwitch, onExit, location, onChangeLocati
         </div>
 
         {/* Area profile — updates when a borough/area is clicked */}
-        <div style={{background:"#fff",border:"1px solid #E2E8F0",borderRadius:8,padding:"16px",marginBottom:12}}>
+        <div data-testid="area-profile" style={{background:"#fff",border:"1px solid #E2E8F0",borderRadius:8,padding:"16px",marginBottom:12}}>
           <div style={{display:"flex",alignItems:"center",flexWrap:"wrap",gap:10,marginBottom:12}}>
             <div style={{fontWeight:600,fontSize:15}}>
               {isEN?"Area profile":"Profil de la zone"} — <span style={{color:"#2563EB"}}>{selectedAreaLabel}</span>
@@ -853,7 +853,7 @@ export default function CommunityRadar() {
 
   // ROLE SELECTION 
   if (step==="role") return (
-    <div style={{minHeight:"100vh",background:"#FFFFFF",display:"flex",alignItems:"center",justifyContent:"center",fontFamily:"system-ui,sans-serif",padding:"2rem",position:"relative",overflow:"hidden"}}>
+    <div data-testid="role-screen" style={{minHeight:"100vh",background:"#FFFFFF",display:"flex",alignItems:"center",justifyContent:"center",fontFamily:"system-ui,sans-serif",padding:"2rem",position:"relative",overflow:"hidden"}}>
       {/* subtle tech grid lines */}
       <div style={{position:"absolute",inset:0,backgroundImage:"linear-gradient(to right,rgba(15,23,42,0.045) 1px,transparent 1px),linear-gradient(to bottom,rgba(15,23,42,0.045) 1px,transparent 1px)",backgroundSize:"32px 32px",pointerEvents:"none"}} />
 
@@ -872,13 +872,13 @@ export default function CommunityRadar() {
         </div>
         <p style={{fontWeight:600,fontSize:13,color:"#334155",marginBottom:16,textTransform:"uppercase",letterSpacing:1.4}}>{T.chooseRole}</p>
         <div style={{display:"flex",flexDirection:"column",gap:14}}>
-          <button onClick={()=>{setRole("v1");logEvent("role_selected","v1",{});handleChangeLocation("main","role");}}
+          <button data-testid="choose-community-role" onClick={()=>{setRole("v1");logEvent("role_selected","v1",{});handleChangeLocation("main","role");}}
             style={{padding:"22px 24px 22px 28px",borderRadius:12,border:"1.5px solid #BFDBFE",background:"linear-gradient(135deg,#EFF6FF,#F0F9FF)",color:"#1E3A8A",textAlign:"left",cursor:"pointer",position:"relative",overflow:"hidden"}}>
             <div style={{position:"absolute",left:0,top:0,bottom:0,width:4,background:"linear-gradient(180deg,#3B82F6,#1D4ED8)"}} />
             <div style={{fontWeight:700,fontSize:16,marginBottom:4,color:"#1E3A8A"}}>V1 — {T.roleV1}</div>
             <div style={{fontSize:13,color:"#4A6FA5"}}>{T.roleV1sub}</div>
           </button>
-          <button onClick={()=>{setRole("v2");logEvent("role_selected","v2",{});setStep("v2");}}
+          <button data-testid="choose-planner-role" onClick={()=>{setRole("v2");logEvent("role_selected","v2",{});setStep("v2");}}
             style={{padding:"22px 24px 22px 28px",borderRadius:12,border:"1.5px solid #FDE1B8",background:"linear-gradient(135deg,#FFF7ED,#FFFBEB)",color:"#7C2D12",textAlign:"left",cursor:"pointer",position:"relative",overflow:"hidden"}}>
             <div style={{position:"absolute",left:0,top:0,bottom:0,width:4,background:"linear-gradient(180deg,#F59E0B,#C2410C)"}} />
             <div style={{fontWeight:700,fontSize:16,marginBottom:4,color:"#7C2D12"}}>V2 — {T.roleV2}</div>
@@ -908,7 +908,7 @@ export default function CommunityRadar() {
 
   // LOCATION SELECTION
   if (step==="location") return (
-    <div style={{minHeight:"100vh",background:"#FFFFFF",display:"flex",alignItems:"center",justifyContent:"center",fontFamily:"system-ui,sans-serif",padding:"2rem",position:"relative",overflow:"hidden"}}>
+    <div data-testid="location-screen" style={{minHeight:"100vh",background:"#FFFFFF",display:"flex",alignItems:"center",justifyContent:"center",fontFamily:"system-ui,sans-serif",padding:"2rem",position:"relative",overflow:"hidden"}}>
       {/* subtle tech grid lines, consistent with the cover screen */}
       <div style={{position:"absolute",inset:0,backgroundImage:"linear-gradient(to right,rgba(15,23,42,0.045) 1px,transparent 1px),linear-gradient(to bottom,rgba(15,23,42,0.045) 1px,transparent 1px)",backgroundSize:"32px 32px",pointerEvents:"none"}} />
 
@@ -930,7 +930,7 @@ export default function CommunityRadar() {
           </p>
           <div style={{display:"flex",flexDirection:"column",gap:10}}>
             {DIST_LOCATIONS.map(loc=>(
-              <button key={loc.id} onClick={()=>handleLocationSelected(loc)}
+              <button data-testid="distribution-location" key={loc.id} onClick={()=>handleLocationSelected(loc)}
                 style={{padding:"14px 18px",borderRadius:10,border:`1.5px solid ${selectedLocation.id===loc.id?"#2563EB":"#E2E8F0"}`,background:selectedLocation.id===loc.id?"#EFF6FF":"#fff",color:"#0F172A",textAlign:"left",cursor:"pointer",display:"flex",alignItems:"center",gap:12,boxShadow:selectedLocation.id===loc.id?"0 4px 14px rgba(37,99,235,0.14)":"none",transition:"all 0.15s"}}>
                 <div style={{width:10,height:10,borderRadius:"50%",background:selectedLocation.id===loc.id?"#2563EB":"#059669",flexShrink:0}}/>
                 <div>
@@ -950,7 +950,7 @@ export default function CommunityRadar() {
 
   // V1 MAIN 
   return (
-    <div style={{minHeight:"100vh",background:"#FFFFFF",fontFamily:"system-ui,sans-serif",fontSize:14}}>
+    <div data-testid="community-view" style={{minHeight:"100vh",background:"#FFFFFF",fontFamily:"system-ui,sans-serif",fontSize:14}}>
       {/* TOP BAR */}
       <div style={{background:"#0B1220",padding:"10px 20px",display:"flex",flexWrap:"wrap",rowGap:8,alignItems:"center",justifyContent:"space-between",position:"sticky",top:0,zIndex:1000,borderBottom:"1px solid #1E293B"}}>
         <div style={{display:"flex",flexWrap:"wrap",alignItems:"center",gap:10,rowGap:6}}>
@@ -960,6 +960,9 @@ export default function CommunityRadar() {
           <div style={{fontSize:12,color:"#60A5FA",fontWeight:600,textTransform:"uppercase",letterSpacing:0.6}}>{isEN?"Community View (V1)":"Vue Communautaire (V1)"}</div>
         </div>
         <div style={{display:"flex",flexWrap:"wrap",gap:6,rowGap:6,alignItems:"center"}}>
+          <span data-testid="data-source-status" style={{fontSize:11,color:dashboardData.sourceStatus==="supabase"?"#6EE7B7":"#FCD34D",fontWeight:600}}>
+            {dashboardData.sourceStatus==="supabase"?"Supabase":(isEN?"Demo data":"Données démo")}
+          </span>
           <LocationBadge location={selectedLocation} onChange={()=>handleChangeLocation("main")}/>
           <div style={{display:"flex",background:"rgba(255,255,255,0.1)",borderRadius:6,overflow:"hidden"}}>
             {["EN","FR"].map(l=><button key={l} onClick={()=>setLang(l)} style={{padding:"4px 10px",border:"none",background:lang===l?"#2563EB":"transparent",color:"#fff",fontWeight:lang===l?700:400,cursor:"pointer",fontSize:12}}>{l}</button>)}
@@ -973,7 +976,7 @@ export default function CommunityRadar() {
         {/* SEARCH */}
         <div style={{position:"relative",marginBottom:14}}>
           <Search size={16} color="#2563EB" style={{position:"absolute",left:14,top:"50%",transform:"translateY(-50%)"}}/>
-          <input value={search} onChange={e=>{setSearch(e.target.value);logEvent("search",e.target.value,meta);}}
+          <input data-testid="service-search" aria-label={T.search} value={search} onChange={e=>{setSearch(e.target.value);logEvent("search",e.target.value,meta);}}
             placeholder={T.search}
             style={{width:"100%",padding:"12px 14px 12px 42px",borderRadius:8,border:"2px solid #2563EB",background:"#fff",fontSize:14,outline:"none",boxShadow:"0 2px 8px rgba(37,99,235,0.14)",boxSizing:"border-box"}}/>
         </div>
@@ -1022,7 +1025,7 @@ export default function CommunityRadar() {
               .distance-input::placeholder{color:#93C5FD;font-weight:600;}
             `}</style>
             <span style={{color:"#64748B",fontSize:13,fontWeight:600,whiteSpace:"nowrap"}}>{isEN?"Distance":"Distance"}</span>
-            <input type="range" className="distance-range" min={0} max={maxAvailableDist} step={0.1}
+            <input data-testid="distance-filter" aria-label={isEN?"Maximum service distance":"Distance maximale du service"} type="range" className="distance-range" min={0} max={maxAvailableDist} step={0.1}
               value={activeMaxDist ?? maxAvailableDist}
               onChange={e=>setActiveMaxDist(Number(e.target.value)>=maxAvailableDist?null:Number(e.target.value))}
               onMouseUp={()=>logEvent("distance_filter",activeMaxDist,meta)}
@@ -1059,7 +1062,7 @@ export default function CommunityRadar() {
         {/* MAIN: list | right panel */}
         <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit, minmax(320px, 1fr))",gap:14}}>
           {/* LEFT: list or map */}
-          <div style={{background:"#fff",border:"1px solid #E2E8F0",borderRadius:8,overflow:"hidden",display:"flex",flexDirection:"column",minWidth:0}}>
+          <div data-testid="service-results-panel" style={{background:"#fff",border:"1px solid #E2E8F0",borderRadius:8,overflow:"hidden",display:"flex",flexDirection:"column",minWidth:0}}>
             {showMap ? (
               <div style={{position:"relative",flex:1,minHeight:440,zIndex:0}}>
                 <button onClick={()=>setShowMap(false)} style={{position:"absolute",top:10,left:10,zIndex:1001,padding:"5px 12px",borderRadius:8,border:"1px solid #E2E8F0",background:"#fff",cursor:"pointer",fontSize:13}}>{T.backList}</button>
@@ -1067,12 +1070,12 @@ export default function CommunityRadar() {
                   <TileLayer attribution='© CartoDB' url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"/>
                   {mapCenter && <FlyTo center={mapCenter}/>}
                   {selectedLocation?.lat!=null && selectedLocation?.lng!=null && (
-                    <Marker position={[selectedLocation.lat,selectedLocation.lng]} icon={createUserLocationMarker()}>
+                    <Marker position={[selectedLocation.lat,selectedLocation.lng]} icon={createUserLocationMarker()} title={selectedLocation.name}>
                       <Popup><div style={{fontFamily:"system-ui",fontSize:12,fontWeight:600}}>{isEN?"You are here":"Vous êtes ici"}</div><div style={{fontFamily:"system-ui",fontSize:11,color:"#64748B"}}>{selectedLocation.name}</div></Popup>
                     </Marker>
                   )}
                   {filtered.map(s=>(
-                    <Marker key={s.id} position={[s.lat,s.lng]} icon={createServiceMarker(s.category,selected?.id===s.id)} eventHandlers={{click:()=>handleSelect(s)}}>
+                    <Marker key={s.id} position={[s.lat,s.lng]} icon={createServiceMarker(s.category,selected?.id===s.id)} title={s.name} eventHandlers={{click:()=>handleSelect(s)}}>
                       <Popup><div style={{fontFamily:"system-ui",minWidth:150}}><div style={{fontWeight:700,fontSize:12,color:CATEGORY_COLORS[s.category],display:"flex",alignItems:"center",gap:5}}><CategoryIcon category={s.category} size={13} color={CATEGORY_COLORS[s.category]}/> {s.name}</div><div style={{fontSize:11,color:"#64748B"}}>{s.type} · {s.dist}</div><div style={{fontSize:11,color:"#64748B"}}>{s.hours}</div></div></Popup>
                     </Marker>
                   ))}
@@ -1104,8 +1107,8 @@ export default function CommunityRadar() {
                     ? <div style={{padding:20,color:"#64748B",textAlign:"center",fontSize:14}}>{isEN?"No services match.":"Aucun service ne correspond."}</div>
                     : viewMode==="list"
                       ? pagedFiltered.map((s,i)=>(
-                          <div key={s.id} onClick={()=>handleSelect(s)}
-                            style={{padding:"12px 16px",borderBottom:i<pagedFiltered.length-1?"1px solid #E2E8F0":"none",cursor:"pointer",background:selected?.id===s.id?"#EFF6FF":"transparent",borderLeft:selected?.id===s.id?"3px solid #2563EB":"3px solid transparent",transition:"background 0.15s"}}>
+                          <button type="button" data-testid="service-card" key={s.id} onClick={()=>handleSelect(s)}
+                            style={{width:"100%",fontFamily:"inherit",textAlign:"left",padding:"12px 16px",border:"none",borderBottom:i<pagedFiltered.length-1?"1px solid #E2E8F0":"none",cursor:"pointer",background:selected?.id===s.id?"#EFF6FF":"transparent",borderLeft:selected?.id===s.id?"3px solid #2563EB":"3px solid transparent",transition:"background 0.15s"}}>
                             <div style={{display:"flex",gap:10,alignItems:"flex-start"}}>
                               <div style={{width:38,height:38,borderRadius:"50%",background:selected?.id===s.id?"#2563EB":"#F1F5F9",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><CategoryIcon category={s.category} size={19} color={selected?.id===s.id?"#fff":CATEGORY_COLORS[s.category]}/></div>
                               <div style={{flex:1,minWidth:0}}>
@@ -1116,12 +1119,12 @@ export default function CommunityRadar() {
                                 </div>
                               </div>
                             </div>
-                          </div>
+                          </button>
                         ))
                       : <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit, minmax(140px, 1fr))",gap:8}}>
                           {pagedFiltered.map(s=>(
-                            <div key={s.id} onClick={()=>handleSelect(s)}
-                              style={{padding:"12px",borderRadius:8,border:`1.5px solid ${selected?.id===s.id?"#2563EB":"#E2E8F0"}`,background:selected?.id===s.id?"#EFF6FF":"#fff",cursor:"pointer",transition:"all 0.15s"}}>
+                            <button type="button" data-testid="service-card" key={s.id} onClick={()=>handleSelect(s)}
+                              style={{width:"100%",fontFamily:"inherit",textAlign:"left",padding:"12px",borderRadius:8,border:`1.5px solid ${selected?.id===s.id?"#2563EB":"#E2E8F0"}`,background:selected?.id===s.id?"#EFF6FF":"#fff",cursor:"pointer",transition:"all 0.15s"}}>
                               <div style={{width:36,height:36,borderRadius:"50%",background:selected?.id===s.id?"#2563EB":"#F1F5F9",display:"flex",alignItems:"center",justifyContent:"center",marginBottom:8}}><CategoryIcon category={s.category} size={18} color={selected?.id===s.id?"#fff":CATEGORY_COLORS[s.category]}/></div>
                               <div style={{fontWeight:600,fontSize:13,color:selected?.id===s.id?"#2563EB":"#0F172A",marginBottom:3,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{s.name}</div>
                               <div style={{fontSize:11,color:"#64748B",marginBottom:6}}>{s.type}</div>
@@ -1129,7 +1132,7 @@ export default function CommunityRadar() {
                               <div style={{display:"flex",gap:3,flexWrap:"wrap"}}>
                                 {s.tags.slice(0,1).map(t=><span key={t} style={{padding:"2px 6px",borderRadius:3,border:`1px solid ${selected?.id===s.id?"#2563EB":"#E2E8F0"}`,color:selected?.id===s.id?"#2563EB":"#334155",fontSize:10}}>{t.length>30?t.slice(0,29)+"…":t}</span>)}
                               </div>
-                            </div>
+                            </button>
                           ))}
                         </div>
                   }
@@ -1146,7 +1149,7 @@ export default function CommunityRadar() {
                         style={{flex:1,padding:"7px",borderRadius:8,border:"1px solid #E2E8F0",background:listPage===0?"#F8FAFC":"#fff",color:listPage===0?"#CBD5E1":"#334155",cursor:listPage===0?"default":"pointer",fontSize:13}}>
                         ← {isEN?"Prev":"Précédent"}
                       </button>
-                      <button onClick={()=>setListPage(p=>Math.min(totalPages-1,p+1))} disabled={listPage>=totalPages-1}
+                      <button data-testid="next-page" onClick={()=>setListPage(p=>Math.min(totalPages-1,p+1))} disabled={listPage>=totalPages-1}
                         style={{flex:1,padding:"7px",borderRadius:8,border:"1px solid #E2E8F0",background:listPage>=totalPages-1?"#F8FAFC":"#fff",color:listPage>=totalPages-1?"#CBD5E1":"#334155",cursor:listPage>=totalPages-1?"default":"pointer",fontSize:13}}>
                         {isEN?"Next":"Suivant"} →
                       </button>
@@ -1157,7 +1160,7 @@ export default function CommunityRadar() {
                       </button>
                     </div>
                   )}
-                  <button onClick={()=>{setShowMap(true);logEvent("map_opened","view_on_map",meta);}}
+                  <button data-testid="view-services-map" onClick={()=>{setShowMap(true);logEvent("map_opened","view_on_map",meta);}}
                     style={{width:"100%",padding:"10px",borderRadius:8,border:"1px solid #E2E8F0",background:"#F1F5F9",color:"#0F172A",cursor:"pointer",fontSize:14,fontWeight:500}}>
                     {T.viewMap}
                   </button>
@@ -1236,7 +1239,7 @@ export default function CommunityRadar() {
                     {/* Footer */}
                     <div style={{padding:"14px 20px",borderTop:"1px solid #F1F5F9",background:"#FAFAFA"}}>
                       <div style={{color:"#CBD5E1",fontSize:11,fontStyle:"italic",marginBottom:10}}>{T.updated}</div>
-                      <button onClick={()=>setRightTab("flyer")}
+                      <button data-testid="preview-flyer" onClick={()=>setRightTab("flyer")}
                         style={{width:"100%",padding:"11px",borderRadius:8,border:"none",background:"#059669",color:"#fff",fontWeight:600,cursor:"pointer",fontSize:14}}>
                         {isEN?"Preview Flyer →":"Prévisualiser le dépliant →"}
                       </button>
@@ -1252,7 +1255,7 @@ export default function CommunityRadar() {
                     <div style={{width:"100%",margin:"0 auto"}}>
                       {flyerDone && <div style={{marginBottom:8,padding:"7px 10px",background:"#ECFDF5",borderRadius:6,color:"#059669",fontSize:12}}>✓ {isEN?"PDF downloaded successfully":"PDF téléchargé avec succès"}</div>}
                       {flyerDownloadError && <div style={{marginBottom:8,padding:"7px 10px",background:"#FEF2F2",borderRadius:6,color:"#B91C1C",fontSize:12}}>{flyerDownloadError}</div>}
-                      <button onClick={handleDownload} disabled={isDownloadingFlyer}
+                      <button data-testid="download-flyer" onClick={handleDownload} disabled={isDownloadingFlyer}
                         style={{width:"100%",padding:"16px",borderRadius:8,border:"none",background:isDownloadingFlyer?"#94A3B8":"#059669",color:"#fff",fontWeight:600,cursor:isDownloadingFlyer?"wait":"pointer",fontSize:16}}>
                         {isDownloadingFlyer ? (isEN ? "Preparing flyer..." : "Préparation du dépliant...") : T.generate}
                       </button>

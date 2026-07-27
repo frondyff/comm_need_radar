@@ -148,7 +148,7 @@ export function ChatbotWidget({ isEN, selectedAreaId, selectedAreaLabel }) {
 
     if (screen === "bye") {
       return (
-        <div>
+        <div data-testid="chat-session-summary">
           <div style={{ fontSize: 13, fontWeight: 700, color: "#1E3A8A", marginBottom: 8 }}>
             Summary of this session
           </div>
@@ -174,7 +174,7 @@ export function ChatbotWidget({ isEN, selectedAreaId, selectedAreaLabel }) {
 
     if (screen === "result") {
       return (
-        <div>
+        <div data-testid="chat-result">
           <div style={{ whiteSpace: "pre-wrap", fontSize: 13, lineHeight: 1.5, color: "#1E293B" }}>
             {result?.answer}
           </div>
@@ -264,6 +264,7 @@ export function ChatbotWidget({ isEN, selectedAreaId, selectedAreaLabel }) {
       <>
         {hovering && <ChatGreetingBubble isEN={isEN} />}
         <button
+          data-testid="open-chat"
           onClick={() => setChatOpen(true)}
           onMouseEnter={() => setHovering(true)}
           onMouseLeave={() => setHovering(false)}
@@ -282,7 +283,7 @@ export function ChatbotWidget({ isEN, selectedAreaId, selectedAreaLabel }) {
   const showHome = screen !== "root" && screen !== "bye";
 
   return (
-    <div style={{ ...chatBarStyle, display: "block", padding: 0, borderRadius: 16, overflow: "hidden" }}>
+    <div data-testid="chatbot" style={{ ...chatBarStyle, display: "block", padding: 0, borderRadius: 16, overflow: "hidden" }}>
       <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "12px 14px", background: "#EFF6FF", borderBottom: "1px solid #DBEAFE" }}>
         <Bot size={18} color="#2563EB" style={chatIconStyle} />
         <div style={{ flex: 1, minWidth: 0 }}>
