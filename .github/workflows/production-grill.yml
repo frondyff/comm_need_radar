@@ -114,6 +114,7 @@ jobs:
     env:
       VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
       SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+      AREA_VULNERABILITY_API_BASE_URL: https://comm-need-radar.vercel.app
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4

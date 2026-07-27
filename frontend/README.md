@@ -105,7 +105,7 @@ columns, renamed tables, new filters) usually start in **`lib/dashboardAdapter.j
 |---|---|
 | `services_master` | V1 service directory — name, category, address, contact info, filters (group/gender/age) |
 | `gap_score` | V2 choropleth + area profiles — gap score, rank, priority flag, drivers, bilingual summary |
-| `area_profile` | Income / housing / immigration indicators per area |
+| `/api/area-vulnerability` → `area_vulnerability_index_real` | Real census low-income, shelter-cost-burden, and recent-immigration indicators per area |
 | `accessibility` | Service-access metrics per area |
 | `flyer_downloads` | Analytics — one row per flyer download, with the filters active at the time |
 | `page_events` | Analytics — passive events (page view, filter clicked, map opened, etc.) |

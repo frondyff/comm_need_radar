@@ -1,7 +1,7 @@
 import { expect, test } from "./fixtures.js";
 
 const dashboardRead =
-  /\/rest\/v1\/(area_profile|gap_score|accessibility|services_master)(?:\?|$)/;
+  /\/(?:rest\/v1\/(?:area_profile|gap_score|accessibility|services_master)|api\/area-vulnerability)(?:\?|$)/;
 
 test("dashboard falls back to demo data instead of rendering a blank screen", async ({ page }) => {
   await page.route(dashboardRead, route =>
