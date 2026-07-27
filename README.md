@@ -1,6 +1,6 @@
 # Community Needs Radar
 
-Community Needs Radar is a Streamlit-based analytics project for mapping social
+Community Needs Radar is a React/Vite dashboard project for mapping social
 vulnerability and service accessibility across Greater Montreal. The project
 combines public census indicators, geographic boundaries, and community service
 locations to identify areas where community need is high and nearby service
@@ -29,14 +29,72 @@ Build a reproducible decision-support tool that lets non-technical users answer:
 public raw data
 -> processed census, service, and geography datasets
 -> vulnerability, accessibility, and gap scores
--> Streamlit dashboard and flyer generator
+-> React dashboard and flyer generator
 -> monitoring, documentation, report, and presentation
 ```
 
-Cloud deployment is optional. The project must still be runnable locally through
-documented commands so it can be evaluated even if deployment is not completed.
+The integrated repository keeps a local run path while preparing the React app
+for Supabase-backed preview and production deployment.
 
-## Planned Repository Structure
+## Run Locally
+
+The canonical frontend is the React/Vite dashboard from `feature/dashboard`.
+Node.js 22+ is required.
+
+```bash
+cd frontend
+npm ci
+npm run dev
+```
+
+Then open `http://localhost:5173` in a browser. See
+[frontend/README.md](frontend/README.md) for the detailed frontend guide.
+
+With `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY`, the dashboard
+loads real app-ready scores and the deduplicated `services_master` layer.
+Without that configuration it shows an explicitly labeled demo fallback.
+
+## Production Deployment
+
+The production React application is live at:
+
+- https://comm-mvp.vercel.app
+
+The Vercel production deployment uses the public Supabase contract for the
+dashboard and server-side chatbot retrieval. No LLM key is configured in the
+current release, so `/api/chat` uses its grounded deterministic fallback. See
+`docs/deployment-verification-2026-07-23.md` for the release evidence and known
+limitations.
+
+## Data And Validation
+
+Python 3.11+ is required for the reproducible data, scoring, and spatial
+pipelines:
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+python3 -m unittest discover -s tests
+python3 scripts/validate_spatial_joins.py
+```
+
+Frontend validation:
+
+```bash
+cd frontend
+npm ci
+npm run validate:boundaries
+npm run validate:dashboard-adapter
+npm run build
+```
+
+The owner-level Supabase SQL contract is
+`supabase/tests/issue_6_contract.sql`. Public-key validation requires the
+documented Supabase environment variables; see
+`docs/supabase-operations.md`.
+
+## Repository Structure
 
 ```text
 comm_need_radar/
@@ -53,9 +111,35 @@ comm_need_radar/
   data/
     raw/
     processed/
+  frontend/
+    README.md
+    package.json
+    public/
+      geo/
+        areas.geojson
+    src/
+      main.jsx
+      App.jsx
+      components/
+        serviceVisuals.jsx
+      flyer/
+        FlyerPreview.jsx
+        FlyerPdfExporter.js
+        flyerData.js
+        flyerStyles.js
+      lib/
+        supabaseData.js
+        dashboardAdapter.js
+        analytics.js
   notebooks/
   scripts/
+    data_pipeline/
   src/comm_need_radar/
+    geospatial/
+    scoring/
+  supabase/
+    migrations/
+    tests/
   tests/
   .github/
     ISSUE_TEMPLATE/
@@ -64,9 +148,9 @@ comm_need_radar/
     pull_request_template.md
 ```
 
-The repository skeleton is created with tracked placeholders for data,
-notebooks, scripts, source, and tests. Implementation code, generated data,
-deployment files, and full validation are deferred to issue-driven work.
+The React dashboard is the canonical product UI. The Python/Streamlit code is
+retained as a local analytical reference and pipeline consumer, not as the
+production web baseline.
 
 ## Team Ownership
 
@@ -75,7 +159,7 @@ deployment files, and full validation are deferred to issue-driven work.
 | Chloe | Product leadership, scope, timeline, proposal coordination, MVP decisions | AI/RAG and dashboard support |
 | Laura | Data engineering for census, boundaries, and service datasets | AI/RAG, geospatial, and dashboard support |
 | Frondy | Geospatial analytics, spatial joins, vulnerability score, service access score, gap score, GitHub documentation | App support |
-| Jessie | Streamlit dashboard, two-mode UI, map UX, exports | AI/RAG, geospatial, and GitHub support |
+| Jessie | React dashboard development (Community & Planner views), interactive map UX and data visualization, Supabase integration, flyer generation/export system, usage analytics | AI/RAG, geospatial, and GitHub support |
 | Mariam | AI insights, neighborhood summaries, user testing, presentation story | Methodology wording and final presentation |
 
 ## Documentation Index
@@ -89,6 +173,10 @@ deployment files, and full validation are deferred to issue-driven work.
 - [Data Requirements](docs/data-requirements.md)
 - [Submission Checklist](docs/submission-checklist.md)
 - [GitHub Workflow](docs/github-workflow.md)
+- [Data Inventory](docs/DATA_INVENTORY.md)
+- [Supabase Operations](docs/supabase-operations.md)
+- [Spatial Join Validation](docs/spatial-join-validation.md)
+- [Chatbot](docs/chatbot.md)
 
 ## Collaboration Rules
 
