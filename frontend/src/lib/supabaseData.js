@@ -18,6 +18,12 @@ const NUMERIC_FIELDS = new Set([
   "nearest_service_distance_km",
   "service_count_within_threshold",
   "accessibility_score",
+  "low_income_pct",
+  "low_income_pct_scaled",
+  "shelter_cost_burden_pct",
+  "shelter_cost_burden_pct_scaled",
+  "recent_immigrant_pct",
+  "recent_immigrant_pct_scaled",
 ]);
 
 function config() {
@@ -70,26 +76,60 @@ async function loadTable(client, table, orderColumn) {
   return rows.map(normalizeRow);
 }
 
+async function loadRealAreaIndicators() {
+  const response = await fetch("/api/area-vulnerability", {
+    headers: { Accept: "application/json" },
+  });
+  if (!response.ok) {
+    throw new Error(`Unable to load real area indicators: HTTP ${response.status}`);
+  }
+  const payload = await response.json();
+  if (!Array.isArray(payload?.areas) || payload.areas.length !== 12) {
+    throw new Error("Real area indicator response did not contain 12 areas");
+  }
+  const rows = payload.areas.map(normalizeRow);
+  const requiredNumericFields = [
+    "low_income_pct",
+    "low_income_pct_scaled",
+    "shelter_cost_burden_pct",
+    "shelter_cost_burden_pct_scaled",
+    "recent_immigrant_pct",
+    "recent_immigrant_pct_scaled",
+  ];
+  if (
+    new Set(rows.map(row => row.area_id)).size !== rows.length
+    || rows.some(row =>
+      !row.area_id
+      || requiredNumericFields.some(field => !Number.isFinite(row[field]))
+    )
+  ) {
+    throw new Error("Real area indicator response violated the frontend data contract");
+  }
+  return rows;
+}
+
 export async function loadAppData() {
   const client = getSupabaseClient();
   if (!client) throw new Error("Supabase environment variables are not configured");
 
-  const [areas, gap, accessibility, services] = await Promise.all([
+  const [areas, gap, accessibility, services, vulnerability] = await Promise.all([
     loadTable(client, "area_profile", "area_id"),
     loadTable(client, "gap_score", "gap_rank"),
     loadTable(client, "accessibility", "area_id"),
     loadTable(client, "services_master", "service_id"),
+    loadRealAreaIndicators(),
   ]);
   const missing = [
     areas.length === 0 ? "area_profile" : "",
     gap.length === 0 ? "gap_score" : "",
     accessibility.length === 0 ? "accessibility" : "",
     services.length === 0 ? "service_table" : "",
+    vulnerability.length === 0 ? "area_vulnerability_index_real" : "",
   ].filter(Boolean);
   if (missing.length > 0) {
     throw new Error(`Supabase returned no rows for ${missing.join(", ")}`);
   }
-  return { areas, gap, accessibility, services, source: "supabase" };
+  return { areas, gap, accessibility, services, vulnerability, source: "supabase" };
 }
 
 export function haversineKm(latitude1, longitude1, latitude2, longitude2) {

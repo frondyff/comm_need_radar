@@ -99,6 +99,30 @@ async function criticalChecks() {
     return `12 features, ${raw.length} bytes, ${durationMs}ms`;
   });
 
+  await check("real census area indicator contract", async () => {
+    const { body, durationMs } = await jsonResponse(
+      "/api/area-vulnerability",
+      { method: "GET" },
+      200
+    );
+    assert(body.source === "statistics_canada_2021_census", `unexpected source ${body.source}`);
+    assert(Array.isArray(body.areas) && body.areas.length === 12, "expected 12 area rows");
+    const first = body.areas[0];
+    for (const field of [
+      "area_id",
+      "low_income_pct",
+      "low_income_pct_scaled",
+      "shelter_cost_burden_pct",
+      "shelter_cost_burden_pct_scaled",
+      "recent_immigrant_pct",
+      "recent_immigrant_pct_scaled",
+    ]) {
+      assert(first[field] !== null && first[field] !== undefined, `missing ${field}`);
+    }
+    assert(!("income_indicator" in first), "legacy synthetic income field leaked into response");
+    return `12 census-derived areas in ${durationMs}ms`;
+  });
+
   await check("chat rejects unsupported method", async () => {
     const { body, durationMs } = await jsonResponse("/api/chat", { method: "GET" }, 405);
     assert(body.error === "method_not_allowed", `unexpected error ${body.error}`);

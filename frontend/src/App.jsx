@@ -592,14 +592,14 @@ function PlannerView({ lang, setLang, onSwitch, onExit, location, onChangeLocati
 
           <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:20,marginBottom:selectedAreaData?.summaryEn||selectedAreaData?.summaryFr||selectedAreaData?.drivers?.length>0?16:0}}>
             {[
-              [isEN?"Low income":"Faible revenu", selectedAreaData?.income ?? areaData.income],
-              [isEN?"Housing burden":"Charge logement", selectedAreaData?.housing ?? areaData.housing],
-              [isEN?"Recent immigration":"Immigration récente", selectedAreaData?.immigration ?? areaData.immigration],
-            ].map(([label,pct])=>(
-              <div key={label}>
-                <div style={{display:"flex",justifyContent:"space-between",fontSize:13,marginBottom:5}}><span>{label}</span><span style={{fontWeight:600,fontFamily:MONO_FONT}}>{pct.toFixed(2)}</span></div>
+              {key:"income",label:isEN?"Low income":"Faible revenu",barValue:selectedAreaData?.income ?? areaData.income,rawPct:selectedAreaData?.incomePct ?? areaData.incomePct},
+              {key:"housing",label:isEN?"Housing burden":"Charge logement",barValue:selectedAreaData?.housing ?? areaData.housing,rawPct:selectedAreaData?.housingPct ?? areaData.housingPct},
+              {key:"immigration",label:isEN?"Recent immigration":"Immigration récente",barValue:selectedAreaData?.immigration ?? areaData.immigration,rawPct:selectedAreaData?.immigrationPct ?? areaData.immigrationPct},
+            ].map(({key,label,barValue,rawPct})=>(
+              <div key={key} data-testid={`area-profile-${key}`}>
+                <div style={{display:"flex",justifyContent:"space-between",fontSize:13,marginBottom:5}}><span>{label}</span><span style={{fontWeight:600,fontFamily:MONO_FONT}}>{Number(rawPct ?? barValue*100).toFixed(2)}%</span></div>
                 <div style={{height:8,borderRadius:4,background:"#F1F5F9"}}>
-                  <div style={{height:8,width:`${pct*100}%`,borderRadius:4,background:"#2563EB",transition:"width 0.4s"}}/>
+                  <div style={{height:8,width:`${barValue*100}%`,borderRadius:4,background:"#2563EB",transition:"width 0.4s"}}/>
                 </div>
               </div>
             ))}

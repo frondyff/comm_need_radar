@@ -123,6 +123,9 @@ test("planner workflow loads live areas, switches language, and completes a chat
 
   await expect(page.getByText("Tracts analyzed")).toBeVisible();
   await expect(page.getByTestId("priority-area")).toHaveCount(5);
+  await expect(page.getByTestId("area-profile-income")).toContainText("20.89%");
+  await expect(page.getByTestId("area-profile-housing")).toContainText("27.62%");
+  await expect(page.getByTestId("area-profile-immigration")).toContainText("9.33%");
   const initialProfile = await page.getByTestId("area-profile").textContent();
   await page.getByTestId("priority-area").nth(1).click();
   await expect
