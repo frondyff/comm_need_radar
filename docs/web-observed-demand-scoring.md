@@ -4,6 +4,16 @@ Status: experimental observed-needs input. It uses real anonymous website
 behavior, replaces the synthetic observed materialization when published, and
 does not modify the production `gap_score` or Census structural index.
 
+## Current decision — 2026-07-27
+
+V2 application integration is deferred. `page_events` and `flyer_downloads`
+remain digital-demand signals only; they are not resident need, 211 requests,
+partner encounters, or unique-person counts. The latest dry run has 16 eligible
+events but 0 of 12 reviewable areas, so the structural-only fallback is active,
+the observed weight is zero, and nothing is published. The production
+`gap_score` remains unchanged. See
+`docs/scoring-decision-memo-2026-07-27.md` for the score/rank comparison.
+
 ## Data Flow
 
 ```text

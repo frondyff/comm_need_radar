@@ -20,8 +20,9 @@
 | 2026-07-14 | Use official administrative polygons and a labeled centroid partition for `A001`/`A002` | Preserves the 12 stable scoring IDs without overlapping synthetic envelopes or presenting the derived divider as official |
 | 2026-07-14 | Keep GeoJSON for the 12-feature production map contract | The generated payload is 265 KB raw and 71 KB gzip; PMTiles adds complexity without a payload benefit at this scale |
 | 2026-07-23 | Use `feature/dashboard` as the canonical React UX and combine production work on `integration/production-web` | Preserves the accepted dashboard interaction model while importing Supabase, scoring, spatial, pipeline, and server API artifacts without reviving the obsolete TypeScript/MapLibre frontend |
-| 2026-07-27 | Use anonymous `page_events` and `flyer_downloads` as the real observed-needs input for experimental V2 | Website behavior supplies the observed score through k-anonymized `database_visitor_tag` aggregates; the original V2 remains 60% structural and 40% observed, while production `gap_score` stays unchanged pending application approval |
+| 2026-07-27 | Use anonymous `page_events` and `flyer_downloads` as a separate experimental digital-demand signal | Website behavior may supply a candidate observed layer through k-anonymized `database_visitor_tag` aggregates; it is not resident need, 211 demand, partner encounters, or unique-person prevalence |
 | 2026-07-27 | Keep production gap scoring unchanged while web-observed V2 is evaluated | Preserves the current application contract; the code applies the original 60/40 V2 only after all areas pass coverage and otherwise uses structural-only fallback |
+| 2026-07-27 | Defer V2 application integration | The current web candidate has 16 eligible events but 0 of 12 reviewable areas; keep structural-only fallback active, enforce `k >= 5`, and require representative domain review plus an explicit owner decision before any observed weight can affect application priorities |
 
 ## Pending Decisions For Real Data Version
 

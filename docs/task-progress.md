@@ -3,6 +3,17 @@
 This file is a simulated role activity log for the MVP. It demonstrates how the
 team can monitor work through owners, outputs, blockers, and handoffs.
 
+## Current Decision — 2026-07-27
+
+Frondy documented the V1/V2 comparison in
+`docs/scoring-decision-memo-2026-07-27.md`. Chloe's pending product decision is
+represented as **defer V2 application integration** until observed-data quality
+and owner review are sufficient. `page_events` and `flyer_downloads` remain
+digital-demand signals only; current web coverage is 0 of 12 reviewable areas;
+production `gap_score` is unchanged; structural-only fallback is active; and
+the `k >= 5` privacy floor remains enforced. The no-publish workflow remains
+the only permitted web-observed refresh mode.
+
 ## Simulated Activity Log
 
 | Date | Owner | Role | Activity | Output | Decision Or Blocker | Next Step |
@@ -35,6 +46,7 @@ team can monitor work through owners, outputs, blockers, and handoffs.
 | 2026-07-27 | Frondy | Scoring reviewer | Quantified center coverage, visit imbalance, structural/observed correlation, rank shifts, and the privacy floor | `scripts/validate_scoring_bias.py`, `docs/scoring-validation-2026-07-27.md` | V2 observed inputs remain synthetic; technical recommendation is to defer integration | Chloe records approve/defer/reject and reviewers validate weights |
 | 2026-07-27 | Frondy | Web-observed scoring lead | Added versioned anonymous analytics, service-exposure normalization, k-anonymized visitor-tag snapshots, and the original 60% structural / 40% observed V2 integration | `frontend/src/lib/analytics.js`, `scripts/build_web_observed_demand.py`, `supabase/migrations/202607270001_web_observed_demand.sql` | Web behavior measures observed service interest; all-area coverage is required and production gap remains unchanged | Apply the migration, run the private pilot, review the quality artifact, then record the final application-integration decision |
 | 2026-07-27 | Frondy | Final handoff editor | Reconciled the submission checklist and prepared the technical report, presentation outline, and structured user-test protocol | `docs/submission-checklist.md`, `docs/final-report.md`, `docs/presentation-outline.md`, `docs/user-testing-plan.md` | Participant results and workstream approvals cannot be fabricated | Collect user results and owner approvals |
+| 2026-07-27 | Frondy | Scoring decision reviewer | Compared structural-only, synthetic V2, and web-observed candidate scores; documented rank movement, coverage, bias, privacy, and the deferred application decision | `docs/scoring-decision-memo-2026-07-27.md` plus scoring/interface/architecture updates | Web candidate has 16 eligible events but 0/12 reviewable areas; production `gap_score` remains unchanged | Obtain owner review, continue no-publish collection, and re-evaluate after coverage gates pass |
 
 ## Monitoring Rule
 

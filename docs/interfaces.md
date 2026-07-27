@@ -1,6 +1,7 @@
 # Shared Interfaces
 
-Status: implemented for the synthetic/demonstration MVP as of 2026-07-02.
+Status: implemented for the POC; V2 application integration deferred as of
+2026-07-27. See `docs/scoring-decision-memo-2026-07-27.md`.
 
 ## Area Profile Table
 
@@ -240,8 +241,16 @@ written to `observed_need_index.v2_observed_score`, then
 formula.
 
 Only after all 12 areas have `coverage_status=reviewable` may observed scores
-and the 40% observed weight be applied. Otherwise V2 is structural-only. These
-outputs do not feed `gap_score`.
+and the 40% observed weight be applied in a reviewed candidate. Otherwise V2 is
+structural-only with observed weight zero. These outputs do not feed
+`gap_score`, and the production `gap_score` remains unchanged under the
+deferred decision.
+
+`page_events` and `flyer_downloads` are insert-only digital-demand signals.
+They must not be interpreted as resident need, 211 encounters, partner
+encounters, or unique people. `database_visitor_tag` persists only aggregate
+rows meeting `k >= 5`; raw anonymous session identifiers never cross into that
+table.
 
 ## Area Boundary GeoJSON
 

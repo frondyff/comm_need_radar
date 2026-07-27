@@ -9,6 +9,9 @@ flowchart LR
     Census["StatCan census + boundaries"] --> Structural["Structural census index"]
     Centers["Service centers"] --> Observed["V1 demand + category summary"]
     Visits["K-anonymized encounter tags"] --> Observed
+    Events["page_events + flyer_downloads"] --> WebDemand["Experimental digital demand"]
+    WebDemand --> WebTags["Coverage-gated k-anonymized web aggregates"]
+    WebTags --> Observed
     Structural --> V2["V2 structural/observed composite"]
     Observed --> V2
     Base --> Current["Current application tables\ndata/processed"]
@@ -19,7 +22,7 @@ flowchart LR
     Dashboard --> Planner["Planner / Organization View"]
     Dashboard --> Frontline["Frontline / Community View"]
     Dashboard --> Monitoring["Monitoring View"]
-    Experimental -.->|"not yet integrated"| Dashboard
+    Experimental -.->|"deferred; not an application input"| Dashboard
 ```
 
 ## Data Layer
@@ -55,10 +58,19 @@ The implemented scoring extension runs as explicit follow-on scripts:
 2. `build_observed_need_index.py` creates the V1 frontline demand score, the
    category breakdown, and the fixed-component V2 observed score.
 3. `build_vulnerability_index_v2.py` combines 60% structural census concern with
-   40% observed evidence for an experimental planning score.
+   40% observed evidence for an experimental planning score only when every
+   study area passes the coverage gate. Otherwise it emits structural-only
+   fallback rows with observed weight zero.
 
-These outputs are stored in `data/processed/`, but V2 is not yet used as the
-dashboard gap-score input.
+These outputs are stored in `data/processed/`, but V2 is not used as the
+dashboard or production `gap_score` input. `page_events` and
+`flyer_downloads` are digital-demand signals only; they are not resident need,
+211 encounters, or unique-person counts.
+
+The 2026-07-27 decision is to defer V2 application integration. The web
+pipeline remains no-publish by default, `database_visitor_tag` remains private,
+`k >= 5` is enforced before persistence, and the structural-only fallback is
+the active production-safe behavior.
 
 ## Application Layer
 

@@ -1,8 +1,13 @@
 # Scoring And Metrics Guide
 
 Owner: Frondy (geospatial / analytics lead)
-Last updated: 2026-07-02
+Last updated: 2026-07-27
 Source of truth: `src/comm_need_radar/scoring/metrics.py`
+
+The current product decision is recorded in
+[`docs/scoring-decision-memo-2026-07-27.md`](scoring-decision-memo-2026-07-27.md):
+V2 application integration is deferred. Production `gap_score` remains
+structural, while synthetic V2 and web-observed V2 are review-only layers.
 
 Example area used throughout: **Parc Extension (A001)** — V2 rank 1 and gap rank
 3. All example values come from the demonstration pipeline run on 2026-07-02.

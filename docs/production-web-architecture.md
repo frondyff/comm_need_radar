@@ -1,7 +1,7 @@
 # Production Web Architecture
 
-Status: planned target architecture for the React, Supabase, Vercel, and LLM
-web deployment path.
+Status: deployed POC architecture for the React, Supabase, Vercel, and LLM web
+path. V2 application integration is deferred as of 2026-07-27.
 
 This architecture keeps the React frontend lightweight, uses Supabase as the
 real app-data source, deploys the web experience through Vercel, and places the
@@ -34,12 +34,12 @@ flowchart LR
     SUPA_APP --> OBS["observed_need_index"]
     SUPA_APP --> V2["vulnerability_index_v2"]
 
-    APP -->|"anonymous insert-only v2 events"| ANALYTICS["page_events + flyer_downloads"]
+    APP -->|"anonymous insert-only digital-demand events"| ANALYTICS["page_events + flyer_downloads"]
     ANALYTICS -->|"private scheduled aggregation"| VISITS["database_visitor_tag web aggregates"]
     VISITS -->|"coverage-gated observed score"| OBS
     REAL -->|"60% structural focus"| V2
     OBS -->|"40% observed when reviewable"| V2
-    V2 -.->|"not yet used by production gap"| REVIEW["Application integration decision"]
+    V2 -.->|"deferred; not used by production gap"| REVIEW["Application integration decision"]
 
     APP -->|"POST /api/chat"| CHAT_API["Vercel API route: chatbot service"]
     CHAT_API -->|"server-side Supabase query"| SUPA_APP
@@ -90,6 +90,10 @@ flowchart LR
 - Website behavior never updates `area_vulnerability_index_real` or
   `gap_score`. See `docs/web-observed-demand-scoring.md` for deduplication,
   exposure normalization, quality gates, and the owner decision boundary.
+- The 2026-07-27 scoring decision keeps `gap_score` structural-only. Web
+  events are digital-demand evidence only, coverage is currently 0 of 12
+  reviewable areas, structural-only fallback remains active, and `k >= 5`
+  is enforced before any visitor aggregate is persisted.
 
 ## Chatbot Service Boundary
 

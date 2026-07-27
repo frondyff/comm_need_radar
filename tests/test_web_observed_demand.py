@@ -73,6 +73,50 @@ class WebObservedDemandTests(unittest.TestCase):
         self.assertEqual(report["excluded_test_rows"], 1)
         self.assertEqual(report["excluded_missing_or_unknown_area"], 1)
 
+    def test_page_and_flyer_events_remain_digital_signals_not_gap_scores(self) -> None:
+        page_events = pd.DataFrame(
+            [
+                {
+                    "created_at": "2026-07-20T12:00:00Z",
+                    "event_version": 2,
+                    "anonymous_session_id": "page-session",
+                    "selected_area_id": "A001",
+                    "service_id": "svc-1",
+                    "service_area_id": "A001",
+                    "category": "Food",
+                    "is_test": False,
+                    "event_type": "service_card_opened",
+                }
+            ]
+        )
+        flyer_downloads = pd.DataFrame(
+            [
+                {
+                    "created_at": "2026-07-20T12:01:00Z",
+                    "event_version": 2,
+                    "anonymous_session_id": "flyer-session",
+                    "selected_area_id": "A001",
+                    "service_id": "svc-2",
+                    "service_area_id": "A001",
+                    "service_category": "Housing",
+                    "is_test": False,
+                }
+            ]
+        )
+
+        eligible, report = prepare_eligible_events(
+            page_events,
+            flyer_downloads,
+            {"A001", "A002"},
+            self.period_start,
+            self.period_end,
+        )
+
+        self.assertEqual(report["eligible_events"], 2)
+        self.assertEqual(set(eligible["source"]), {"page_events", "flyer_downloads"})
+        self.assertEqual(set(eligible["event_type"]), {"service_card_opened", "flyer_download"})
+        self.assertNotIn("gap_score", eligible.columns)
+
     def _reviewable_events(self) -> pd.DataFrame:
         rows = []
         for area_id, category, intent_count in [
@@ -144,6 +188,12 @@ class WebObservedDemandTests(unittest.TestCase):
         self.assertEqual(v2.loc["A001", "vulnerability_index_v2"], 80.0)
         self.assertEqual(v2.loc["A002", "vulnerability_index_v2"], 40.0)
         self.assertTrue((v2["observed_weight"] == 0).all())
+        self.assertTrue((v2["structural_weight"] == 1.0).all())
+        self.assertTrue(v2["v2_observed_score"].isna().all())
+        self.assertTrue(
+            (v2["v2_data_basis"] == "structural_focus_only_web_observed_insufficient").all()
+        )
+        self.assertNotIn("gap_score", v2.columns)
 
     def test_partial_observed_scores_are_rejected(self) -> None:
         observed = pd.DataFrame(
