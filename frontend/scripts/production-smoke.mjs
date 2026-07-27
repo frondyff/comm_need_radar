@@ -3,6 +3,9 @@ import { dirname, resolve } from "node:path";
 
 const profile = process.argv[2] ?? "critical";
 const baseURL = new URL(process.env.BASE_URL || "https://comm-need-radar.vercel.app");
+const canonicalBaseURL = new URL(
+  process.env.CANONICAL_URL || "https://comm-need-radar.vercel.app"
+);
 const legacyBaseURL = process.env.LEGACY_BASE_URL;
 const bypassSecret = process.env.VERCEL_AUTOMATION_BYPASS_SECRET;
 const timeoutMs = Number(process.env.PROD_GRILL_REQUEST_TIMEOUT_MS ?? 15_000);
@@ -28,7 +31,6 @@ async function request(pathOrURL, options = {}) {
   const headers = new Headers(options.headers);
   if (bypassSecret) {
     headers.set("x-vercel-protection-bypass", bypassSecret);
-    headers.set("x-vercel-set-bypass-cookie", "true");
   }
   const startedAt = performance.now();
   const response = await fetch(target, {
@@ -76,7 +78,7 @@ async function criticalChecks() {
     return `${response.url} in ${durationMs}ms`;
   });
 
-  if (legacyBaseURL) {
+  if (legacyBaseURL && baseURL.hostname === canonicalBaseURL.hostname) {
     await check("legacy alias resolves to canonical production", async () => {
       const { response } = await request(legacyBaseURL);
       assert(response.status === 200, `expected HTTP 200, received ${response.status}`);
