@@ -13,6 +13,7 @@ on:
         default: full
         options:
           - smoke
+          - analytics
           - full
 
 permissions:
@@ -108,11 +109,12 @@ jobs:
           retention-days: 14
 
   live-data:
-    if: github.event.schedule == '17 7 * * *' || inputs.suite == 'full'
+    if: github.event.schedule == '17 7 * * *' || inputs.suite == 'full' || inputs.suite == 'analytics'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     env:
-      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+      VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
       SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
       AREA_VULNERABILITY_API_BASE_URL: https://comm-need-radar.vercel.app
     steps:
@@ -124,18 +126,17 @@ jobs:
           cache-dependency-path: frontend/package-lock.json
       - run: npm ci
         working-directory: frontend
-      - name: Pull the canonical production environment
-        run: |
-          npx --yes vercel@latest link --yes --project comm-need-radar --token "$VERCEL_TOKEN"
-          npx --yes vercel@latest env pull frontend/.env.production.local --yes --environment production --token "$VERCEL_TOKEN"
+      - name: Validate reversible frontend analytics writes
+        working-directory: frontend
+        run: npm run validate:supabase-analytics-writes
       - name: Validate live dashboard and Supabase security contracts
+        if: inputs.suite != 'analytics'
         working-directory: frontend
         env:
           NODE_ENV: production
         run: |
           npm run validate:supabase-dashboard
           npm run validate:supabase-contract
-          npm run validate:supabase-analytics-writes
 
   lighthouse:
     if: github.event.schedule == '17 7 * * *' || inputs.suite == 'full'
