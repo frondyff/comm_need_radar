@@ -137,9 +137,9 @@ function FlyerMap({ location, service, nearbyServices }) {
       <FitFlyerBounds points={points} />
       <FlyerMapZoomControls />
       <FlyerServiceLabel service={service} color={selectedServiceColor} />
-      <Marker position={[location.lat, location.lng]} icon={createUserLocationMarker()} />
+      <Marker position={[location.lat, location.lng]} icon={createUserLocationMarker()} title={location.name} />
       <DeclutteredNearbyMarkers mainPosition={[service.lat, service.lng]} nearbyServices={nearbyServices} />
-      <Marker position={[service.lat, service.lng]} icon={createServiceMarker(service.category, true)} />
+      <Marker position={[service.lat, service.lng]} icon={createServiceMarker(service.category, true)} title={service.name} />
     </MapContainer>
     <FlyerMapLegend items={legendItems} />
   </div>;

@@ -58,7 +58,7 @@ Without that configuration it shows an explicitly labeled demo fallback.
 
 The production React application is live at:
 
-- https://comm-mvp.vercel.app
+- https://comm-need-radar.vercel.app
 
 The Vercel production deployment uses the public Supabase contract for the
 dashboard and server-side chatbot retrieval. No LLM key is configured in the
@@ -88,6 +88,10 @@ npm run validate:boundaries
 npm run validate:dashboard-adapter
 npm run build
 ```
+
+Production browser, API, security, performance, load, promotion, and rollback
+automation is documented in
+[`docs/production-testing.md`](docs/production-testing.md).
 
 The owner-level Supabase SQL contract is
 `supabase/tests/issue_6_contract.sql`. Public-key validation requires the
@@ -177,6 +181,10 @@ production web baseline.
 - [Supabase Operations](docs/supabase-operations.md)
 - [Spatial Join Validation](docs/spatial-join-validation.md)
 - [Chatbot](docs/chatbot.md)
+- [Scoring Validation](docs/scoring-validation-2026-07-27.md)
+- [User-Testing Plan](docs/user-testing-plan.md)
+- [Final Technical Report](docs/final-report.md)
+- [Presentation Outline](docs/presentation-outline.md)
 
 ## Collaboration Rules
 

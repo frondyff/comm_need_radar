@@ -25,6 +25,8 @@ flowchart LR
     VERCEL_PROD --> APP
 
     APP -->|"VITE_SUPABASE_URL + anon key"| SUPA_APP["Supabase app-ready tables"]
+    APP -->|"GET /api/area-vulnerability"| VERCEL_REAL["Vercel real-indicator route"]
+    VERCEL_REAL -->|"SUPABASE_SECRET_KEY (server only)"| REAL["area_vulnerability_index_real"]
     SUPA_APP --> AREA["area_profile"]
     SUPA_APP --> GAP["gap_score"]
     SUPA_APP --> ACCESS["accessibility"]
@@ -63,6 +65,10 @@ flowchart LR
 
 - Browser code may use only `VITE_SUPABASE_URL` and
   `VITE_SUPABASE_PUBLISHABLE_KEY` (or the legacy anon key).
+- The planner detail bars use the same-origin `/api/area-vulnerability`
+  boundary. That route returns only aggregate 2021 Census fields from the
+  private `area_vulnerability_index_real` table; its
+  `SUPABASE_SECRET_KEY` remains server-side.
 - Server-only variables such as LLM API keys, service-role keys, and database
   URLs must stay in Vercel environment variables and must not be committed.
 - The first chatbot release should read app-ready tables only:

@@ -20,13 +20,26 @@
 ## Remaining For Real Project
 
 - [x] Add a Statistics Canada structural census extract and area aggregation.
-- [ ] Add the missing Indigenous census field and validate suppression handling.
-- [ ] Replace synthetic frontend area envelopes with approved real area boundaries.
-- [ ] Replace synthetic services with 211 Quebec or Montreal Open Data services.
+- [x] Add the Indigenous census field and document StatCan suppression handling.
+- [x] Replace synthetic frontend area envelopes with approved real area boundaries.
+- [x] Replace synthetic frontend services with the canonical 3,664-row real service layer.
 - [ ] Replace demonstration center/encounter inputs with approved production data.
-- [ ] Validate V1/V2 weights, thresholds, and center-coverage bias with users.
+- [x] Quantify V1/V2 thresholds and center-coverage bias with an automated report.
+- [ ] Validate V1/V2 weights and thresholds with representative users or domain reviewers.
 - [ ] Decide whether to wire V2 into gap scoring and application views.
-- [ ] Validate spatial joins against real geographies.
+- [x] Validate spatial joins against real geographies.
 - [ ] Run user testing with 2-3 non-technical users.
-- [ ] Deploy to Streamlit Community Cloud and record the public app URL.
-- [ ] Prepare final report and presentation.
+- [x] Deploy the canonical React application to Vercel and record the public URL.
+- [x] Prepare the final technical report and presentation outline with validated screenshots.
+- [ ] Record final approval from all workstream owners.
+
+## Evidence
+
+- Census and suppression: `docs/census-variable-dictionary.md`
+- Real boundaries and joins: `docs/spatial-join-validation.md`
+- Service inventory: `docs/DATA_INVENTORY.md`
+- Scoring and bias: `docs/scoring-validation-2026-07-27.md`
+- Production URL and gates: `docs/deployment-verification-2026-07-23.md`
+- Final report and presentation: `docs/final-report.md`,
+  `docs/presentation-outline.md`
+- Pending real-user sessions: `docs/user-testing-plan.md`

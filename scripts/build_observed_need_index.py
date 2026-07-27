@@ -58,6 +58,22 @@ INDIGENOUS_FOCUS_TAGS = {
     "Indigenous-Led Referral",
     "Indigenous-Specific Service Need",
 }
+SOURCE_METADATA_PATH = PROJECT_ROOT / "data" / "raw" / "source_metadata.csv"
+
+
+def observed_source_basis() -> str:
+    """Return an explicit synthetic/production label from source metadata."""
+    if not SOURCE_METADATA_PATH.exists():
+        return "unverified_source_fixed_v2_observed_components"
+    with SOURCE_METADATA_PATH.open(newline="", encoding="utf-8") as f:
+        for row in csv.DictReader(f):
+            if row.get("dataset_name") != "database_visitor_tags.csv":
+                continue
+            source_text = " ".join(str(value) for value in row.values()).lower()
+            if "synthetic" in source_text:
+                return "synthetic_demonstration_fixed_v2_observed_components"
+            return "approved_production_fixed_v2_observed_components"
+    return "unverified_source_fixed_v2_observed_components"
 
 
 def load_areas() -> list[dict[str, str]]:
@@ -203,7 +219,7 @@ def aggregate_area(
         "observed_recency_score": recency_score,
         "v2_observed_score": observed_score,
         "observed_focus_need_score": observed_score,
-        "observed_data_basis": "fixed_v2_observed_components",
+        "observed_data_basis": "unverified_source_fixed_v2_observed_components",
         "insufficient_visit_data": False,
         "top_key_needs": "; ".join(category for category, _ in ordered_categories[:5]),
     }
@@ -243,6 +259,12 @@ def main() -> None:
     parser.add_argument(
         "--window-days", type=int, default=90, help="Rolling window in days (default 90)"
     )
+    parser.add_argument(
+        "--as-of-date",
+        type=date.fromisoformat,
+        default=None,
+        help="Score recency as of YYYY-MM-DD (default: today)",
+    )
     args = parser.parse_args()
 
     areas = load_areas()
@@ -265,7 +287,8 @@ def main() -> None:
 
     center_lookup = load_center_lookup()
     tags = load_visitor_tags(args.window_days)
-    today = date.today()
+    source_basis = observed_source_basis()
+    today = args.as_of_date or date.today()
 
     by_area: dict[str, list[dict[str, str]]] = {aid: [] for aid in all_area_ids}
     for tag in tags:
@@ -284,6 +307,7 @@ def main() -> None:
             result, area_category_rows = aggregate_area(area_tags, area_populations[area_id], today)
             result["area_id"] = area_id
             result["rolling_window_days"] = args.window_days
+            result["observed_data_basis"] = source_basis
             rows.append(result)
             for category_row in area_category_rows:
                 category_row["area_id"] = area_id

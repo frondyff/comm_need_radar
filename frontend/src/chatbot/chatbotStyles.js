@@ -35,7 +35,7 @@ export const closeButtonStyle = {
   borderRadius: "50%",
   border: "none",
   background: "#F1F5F9",
-  color: "#64748B",
+  color: "#475569",
   cursor: "pointer",
   display: "flex",
   alignItems: "center",

@@ -4,7 +4,7 @@ A React web app for social workers and planners to find community services and g
 
 ---
 
-**Production:** https://comm-mvp.vercel.app
+**Production:** https://comm-need-radar.vercel.app
 
 ## Quick start
 
@@ -105,7 +105,7 @@ columns, renamed tables, new filters) usually start in **`lib/dashboardAdapter.j
 |---|---|
 | `services_master` | V1 service directory — name, category, address, contact info, filters (group/gender/age) |
 | `gap_score` | V2 choropleth + area profiles — gap score, rank, priority flag, drivers, bilingual summary |
-| `area_profile` | Income / housing / immigration indicators per area |
+| `/api/area-vulnerability` → `area_vulnerability_index_real` | Real census low-income, shelter-cost-burden, and recent-immigration indicators per area |
 | `accessibility` | Service-access metrics per area |
 | `flyer_downloads` | Analytics — one row per flyer download, with the filters active at the time |
 | `page_events` | Analytics — passive events (page view, filter clicked, map opened, etc.) |
@@ -262,6 +262,33 @@ Install everything with `npm install`.
 The production build splits maps, Supabase, and PDF generation into separate
 chunks. The PDF engine has a 600 KB budget and is loaded only when a user asks
 to download a flyer; it is not part of the initial application bundle.
+
+## Testing and CI
+
+```bash
+npm run test:unit
+npm run typecheck:api
+npm run validate:boundaries
+npm run validate:dashboard-adapter
+npm run test:prod:e2e
+npm run build
+```
+
+For a local static preview, set `AREA_VULNERABILITY_FIXTURE=true` when running
+Playwright. That explicit test-only switch serves the checked-in processed
+census indicators for `/api/area-vulnerability`; all other Supabase reads stay
+live. Candidate and production runs leave the switch unset and must pass
+against the real Vercel serverless route.
+
+`Production Web` runs install, API typecheck, unit tests, contract validators,
+the production build, Python tests, spatial validation, and a high-severity
+production dependency audit. `Production Grill` adds scheduled browser,
+accessibility, visual, Lighthouse, security, live-data, and load coverage.
+
+The map chunk is approximately 155 KB. The PDF engine is approximately 576 KB,
+below its explicit 600 KB lazy-chunk budget. Branch protection remains tracked
+under issue #1; the private repository's current GitHub plan does not expose the
+branch-protection API.
 
 ---
 

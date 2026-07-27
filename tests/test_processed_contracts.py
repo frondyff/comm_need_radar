@@ -72,6 +72,11 @@ class ProcessedContractTests(unittest.TestCase):
         self.assertTrue(required.issubset(observed.columns))
         scored = observed[~observed["insufficient_visit_data"]]
         self.assertTrue(scored["v1_demand_score"].between(0, 100).all())
+        self.assertTrue(
+            scored["observed_data_basis"]
+            .str.startswith("synthetic_demonstration_")
+            .all()
+        )
         # Generalised from a fixture-specific snapshot (previously hard-coded to the
         # 29-row demonstration data) so the contract holds on any visitor dataset:
         # each scored area's reported top need must be the actual maximum-count
@@ -107,6 +112,11 @@ class ProcessedContractTests(unittest.TestCase):
         self.assertTrue(required.issubset(v2.columns))
         observed_rows = v2[~v2["insufficient_visit_data"]]
         self.assertTrue(observed_rows["v2_observed_score"].between(0, 100).all())
+        self.assertTrue(
+            observed_rows["v2_data_basis"]
+            .str.endswith("_synthetic_demonstration")
+            .all()
+        )
 
 
 if __name__ == "__main__":
