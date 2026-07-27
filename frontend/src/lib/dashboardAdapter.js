@@ -4,15 +4,37 @@ export const DASHBOARD_CATEGORIES = [
   { label: "Shelter", color: "#DC2626", bg: "#FEF2F2" },
   { label: "Food", color: "#D97706", bg: "#FFFBEB" },
   { label: "Medical", color: "#2563EB", bg: "#EFF6FF" },
-  { label: "Legal", color: "#059669", bg: "#ECFDF5" },
+  { label: "Legal", color: "#047857", bg: "#ECFDF5" },
   { label: "Translation", color: "#9333EA", bg: "#F5F3FF" },
-  { label: "Other", color: "#64748B", bg: "#F8FAFC" },
+  { label: "Other", color: "#475569", bg: "#F8FAFC" },
 ];
 
 const DEFAULT_REFERENCE_POINT = { lat: 45.5088, lng: -73.5878 };
 
 function normalizeText(value) {
   return String(value || "").trim();
+}
+
+function normalizeSearchText(value) {
+  return normalizeText(value)
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "")
+    .replace(/[^\p{Letter}\p{Number}]+/gu, " ")
+    .trim()
+    .replace(/\s+/g, " ")
+    .toLowerCase();
+}
+
+export function serviceMatchesSearch(service, searchTerm) {
+  const query = normalizeSearchText(searchTerm);
+  if (!query) return true;
+  return [
+    service?.name,
+    service?.type,
+    service?.address,
+    ...(service?.tags ?? []),
+    ...(service?.categoryTags ?? []),
+  ].some(value => normalizeSearchText(value).includes(query));
 }
 
 // Some source rows come in ALL CAPS ("(VILLE-MARIE EST), ÎLE ...") or
@@ -142,26 +164,32 @@ function normalizeMetric(value, maxValue) {
   return Number(Math.min(1, number / maxValue).toFixed(2));
 }
 
-export function mapAreaRowsToBoroughScores(gapRows, areaRows) {
-  const areaById = new Map(areaRows.map(area => [area.area_id, area]));
+export function mapAreaRowsToBoroughScores(gapRows, _areaRows, vulnerabilityRows = []) {
+  const vulnerabilityById = new Map(vulnerabilityRows.map(area => [area.area_id, area]));
   const grouped = new Map();
   for (const row of gapRows) {
     const name = normalizeText(row.borough_name) || normalizeText(row.area_name);
     if (!name) continue;
-    const profile = areaById.get(row.area_id);
+    const vulnerability = vulnerabilityById.get(row.area_id);
     const current = grouped.get(name) || {
       sourceAreaIds: [],
       score: 0,
       income: 0,
       housing: 0,
       immigration: 0,
+      incomePct: 0,
+      housingPct: 0,
+      immigrationPct: 0,
       count: 0,
     };
     current.sourceAreaIds.push(row.area_id);
     current.score += Number(row.gap_score) || 0;
-    current.income += Number(profile?.income_indicator) || 0;
-    current.housing += Number(profile?.housing_indicator) || 0;
-    current.immigration += Number(profile?.immigration_indicator) || 0;
+    current.income += Number(vulnerability?.low_income_pct_scaled) || 0;
+    current.housing += Number(vulnerability?.shelter_cost_burden_pct_scaled) || 0;
+    current.immigration += Number(vulnerability?.recent_immigrant_pct_scaled) || 0;
+    current.incomePct += Number(vulnerability?.low_income_pct) || 0;
+    current.housingPct += Number(vulnerability?.shelter_cost_burden_pct) || 0;
+    current.immigrationPct += Number(vulnerability?.recent_immigrant_pct) || 0;
     current.count += 1;
     grouped.set(name, current);
   }
@@ -172,13 +200,14 @@ export function mapAreaRowsToBoroughScores(gapRows, areaRows) {
     income: values.income / values.count,
     housing: values.housing / values.count,
     immigration: values.immigration / values.count,
+    incomePct: values.incomePct / values.count,
+    housingPct: values.housingPct / values.count,
+    immigrationPct: values.immigrationPct / values.count,
     sourceAreaIds: values.sourceAreaIds,
   }));
 
-  // income_indicator / housing_indicator / immigration_indicator are 0-100
-  // (confirmed against real area_profile rows: values like 82, 76, 91), the
-  // same scale as gap_score — so use the same direct /100 conversion as the
-  // primary Gap Score, not a relative-to-max rescale.
+  // Bar widths use the census indicators' 0-100 min-max scaled fields. Raw
+  // census percentages are retained separately for the visible labels.
   return Object.fromEntries(averages.map(row => [
     row.name,
     {
@@ -186,6 +215,9 @@ export function mapAreaRowsToBoroughScores(gapRows, areaRows) {
       income: normalizeMetric(row.income, 100),
       housing: normalizeMetric(row.housing, 100),
       immigration: normalizeMetric(row.immigration, 100),
+      incomePct: Number(row.incomePct.toFixed(2)),
+      housingPct: Number(row.housingPct.toFixed(2)),
+      immigrationPct: Number(row.immigrationPct.toFixed(2)),
       sourceAreaIds: row.sourceAreaIds,
     },
   ]));
@@ -206,13 +238,20 @@ function parseDrivers(raw, maxItems = 6, maxLen = 50) {
 // Area Profile drill-down and an area-level "Top priority" list, since
 // text fields like summary/drivers can't be meaningfully averaged the way
 // mapAreaRowsToBoroughScores averages the numeric score for the choropleth.
-export function mapAreaRowsToAreas(gapRows, areaRows, accessibilityRows = []) {
+export function mapAreaRowsToAreas(
+  gapRows,
+  areaRows,
+  accessibilityRows = [],
+  vulnerabilityRows = []
+) {
   const profileById = new Map(areaRows.map(area => [area.area_id, area]));
   const accessById = new Map(accessibilityRows.map(row => [row.area_id, row]));
+  const vulnerabilityById = new Map(vulnerabilityRows.map(row => [row.area_id, row]));
   return gapRows
     .map(row => {
       const profile = profileById.get(row.area_id);
       const access = accessById.get(row.area_id);
+      const vulnerability = vulnerabilityById.get(row.area_id);
       const lat = row.latitude != null ? Number(row.latitude) : (profile?.latitude != null ? Number(profile.latitude) : null);
       const lng = row.longitude != null ? Number(row.longitude) : (profile?.longitude != null ? Number(profile.longitude) : null);
       return {
@@ -231,9 +270,17 @@ export function mapAreaRowsToAreas(gapRows, areaRows, accessibilityRows = []) {
         drivers: parseDrivers(row.gap_drivers),
         summaryEn: normalizeText(row.summary_en),
         summaryFr: normalizeText(row.summary_fr),
-        income: profile?.income_indicator != null ? normalizeMetric(profile.income_indicator, 100) : null,
-        housing: profile?.housing_indicator != null ? normalizeMetric(profile.housing_indicator, 100) : null,
-        immigration: profile?.immigration_indicator != null ? normalizeMetric(profile.immigration_indicator, 100) : null,
+        income: vulnerability?.low_income_pct_scaled != null
+          ? normalizeMetric(vulnerability.low_income_pct_scaled, 100) : null,
+        housing: vulnerability?.shelter_cost_burden_pct_scaled != null
+          ? normalizeMetric(vulnerability.shelter_cost_burden_pct_scaled, 100) : null,
+        immigration: vulnerability?.recent_immigrant_pct_scaled != null
+          ? normalizeMetric(vulnerability.recent_immigrant_pct_scaled, 100) : null,
+        incomePct: vulnerability?.low_income_pct != null ? Number(vulnerability.low_income_pct) : null,
+        housingPct: vulnerability?.shelter_cost_burden_pct != null
+          ? Number(vulnerability.shelter_cost_burden_pct) : null,
+        immigrationPct: vulnerability?.recent_immigrant_pct != null
+          ? Number(vulnerability.recent_immigrant_pct) : null,
         nearestServiceKm: access?.nearest_service_distance_km != null ? Number(access.nearest_service_distance_km) : null,
         serviceCountWithinThreshold: access?.service_count_within_threshold != null ? Number(access.service_count_within_threshold) : null,
       };
@@ -245,8 +292,17 @@ export async function loadDashboardData({ demoServices, demoBoroughScores, demoA
   try {
     const appData = await loadAppData();
     const services = mapServiceRowsToDashboardServices(appData.services, referencePoint);
-    const boroughScores = mapAreaRowsToBoroughScores(appData.gap, appData.areas);
-    const areas = mapAreaRowsToAreas(appData.gap, appData.areas, appData.accessibility);
+    const boroughScores = mapAreaRowsToBoroughScores(
+      appData.gap,
+      appData.areas,
+      appData.vulnerability
+    );
+    const areas = mapAreaRowsToAreas(
+      appData.gap,
+      appData.areas,
+      appData.accessibility,
+      appData.vulnerability
+    );
     if (services.length === 0 || Object.keys(boroughScores).length === 0) {
       throw new Error("Dashboard adapter produced empty services or borough scores");
     }
