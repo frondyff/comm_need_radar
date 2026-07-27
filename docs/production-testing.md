@@ -36,6 +36,8 @@ Create these Actions secrets:
 - `VERCEL_PROJECT_ID`
 - `VERCEL_AUTOMATION_BYPASS_SECRET`
 - `SUPABASE_SECRET_KEY`
+- `VITE_SUPABASE_URL`
+- `VITE_SUPABASE_PUBLISHABLE_KEY`
 
 The bypass secret comes from the Vercel project's Deployment Protection
 settings. It is sent as an HTTP header and must never be placed in URLs or
@@ -45,6 +47,11 @@ test artifacts.
 nightly analytics contract uses it only to verify and immediately delete
 uniquely marked rows inserted through the public frontend key. Never expose it
 through a `VITE_*` variable, browser context, log, or artifact.
+
+The manual `analytics` grill suite runs only the reversible `page_events` and
+`flyer_downloads` write/read/delete probes (plus the normal production smoke
+job). It is useful for validating analytics permissions independently of a
+full browser, Lighthouse, or load run.
 
 Create the repository variable `PROD_GRILL_MODE` with initial value `report`.
 Keep report mode for at least seven days and twenty smoke runs. Change it to
