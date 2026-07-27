@@ -135,6 +135,8 @@ const keyColumns = {
 };
 
 const privateObjects = [
+  "flyer_downloads",
+  "page_events",
   "census_tract",
   "ct_centroid",
   "database_center",
