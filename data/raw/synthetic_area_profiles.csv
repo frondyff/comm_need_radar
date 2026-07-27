@@ -1,0 +1,13 @@
+area_id,area_name,borough_name,latitude,longitude,population,income_indicator,age_indicator,language_indicator,immigration_indicator,housing_indicator
+A001,Parc Extension,Villeray-Saint-Michel-Parc-Extension,45.529,-73.633,31200,82,54,88,91,76
+A002,Saint-Michel,Villeray-Saint-Michel-Parc-Extension,45.56,-73.61,48600,78,62,72,84,69
+A003,Cote-des-Neiges,Cote-des-Neiges-Notre-Dame-de-Grace,45.5,-73.63,52400,74,58,83,87,71
+A004,Montreal-Nord,Montreal-Nord,45.6,-73.62,43600,86,65,69,78,82
+A005,Hochelaga,Mercier-Hochelaga-Maisonneuve,45.545,-73.545,33300,67,50,32,28,73
+A006,Verdun,Verdun,45.458,-73.57,70400,48,45,26,31,52
+A007,Ahuntsic,Ahuntsic-Cartierville,45.555,-73.66,39600,42,72,38,44,40
+A008,Lachine,Lachine,45.435,-73.69,27800,53,57,29,35,55
+A009,Westmount,Westmount,45.485,-73.596,19800,15,46,18,24,20
+A010,Plateau Mont-Royal,Le Plateau-Mont-Royal,45.525,-73.575,104000,35,34,22,29,45
+A011,Pointe-Saint-Charles,Le Sud-Ouest,45.478,-73.56,16600,61,48,25,30,68
+A012,Riviere-des-Prairies,Riviere-des-Prairies-Pointe-aux-Trembles,45.645,-73.57,32200,58,63,45,50,47

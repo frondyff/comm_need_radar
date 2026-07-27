@@ -1,0 +1,36 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "comm-need-radar-mvp"
+version = "0.1.0"
+description = "Synthetic MVP for Community Needs Radar"
+requires-python = ">=3.11"
+dependencies = [
+    "pandas>=2.2",
+    "streamlit>=1.54",
+    "plotly>=6.0",
+    "shapely>=2.1",
+]
+
+[project.optional-dependencies]
+geo = [
+    "shapely>=2.1",
+]
+cloud = [
+    "python-dotenv>=1.0",
+    "psycopg2-binary>=2.9",
+    "sqlalchemy>=2.0",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff]
+line-length = 100
+src = ["src", "tests", "scripts"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
