@@ -36,7 +36,7 @@ data/raw/service_sources/installations_recreatives_shp/
 data/raw/boundaries/ct_national_shp/
 data/raw/service_sources/_211/
 data/community_radar.sqlite
-data/derived/digital_demand/
+data/derived/web_observed_demand/
 *.sqlite-journal
 *.parquet
 *.sqlite

@@ -88,8 +88,8 @@ Pointe-Saint-Charles, Riviere-des-Prairies).
 | List / count organizations | "list all shelters in Verdun" | `services_master` (real) |
 | By group / gender / age | "organizations for Indigenous people", "services for women in Verdun" | `services_master` (real) |
 | Total services | "how many services are there in total?" | `services_master` (real) |
-| Visits / requests | "how many people received food assistance in Verdun?" | `observed_need_category_summary` (synthetic) |
-| Highest demand by area | "which areas have the highest demand for legal services?" | `observed_need_category_summary` (synthetic) |
+| Visits / requests | "how many sessions showed food-service interest in Verdun?" | `observed_need_category_summary` (source-labelled aggregate) |
+| Highest demand by area | "which areas show the highest observed legal-service demand?" | `observed_need_category_summary` (source-labelled aggregate) |
 | Most-visited centres | "which shelters receive the most visitors?" | `v_visit_needs_by_center` (synthetic) |
 | Areas needing more resources | "which areas most need additional medical resources?" | demand vs `services_master` |
 | Area demographics | "what is the population of Hochelaga?", "which area has the most immigrants?" | `area_profile` (real) |
@@ -124,16 +124,17 @@ answer therefore comes from a real table.
 
 ## Grounding and honesty
 
-- Every answer shows its source table, and whether that table is real (services,
-  demographics, vulnerability, gap) or synthetic (visit and demand data).
+- Every answer shows its source table. Observed-demand answers distinguish
+  real web-behavior aggregates from the committed synthetic fixture.
 - Questions the database does not collect (occupancy, day-of-week demand,
   case-resolution time, specific languages) are declined, not guessed.
 - Out-of-scope questions (weather, advice, etc.) are politely refused.
 
 ## Known limitations
 
-- The visit and demand answers use the synthetic visitor layer, since no public
-  service-usage data exists. This is labelled on every such answer.
+- Until a web-observed snapshot is published, visit and demand answers use the
+  labelled synthetic fixture. Published web rows are reported as anonymous
+  website sessions, never as residents or service encounters.
 - The group / gender / age filters come from a keyword-based classification, so
   group and gender are reliable while the age filter is broad.
 - Being keyword-based, an unusual phrasing may not match a supported query. When

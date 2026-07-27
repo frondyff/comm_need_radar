@@ -136,7 +136,7 @@ client is ever recorded, and the app can't read its own analytics back).
 | `service_id` / `service_name` / `service_category` | Which service the flyer was for |
 | `distribution_location` | Which of the 9 distribution points was selected |
 | `flyer_language` | EN or FR |
-| `event_version` | Analytics contract version; only version 2 is shadow-score eligible |
+| `event_version` | Analytics contract version; only version 2 is observed-score eligible |
 | `anonymous_session_id` | Random session-scoped ID used only for deduplication |
 | `selected_area_id` / `service_area_id` | Explicit selected/service geography; distribution point is not treated as residence |
 | `category` | Normalized service-interest category |
@@ -180,9 +180,9 @@ download or breaks the UI.
 ### Required Supabase setup
 
 Apply the versioned migrations through
-`supabase/migrations/202607270001_digital_demand_shadow.sql`. It upgrades both
+`supabase/migrations/202607270001_web_observed_demand.sql`. It upgrades both
 analytics tables without deleting existing rows, narrows public inserts, and
-creates private provenance, aggregate, and shadow-score tables.
+extends the private visitor-tag contract for k-anonymized web aggregates.
 
 Deliberately **no `SELECT` policy** for `anon` on either table — the front
 end should only ever be able to write analytics, never read them back. To
@@ -190,10 +190,10 @@ actually analyze the data, query these tables directly in the Supabase
 dashboard (or with the `service_role` key from a trusted backend), not
 through the public client used by the app.
 
-Version-2 rows may feed the private digital-demand shadow pipeline after
-deduplication and coverage checks. They never change the production Census
-vulnerability or `gap_score`. See
-`docs/digital-demand-shadow-scoring.md`.
+Version-2 rows may feed the observed-needs layer after deduplication and
+all-area coverage checks. The observed score enters the original 60%
+structural / 40% observed experimental V2; it does not change production
+`gap_score`. See `docs/web-observed-demand-scoring.md`.
 
 ---
 

@@ -21,10 +21,7 @@ declare
         'observed_need_category_summary',
         'vulnerability_index_v2',
         'page_events',
-        'flyer_downloads',
-        'digital_demand_dataset',
-        'digital_demand_area',
-        'priority_score_v2_shadow'
+        'flyer_downloads'
     ];
     app_tables constant text[] := array[
         'area_profile',
@@ -40,10 +37,8 @@ declare
         'page_events',
         'flyer_downloads'
     ];
-    shadow_tables constant text[] := array[
-        'digital_demand_dataset',
-        'digital_demand_area',
-        'priority_score_v2_shadow'
+    private_tables constant text[] := array[
+        'database_visitor_tag'
     ];
     missing_objects text;
     failed_objects text;
@@ -61,15 +56,10 @@ begin
        or to_regclass('public.v_ct_vulnerability') is null then
         raise exception 'One or more required views are missing';
     end if;
-    if to_regprocedure('public.enforce_shadow_digital_coverage()') is null
-       or not exists (
-           select 1
-           from pg_trigger
-           where tgrelid = 'public.priority_score_v2_shadow'::regclass
-             and tgname = 'enforce_shadow_digital_coverage'
-             and not tgisinternal
-       ) then
-        raise exception 'Digital shadow coverage trigger is missing';
+    if to_regprocedure(
+        'public.publish_web_observed_demand(jsonb,jsonb,jsonb,jsonb)'
+    ) is null then
+        raise exception 'Private web-observed publication function is missing';
     end if;
 
     select string_agg(name, ', ' order by name)
@@ -167,10 +157,10 @@ begin
         select 1
         from information_schema.role_table_grants
         where table_schema = 'public'
-          and table_name = any(shadow_tables)
+          and table_name = any(private_tables)
           and grantee in ('PUBLIC', 'anon', 'authenticated')
     ) then
-        raise exception 'Browser roles can access private digital-demand shadow tables';
+        raise exception 'Browser roles can access private visitor-tag data';
     end if;
 
     select string_agg(column_name, ', ' order by column_name)
@@ -200,6 +190,29 @@ begin
         raise exception 'Analytics scoring columns missing: %', missing_objects;
     end if;
 
+    select string_agg(column_name, ', ' order by column_name)
+    into missing_objects
+    from unnest(array[
+        'source_type',
+        'area_id',
+        'weighted_demand_total',
+        'service_impression_count',
+        'intent_rate_per_100_impressions',
+        'digital_demand_score',
+        'coverage_status',
+        'scoring_version'
+    ]) as required_column(column_name)
+    where not exists (
+        select 1
+        from information_schema.columns c
+        where c.table_schema = 'public'
+          and c.table_name = 'database_visitor_tag'
+          and c.column_name = required_column.column_name
+    );
+    if missing_objects is not null then
+        raise exception 'Web visitor-tag columns missing: %', missing_objects;
+    end if;
+
     if not exists (
         select 1 from pg_class
         where oid = 'public.v_visit_needs_by_center'::regclass
@@ -224,8 +237,6 @@ begin
     if actual_count <> 3664 then raise exception 'services_master expected 3664 rows, found %', actual_count; end if;
     select count(*) into actual_count from public.observed_need_index;
     if actual_count <> 12 then raise exception 'observed_need_index expected 12 rows, found %', actual_count; end if;
-    select count(*) into actual_count from public.observed_need_category_summary;
-    if actual_count <> 110 then raise exception 'observed_need_category_summary expected 110 rows, found %', actual_count; end if;
     select count(*) into actual_count from public.vulnerability_index_v2;
     if actual_count <> 12 then raise exception 'vulnerability_index_v2 expected 12 rows, found %', actual_count; end if;
 
@@ -268,30 +279,43 @@ begin
         where abs((structural_weight + observed_weight) - 1.0) > 0.000001
     ) then raise exception 'vulnerability_index_v2 weights do not sum to 1'; end if;
     if exists (
-        select 1 from public.priority_score_v2_shadow
-        where abs((structural_weight + digital_weight) - 1.0) > 0.000001
-           or digital_weight > 0.25
-    ) then raise exception 'shadow priority weights violate the approved guardrail'; end if;
-    if exists (
-        select 1
-        from public.priority_score_v2_shadow s
-        join public.digital_demand_dataset d using (dataset_id)
-        where s.digital_weight > 0
+        select 1 from public.database_visitor_tag
+        where source_type = 'web_behavior'
           and (
-              d.quality_status <> 'reviewable'
+              k_anon_count < 5
+              or weighted_demand_total < 0
+              or service_impression_count < 0
               or (
-                  select count(*)
-                  from public.digital_demand_area a
-                  where a.dataset_id = s.dataset_id
-                    and a.coverage_status = 'reviewable'
-              ) <> (select count(*) from public.area_profile)
+                  digital_demand_score is not null
+                  and digital_demand_score not between 0 and 100
+              )
           )
-    ) then raise exception 'shadow digital weight applied before full area coverage'; end if;
+    ) then raise exception 'Web visitor-tag aggregates violate privacy or score bounds'; end if;
     if exists (
-        select 1 from public.digital_demand_dataset
-        where publication_state = 'approved'
-          and (approved_by is null or approved_at is null)
-    ) then raise exception 'approved digital-demand dataset lacks owner approval'; end if;
+        select 1 from public.observed_need_category_summary
+        where source_type = 'web_behavior'
+          and encounter_count < 5
+    ) then raise exception 'Web observed categories violate the k-anonymity floor'; end if;
+    if exists (
+        select 1 from public.vulnerability_index_v2
+        where observed_weight not in (0.0, 0.4)
+           or structural_weight not in (0.6, 1.0)
+    ) then raise exception 'V2 does not use structural fallback or the original 60/40 formula'; end if;
+    select count(*) into actual_count
+    from public.vulnerability_index_v2
+    where observed_weight = 0.4;
+    if actual_count not in (0, 12) then
+        raise exception 'Observed weight is applied to only part of the study geography';
+    end if;
+    if actual_count = 12 and (
+        select count(distinct area_id)
+        from public.database_visitor_tag
+        where source_type = 'web_behavior'
+          and coverage_status = 'reviewable'
+          and digital_demand_score is not null
+    ) <> 12 then
+        raise exception '60/40 V2 lacks reviewable web visitor tags for all areas';
+    end if;
 
     raise notice 'PASS issue #6 owner-level Supabase contract validation';
 end;

@@ -9,8 +9,8 @@ This document separates three related models:
 2. The scoring pipeline model shows how census, geography, center, and
    k-anonymized encounter data produce V1 frontline demand and V2 planning
    scores.
-3. The private digital-demand model evaluates anonymous website behavior
-   without changing the production vulnerability or gap score.
+3. The web-observed model accumulates anonymous website behavior into the
+   existing observed-needs layer without changing the production gap score.
 
 ## Application-Facing Data Model
 
@@ -292,18 +292,18 @@ erDiagram
     }
 ```
 
-## Private Digital-Demand Shadow Model
+## Web-Observed Demand Model
 
 ```mermaid
 erDiagram
     AREA_PROFILE ||--o{ PAGE_EVENT : "optional service-area context"
     AREA_PROFILE ||--o{ FLYER_DOWNLOAD : "optional service-area context"
-    DIGITAL_DEMAND_DATASET ||--o{ DIGITAL_DEMAND_AREA : "contains"
-    AREA_PROFILE ||--o{ DIGITAL_DEMAND_AREA : "aggregates for"
-    DIGITAL_DEMAND_DATASET ||--o{ PRIORITY_SCORE_V2_SHADOW : "contains"
-    AREA_PROFILE ||--o{ PRIORITY_SCORE_V2_SHADOW : "evaluates"
-    AREA_VULNERABILITY_INDEX_REAL ||--o{ PRIORITY_SCORE_V2_SHADOW : "structural input"
-    DIGITAL_DEMAND_AREA ||--o| PRIORITY_SCORE_V2_SHADOW : "coverage-gated input"
+    PAGE_EVENT }o--o{ DATABASE_VISITOR_TAG : "aggregates into"
+    FLYER_DOWNLOAD }o--o{ DATABASE_VISITOR_TAG : "aggregates into"
+    AREA_PROFILE ||--o{ DATABASE_VISITOR_TAG : "receives web snapshot"
+    DATABASE_VISITOR_TAG }o--|| OBSERVED_NEED_INDEX : "supplies observed score"
+    OBSERVED_NEED_INDEX ||--|| VULNERABILITY_INDEX_V2 : "40% when reviewable"
+    AREA_VULNERABILITY_INDEX_REAL ||--|| VULNERABILITY_INDEX_V2 : "60% structural focus"
 
     PAGE_EVENT {
         uuid id PK
@@ -333,42 +333,39 @@ erDiagram
         boolean is_test
     }
 
-    DIGITAL_DEMAND_DATASET {
-        uuid dataset_id PK
-        string source_type
-        string publication_state
-        string scoring_version
+    DATABASE_VISITOR_TAG {
+        string visit_group_id PK
+        string area_id FK
         date period_start
         date period_end
-        json event_weights
-        json quality_thresholds
-        string quality_status
-    }
-
-    DIGITAL_DEMAND_AREA {
-        uuid dataset_id PK, FK
-        string area_id PK, FK
-        int unique_sessions
-        int active_days
-        int service_impressions
-        float weighted_intent
+        string key_need
+        int k_anon_count
+        string source_type
+        float weighted_demand_total
+        int service_impression_count
         float intent_rate_per_100_impressions
         float digital_demand_score
         string coverage_status
-        string data_basis
+        string scoring_version
     }
 
-    PRIORITY_SCORE_V2_SHADOW {
-        uuid dataset_id PK, FK
+    OBSERVED_NEED_INDEX {
         string area_id PK, FK
-        float structural_vulnerability_score
-        float digital_demand_score
+        int rolling_visit_count
+        string top_need_category
+        float v2_observed_score
+        string observed_data_basis
+        boolean insufficient_visit_data
+    }
+
+    VULNERABILITY_INDEX_V2 {
+        string area_id PK, FK
+        float mvp_focus_census_index
+        float v2_observed_score
         float structural_weight
-        float digital_weight
-        float priority_score_v2_shadow
-        string coverage_status
-        string score_data_basis
-        int shadow_rank
+        float observed_weight
+        float vulnerability_index_v2
+        string v2_data_basis
     }
 ```
 
@@ -394,10 +391,11 @@ erDiagram
 - `PAGE_EVENT` and `FLYER_DOWNLOAD` are insert-only for browser roles. Their
   area fields are intentionally not foreign keys at ingestion; the private
   pipeline rejects missing or unknown areas before aggregation.
-- `DIGITAL_DEMAND_AREA` and `PRIORITY_SCORE_V2_SHADOW` are private. Digital
-  scores and the initial 15% weight remain disabled until all 12 areas are
-  reviewable; partial coverage uses structural-only fallback. Neither table
-  feeds `GAP_SCORE`.
+- Web `DATABASE_VISITOR_TAG` rows contain only k-anonymized area/window
+  aggregates. The exposure-normalized digital-demand score becomes
+  `OBSERVED_NEED_INDEX.v2_observed_score`; `VULNERABILITY_INDEX_V2` then uses
+  the original 60% structural / 40% observed formula. Partial coverage uses
+  structural-only fallback, and V2 does not feed `GAP_SCORE`.
 - `SERVICES_MASTER` is the canonical single services table: the 211 Grand
   Montréal directory merged with the open-data social/food/library service points,
   de-duplicated (3,664 actionable organizations; park amenities and name-only

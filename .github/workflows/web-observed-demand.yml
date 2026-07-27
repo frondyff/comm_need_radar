@@ -1,4 +1,4 @@
-name: Digital Demand Shadow
+name: Web Observed Demand
 
 on:
   workflow_dispatch:
@@ -19,12 +19,12 @@ permissions:
   contents: read
 
 concurrency:
-  group: comm-need-radar-digital-demand-shadow
+  group: comm-need-radar-web-observed-demand
   cancel-in-progress: false
 
 jobs:
   build:
-    if: github.event_name == 'workflow_dispatch' || vars.DIGITAL_DEMAND_SHADOW_ENABLED == 'true'
+    if: github.event_name == 'workflow_dispatch' || vars.WEB_OBSERVED_DEMAND_ENABLED == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     env:
@@ -37,7 +37,7 @@ jobs:
           python-version: "3.12"
           cache: pip
       - run: pip install -r requirements.txt
-      - name: Build and publish private shadow scores
+      - name: Build and publish observed demand and V2
         shell: bash
         run: |
           as_of_date="${{ inputs.as_of_date }}"
@@ -45,14 +45,14 @@ jobs:
           if [[ -z "$as_of_date" ]]; then
             as_of_date="$(date -u +%F)"
           fi
-          python scripts/build_digital_demand_shadow.py \
+          python scripts/build_web_observed_demand.py \
             --from-supabase \
             --publish \
             --as-of-date "$as_of_date" \
             --window-days "$window_days"
       - uses: actions/upload-artifact@v4
         with:
-          name: digital-demand-shadow-quality
-          path: data/derived/digital_demand/
+          name: web-observed-demand-quality
+          path: data/derived/web_observed_demand/
           if-no-files-found: error
           retention-days: 30

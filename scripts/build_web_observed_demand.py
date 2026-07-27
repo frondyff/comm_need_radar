@@ -1,17 +1,20 @@
-"""Build private, exposure-normalized digital-demand and shadow priority scores.
+"""Build the observed-needs layer from anonymous website behavior.
 
-The pipeline intentionally does not update ``gap_score`` or any browser-readable
-table. Version-2 analytics rows need a short-lived anonymous session, an area,
-and an exposure denominator before they can influence the private shadow score.
+The pipeline converts versioned ``page_events`` and ``flyer_downloads`` into
+k-anonymized, area-level ``database_visitor_tag`` snapshots. The exposure-
+normalized digital-demand score is the V2 observed score; the final experimental
+index uses the repository's original 60% structural / 40% observed formula.
+
+The live ``gap_score`` and Census structural tables are never modified.
 
 Examples:
-    python scripts/build_digital_demand_shadow.py \
+    python scripts/build_web_observed_demand.py \
       --page-events-csv /secure/page_events.csv \
       --flyer-downloads-csv /secure/flyer_downloads.csv \
       --as-of-date 2026-07-27
 
     VITE_SUPABASE_URL=https://... SUPABASE_SECRET_KEY=... \
-      python scripts/build_digital_demand_shadow.py --from-supabase --publish
+      python scripts/build_web_observed_demand.py --from-supabase --publish
 """
 
 from __future__ import annotations
@@ -22,6 +25,7 @@ from datetime import date, timedelta
 import json
 import os
 from pathlib import Path
+import sys
 from typing import Any
 from urllib.error import HTTPError
 from urllib.parse import urlencode
@@ -32,12 +36,22 @@ import pandas as pd
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(PROJECT_ROOT / "src"))
+
+from comm_need_radar.scoring.metrics import (  # noqa: E402
+    K_ANON_FLOOR,
+    OBSERVED_WEIGHT,
+    STRUCTURAL_WEIGHT,
+    composite_vulnerability_index,
+)
+
+
 DEFAULT_STRUCTURAL_PATH = (
     PROJECT_ROOT / "data" / "processed" / "area_vulnerability_index_real.csv"
 )
-DEFAULT_OUTPUT_DIR = PROJECT_ROOT / "data" / "derived" / "digital_demand"
-SCORING_VERSION = "digital-demand-shadow-v1"
-DATA_BASIS = "anonymous_web_behavior_exposure_normalized"
+DEFAULT_OUTPUT_DIR = PROJECT_ROOT / "data" / "derived" / "web_observed_demand"
+SCORING_VERSION = "web-observed-demand-v1"
+OBSERVED_DATA_BASIS = "real_web_behavior_exposure_normalized_experimental"
 
 EVENT_WEIGHTS = {
     "category_filter": 0.25,
@@ -140,6 +154,7 @@ def prepare_eligible_events(
     period_start: date,
     period_end: date,
 ) -> tuple[pd.DataFrame, dict[str, int]]:
+    """Normalize, validate, and deterministically deduplicate analytics rows."""
     combined = pd.concat(
         [
             normalize_page_events(page_events),
@@ -209,10 +224,13 @@ def prepare_eligible_events(
         newly_excluded = eligible & mask
         report[label] = int(newly_excluded.sum())
         eligible &= ~mask
+
     filtered = combined.loc[eligible].copy()
     filtered["event_day"] = filtered["created_at"].dt.strftime("%Y-%m-%d")
     filtered["service_id"] = filtered["service_id"].fillna("").astype(str)
-    filtered["category"] = filtered["category"].fillna("").astype(str)
+    filtered["category"] = (
+        filtered["category"].fillna("").astype(str).str.strip()
+    )
     dedupe_columns = [
         "source",
         "event_type",
@@ -225,7 +243,9 @@ def prepare_eligible_events(
     before_dedupe = len(filtered)
     filtered = filtered.drop_duplicates(subset=dedupe_columns, keep="first")
     report["deduplicated_rows"] = int(before_dedupe - len(filtered))
-    filtered["event_weight"] = filtered["event_type"].map(EVENT_WEIGHTS).fillna(0.0)
+    filtered["event_weight"] = (
+        filtered["event_type"].map(EVENT_WEIGHTS).fillna(0.0)
+    )
     report["eligible_events"] = int(len(filtered))
     return filtered, report
 
@@ -246,6 +266,7 @@ def build_area_demand(
     dataset_id: str,
     thresholds: QualityThresholds,
 ) -> pd.DataFrame:
+    """Build exposure-normalized demand and enforce the all-area quality gate."""
     rows: list[dict[str, Any]] = []
     for area_id in structural["area_id"].astype(str):
         area_events = events[events["area_id"] == area_id]
@@ -264,7 +285,13 @@ def build_area_demand(
             and active_days >= thresholds.min_active_days
             and impressions >= thresholds.min_service_impressions
         )
-        status = "reviewable" if reviewable else "experimental" if has_signal else "insufficient"
+        status = (
+            "reviewable"
+            if reviewable
+            else "experimental"
+            if has_signal
+            else "insufficient"
+        )
         rows.append(
             {
                 "dataset_id": dataset_id,
@@ -272,17 +299,14 @@ def build_area_demand(
                 "unique_sessions": unique_sessions,
                 "active_days": active_days,
                 "service_impressions": impressions,
-                "weighted_intent": weighted_intent,
+                "weighted_demand_total": weighted_intent,
                 "intent_rate_per_100_impressions": intent_rate,
                 "digital_demand_score": None,
                 "coverage_status": status,
-                "data_basis": DATA_BASIS,
             }
         )
+
     result = pd.DataFrame(rows)
-    # Do not rank a partial geography. Until every study area passes the same
-    # quality gates, raw counts/rates remain diagnostic and every composite
-    # falls back to the structural score.
     all_areas_reviewable = result["coverage_status"].eq("reviewable").all()
     scorable = (
         result["coverage_status"].eq("reviewable")
@@ -295,72 +319,261 @@ def build_area_demand(
     return result
 
 
-def build_shadow_scores(
+def build_category_summary(events: pd.DataFrame) -> pd.DataFrame:
+    """Return only category groups that meet the k-anonymity floor."""
+    intent = events[(events["event_weight"] > 0) & (events["category"] != "")].copy()
+    fields = [
+        "area_id",
+        "key_need",
+        "encounter_count",
+        "encounter_share_pct",
+        "category_rank",
+        "weighted_demand_total",
+        "weighted_demand_share_pct",
+        "source_type",
+    ]
+    if intent.empty:
+        return pd.DataFrame(columns=fields)
+
+    grouped = (
+        intent.groupby(["area_id", "category"], as_index=False)
+        .agg(
+            encounter_count=("anonymous_session_id", "nunique"),
+            weighted_demand_total=("event_weight", "sum"),
+        )
+        .rename(columns={"category": "key_need"})
+    )
+    grouped = grouped[grouped["encounter_count"] >= K_ANON_FLOOR].copy()
+    if grouped.empty:
+        return pd.DataFrame(columns=fields)
+
+    grouped["weighted_demand_total"] = grouped["weighted_demand_total"].round(4)
+    grouped["encounter_share_pct"] = (
+        grouped["encounter_count"]
+        / grouped.groupby("area_id")["encounter_count"].transform("sum")
+        * 100
+    ).round(2)
+    grouped["weighted_demand_share_pct"] = (
+        grouped["weighted_demand_total"]
+        / grouped.groupby("area_id")["weighted_demand_total"].transform("sum")
+        * 100
+    ).round(2)
+    grouped = grouped.sort_values(
+        ["area_id", "weighted_demand_total", "key_need"],
+        ascending=[True, False, True],
+    )
+    grouped["category_rank"] = grouped.groupby("area_id").cumcount() + 1
+    grouped["source_type"] = "web_behavior"
+    return grouped[fields].reset_index(drop=True)
+
+
+def build_visitor_tags(
     area_demand: pd.DataFrame,
-    structural: pd.DataFrame,
-    digital_weight: float,
+    category_summary: pd.DataFrame,
+    period_start: date,
+    period_end: date,
 ) -> pd.DataFrame:
-    structural_column = (
-        "vulnerability_index"
-        if "vulnerability_index" in structural.columns
-        else "mvp_focus_census_index"
-    )
-    if structural_column not in structural.columns:
-        raise ValueError(
-            "Structural input needs vulnerability_index or mvp_focus_census_index"
+    """Materialize one privacy-safe web visitor-tag snapshot per area."""
+    top_category = {}
+    if not category_summary.empty:
+        top_category = (
+            category_summary[category_summary["category_rank"] == 1]
+            .set_index("area_id")["key_need"]
+            .to_dict()
         )
-    structural_scores = structural[["area_id", structural_column]].copy()
-    structural_scores[structural_column] = pd.to_numeric(
-        structural_scores[structural_column], errors="raise"
-    )
-    if not structural_scores[structural_column].between(0, 100).all():
-        raise ValueError("Structural vulnerability scores must be between 0 and 100")
-    merged = structural_scores.merge(area_demand, on="area_id", validate="one_to_one")
-    rows: list[dict[str, Any]] = []
-    for row in merged.to_dict("records"):
-        approved_for_shadow = (
-            row["coverage_status"] == "reviewable"
-            and pd.notna(row["digital_demand_score"])
-        )
-        applied_digital_weight = digital_weight if approved_for_shadow else 0.0
-        structural_weight = 1.0 - applied_digital_weight
-        structural_score = float(row[structural_column])
-        digital_score = (
-            float(row["digital_demand_score"])
-            if pd.notna(row["digital_demand_score"])
-            else None
-        )
-        shadow_score = structural_score
-        basis = "structural_only_insufficient_web_behavior"
-        if approved_for_shadow and digital_score is not None:
-            shadow_score = (
-                structural_weight * structural_score
-                + applied_digital_weight * digital_score
+
+    rows = []
+    for row in area_demand.to_dict("records"):
+        if int(row["unique_sessions"]) < K_ANON_FLOOR:
+            continue
+        area_id = str(row["area_id"])
+        visit_group_id = "WEB_" + str(
+            uuid5(
+                NAMESPACE_URL,
+                f"{SCORING_VERSION}:{period_start}:{period_end}:{area_id}",
             )
-            basis = "structural_census_plus_web_behavior_shadow_v1"
+        )
         rows.append(
             {
-                "dataset_id": row["dataset_id"],
-                "area_id": row["area_id"],
-                "structural_vulnerability_score": round(structural_score, 2),
-                "digital_demand_score": digital_score,
-                "structural_weight": round(structural_weight, 4),
-                "digital_weight": round(applied_digital_weight, 4),
-                "priority_score_v2_shadow": round(shadow_score, 2),
+                "visit_group_id": visit_group_id,
+                "center_id": None,
+                "period_start": period_start.isoformat(),
+                "period_end": period_end.isoformat(),
+                "key_need": top_category.get(area_id, "Digital service demand"),
+                "k_anon_count": int(row["unique_sessions"]),
+                "severity": "observed",
+                "population_group": "anonymous_web_sessions",
+                "language_need_flag": False,
+                "settlement_need_flag": False,
+                "indigenous_specific_need_flag": False,
+                "source_type": "web_behavior",
+                "area_id": area_id,
+                "weighted_demand_total": float(row["weighted_demand_total"]),
+                "service_impression_count": int(row["service_impressions"]),
+                "intent_rate_per_100_impressions": row[
+                    "intent_rate_per_100_impressions"
+                ],
+                "digital_demand_score": row["digital_demand_score"],
                 "coverage_status": row["coverage_status"],
-                "score_data_basis": basis,
+                "scoring_version": SCORING_VERSION,
             }
         )
-    result = pd.DataFrame(rows).sort_values(
-        ["priority_score_v2_shadow", "area_id"], ascending=[False, True]
-    )
-    result["shadow_rank"] = range(1, len(result) + 1)
+    return pd.DataFrame(rows)
+
+
+def build_observed_need_index(
+    area_demand: pd.DataFrame,
+    category_summary: pd.DataFrame,
+    window_days: int,
+    period_end: date,
+) -> pd.DataFrame:
+    """Map digital demand directly to the existing V2 observed-score contract."""
+    categories_by_area: dict[str, list[dict[str, Any]]] = {}
+    for row in category_summary.to_dict("records"):
+        categories_by_area.setdefault(str(row["area_id"]), []).append(row)
+
+    rows = []
+    for area in area_demand.to_dict("records"):
+        area_id = str(area["area_id"])
+        categories = categories_by_area.get(area_id, [])
+        top = categories[0] if categories else {}
+        score = (
+            float(area["digital_demand_score"])
+            if pd.notna(area["digital_demand_score"])
+            else None
+        )
+        insufficient = score is None
+        rows.append(
+            {
+                "area_id": area_id,
+                "rolling_window_days": window_days,
+                "rolling_visit_count": int(area["unique_sessions"]),
+                "visit_volume_per_1000": None,
+                "observed_visit_volume_score": score,
+                "top_need_category": top.get("key_need"),
+                "top_need_count": top.get("encounter_count"),
+                "top_need_share_pct": top.get("weighted_demand_share_pct"),
+                "top_category_rate_per_1000": None,
+                "top_category_pressure_score": None,
+                "v1_demand_score": score,
+                "data_through_date": period_end.isoformat(),
+                "observed_immigrant_need_score": None,
+                "observed_indigenous_need_score": None,
+                "focus_category_share_score": None,
+                "observed_severity_breadth_score": None,
+                "observed_recency_score": None,
+                "v2_observed_score": score,
+                "observed_focus_need_score": score,
+                "observed_data_basis": (
+                    OBSERVED_DATA_BASIS
+                    if score is not None
+                    else "real_web_behavior_insufficient_coverage"
+                ),
+                "insufficient_visit_data": insufficient,
+                "top_key_needs": "; ".join(
+                    str(item["key_need"]) for item in categories[:5]
+                ),
+                "observed_need_rank": None,
+            }
+        )
+
+    result = pd.DataFrame(rows)
+    scored = result["v2_observed_score"].notna()
+    if scored.any():
+        result.loc[scored, "observed_need_rank"] = (
+            result.loc[scored, "v2_observed_score"]
+            .rank(method="first", ascending=False)
+            .astype(int)
+        )
     return result
 
 
-def build_dataset_record(
+def build_vulnerability_v2(
+    observed: pd.DataFrame,
+    structural: pd.DataFrame,
+) -> pd.DataFrame:
+    """Apply the original 60% structural / 40% observed V2 formula."""
+    required = {
+        "area_id",
+        "mvp_focus_census_index",
+        "vulnerability_index",
+    }
+    missing = sorted(required - set(structural.columns))
+    if missing:
+        raise ValueError(f"Structural input is missing: {', '.join(missing)}")
+    if structural["area_id"].duplicated().any():
+        raise ValueError("Structural input contains duplicate area_id values")
+
+    merged = structural.merge(observed, on="area_id", validate="one_to_one")
+    observed_count = int(merged["v2_observed_score"].notna().sum())
+    if observed_count not in (0, len(merged)):
+        raise ValueError(
+            "Observed scoring must cover every area or use structural-only fallback"
+        )
+    rows = []
+    for row in merged.to_dict("records"):
+        structural_score = float(row["mvp_focus_census_index"])
+        observed_score = (
+            float(row["v2_observed_score"])
+            if pd.notna(row["v2_observed_score"])
+            else None
+        )
+        v2_score, _ = composite_vulnerability_index(
+            structural_score,
+            observed_score,
+            structural_weight=STRUCTURAL_WEIGHT,
+            observed_weight=OBSERVED_WEIGHT,
+        )
+        has_observed = observed_score is not None
+        rows.append(
+            {
+                "area_id": row["area_id"],
+                "area_name": row.get("area_name"),
+                "borough_name": row.get("borough_name"),
+                "structural_vulnerability_index": float(row["vulnerability_index"]),
+                "immigrant_census_concern_score": row.get(
+                    "immigrant_census_concern_score"
+                ),
+                "indigenous_census_concern_score": row.get(
+                    "indigenous_census_concern_score"
+                ),
+                "mvp_focus_census_index": structural_score,
+                "v1_demand_score": observed_score,
+                "visit_volume_score": observed_score,
+                "top_category_pressure_score": None,
+                "focus_category_share_score": None,
+                "severity_breadth_score": None,
+                "recency_score": None,
+                "v2_observed_score": observed_score,
+                "observed_focus_need_score": observed_score,
+                "vulnerability_index_v2": v2_score,
+                "structural_weight": (
+                    STRUCTURAL_WEIGHT if has_observed else 1.0
+                ),
+                "observed_weight": OBSERVED_WEIGHT if has_observed else 0.0,
+                "insufficient_visit_data": not has_observed,
+                "v2_data_basis": (
+                    "structural_and_observed_web_behavior_experimental"
+                    if has_observed
+                    else "structural_focus_only_web_observed_insufficient"
+                ),
+                "v2_top_concern": (
+                    row.get("top_need_category")
+                    or row.get("mvp_focus_top_concern")
+                ),
+                "vulnerability_rank_v2": None,
+            }
+        )
+
+    result = pd.DataFrame(rows).sort_values(
+        ["vulnerability_index_v2", "area_id"], ascending=[False, True]
+    )
+    result["vulnerability_rank_v2"] = range(1, len(result) + 1)
+    return result
+
+
+def build_quality_report(
     dataset_id: str,
-    label: str,
     period_start: date,
     period_end: date,
     window_days: int,
@@ -368,38 +581,33 @@ def build_dataset_record(
     input_report: dict[str, int],
     area_demand: pd.DataFrame,
 ) -> dict[str, Any]:
-    reviewable_areas = int((area_demand["coverage_status"] == "reviewable").sum())
-    experimental_areas = int(
-        area_demand["coverage_status"].isin(["reviewable", "experimental"]).sum()
-    )
-    quality_status = (
-        "reviewable"
-        if reviewable_areas == len(area_demand)
-        else "experimental"
-        if experimental_areas > 0
-        else "insufficient"
-    )
-    input_total = (
-        input_report["input_page_events"] + input_report["input_flyer_downloads"]
-    )
+    reviewable = int(area_demand["coverage_status"].eq("reviewable").sum())
     return {
         "dataset_id": dataset_id,
-        "source_type": "web_behavior",
-        "dataset_label": label,
-        "publication_state": "private_pilot",
         "scoring_version": SCORING_VERSION,
         "period_start": period_start.isoformat(),
         "period_end": period_end.isoformat(),
         "window_days": window_days,
         "event_weights": EVENT_WEIGHTS,
         "quality_thresholds": asdict(thresholds),
-        "quality_status": quality_status,
-        "input_page_event_count": input_report["input_page_events"],
-        "input_flyer_download_count": input_report["input_flyer_downloads"],
-        "eligible_event_count": input_report["eligible_events"],
-        "excluded_event_count": input_total - input_report["eligible_events"],
-        "reviewable_area_count": reviewable_areas,
-        "experimental_or_better_area_count": experimental_areas,
+        "quality_status": (
+            "reviewable"
+            if reviewable == len(area_demand)
+            else "experimental"
+            if int(area_demand["unique_sessions"].sum()) > 0
+            else "insufficient"
+        ),
+        "reviewable_area_count": reviewable,
+        "expected_area_count": int(len(area_demand)),
+        "input_validation": input_report,
+        "guardrails": {
+            "production_gap_score_modified": False,
+            "synthetic_visitor_tags_used": False,
+            "raw_session_ids_persisted": False,
+            "minimum_persisted_group_size": K_ANON_FLOOR,
+            "structural_weight": STRUCTURAL_WEIGHT,
+            "observed_weight": OBSERVED_WEIGHT,
+        },
     }
 
 
@@ -410,7 +618,6 @@ def _supabase_request(
     *,
     method: str = "GET",
     payload: Any = None,
-    prefer: str | None = None,
     range_header: str | None = None,
 ) -> Any:
     body = None if payload is None else json.dumps(payload).encode("utf-8")
@@ -421,8 +628,6 @@ def _supabase_request(
     }
     if body is not None:
         headers["content-type"] = "application/json"
-    if prefer:
-        headers["prefer"] = prefer
     if range_header:
         headers["range"] = range_header
     request = Request(
@@ -479,66 +684,45 @@ def read_supabase_inputs(
     period_start: date,
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
     return (
-        _read_supabase_table(
-            supabase_url, secret_key, "page_events", period_start
-        ),
+        _read_supabase_table(supabase_url, secret_key, "page_events", period_start),
         _read_supabase_table(
             supabase_url, secret_key, "flyer_downloads", period_start
         ),
     )
 
 
+def _json_records(frame: pd.DataFrame) -> list[dict[str, Any]]:
+    def value(item: Any) -> Any:
+        if pd.isna(item):
+            return None
+        return item.item() if hasattr(item, "item") else item
+
+    return [
+        {key: value(item) for key, item in row.items()}
+        for row in frame.to_dict("records")
+    ]
+
+
 def publish_supabase_results(
     supabase_url: str,
     secret_key: str,
-    dataset: dict[str, Any],
-    area_demand: pd.DataFrame,
-    shadow_scores: pd.DataFrame,
+    visitor_tags: pd.DataFrame,
+    observed: pd.DataFrame,
+    category_summary: pd.DataFrame,
+    vulnerability_v2: pd.DataFrame,
 ) -> None:
-    def json_value(value: Any) -> Any:
-        if pd.isna(value):
-            return None
-        return value.item() if hasattr(value, "item") else value
-
-    def records(frame: pd.DataFrame) -> list[dict[str, Any]]:
-        return [
-            {key: json_value(value) for key, value in row.items()}
-            for row in frame.to_dict("records")
-        ]
-
-    dataset_columns = {
-        key: value
-        for key, value in dataset.items()
-        if key
-        not in {
-            "reviewable_area_count",
-            "experimental_or_better_area_count",
-        }
-    }
-    prefer = "resolution=merge-duplicates,return=minimal"
+    """Atomically replace web-observed materializations through a private RPC."""
     _supabase_request(
         supabase_url,
         secret_key,
-        "digital_demand_dataset?on_conflict=dataset_id",
+        "rpc/publish_web_observed_demand",
         method="POST",
-        payload=[dataset_columns],
-        prefer=prefer,
-    )
-    _supabase_request(
-        supabase_url,
-        secret_key,
-        "digital_demand_area?on_conflict=dataset_id,area_id",
-        method="POST",
-        payload=records(area_demand),
-        prefer=prefer,
-    )
-    _supabase_request(
-        supabase_url,
-        secret_key,
-        "priority_score_v2_shadow?on_conflict=dataset_id,area_id",
-        method="POST",
-        payload=records(shadow_scores),
-        prefer=prefer,
+        payload={
+            "visitor_rows": _json_records(visitor_tags),
+            "observed_rows": _json_records(observed),
+            "category_rows": _json_records(category_summary),
+            "v2_rows": _json_records(vulnerability_v2),
+        },
     )
 
 
@@ -563,12 +747,10 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--min-unique-sessions", type=int, default=20)
     parser.add_argument("--min-active-days", type=int, default=7)
     parser.add_argument("--min-service-impressions", type=int, default=20)
-    parser.add_argument("--digital-weight", type=float, default=0.15)
-    parser.add_argument("--dataset-label")
     parser.add_argument(
         "--publish",
         action="store_true",
-        help="Upsert private shadow outputs to Supabase; never changes gap_score.",
+        help="Atomically replace web-observed visitor tags and V2 materializations.",
     )
     return parser.parse_args()
 
@@ -577,8 +759,6 @@ def main() -> None:
     args = parse_args()
     if args.window_days <= 0:
         raise SystemExit("--window-days must be positive")
-    if not 0 <= args.digital_weight <= 0.25:
-        raise SystemExit("--digital-weight must be between 0 and 0.25")
     thresholds = QualityThresholds(
         args.min_unique_sessions,
         args.min_active_days,
@@ -586,50 +766,56 @@ def main() -> None:
     )
     if min(asdict(thresholds).values()) <= 0:
         raise SystemExit("All quality thresholds must be positive")
+
     period_end = args.as_of_date
     period_start = period_end - timedelta(days=args.window_days - 1)
-    supabase_url = os.environ.get("VITE_SUPABASE_URL") or os.environ.get("SUPABASE_URL")
-    supabase_secret_key = os.environ.get("SUPABASE_SECRET_KEY")
+    supabase_url = os.environ.get("VITE_SUPABASE_URL") or os.environ.get(
+        "SUPABASE_URL"
+    )
+    secret_key = os.environ.get("SUPABASE_SECRET_KEY")
     if args.from_supabase:
-        if not supabase_url or not supabase_secret_key:
+        if not supabase_url or not secret_key:
             raise SystemExit(
                 "Set VITE_SUPABASE_URL and SUPABASE_SECRET_KEY "
                 "before using --from-supabase"
             )
         page_events, flyer_downloads = read_supabase_inputs(
-            supabase_url, supabase_secret_key, period_start
+            supabase_url, secret_key, period_start
         )
     else:
         if not args.flyer_downloads_csv:
-            raise SystemExit("--flyer-downloads-csv is required with --page-events-csv")
+            raise SystemExit(
+                "--flyer-downloads-csv is required with --page-events-csv"
+            )
         page_events = pd.read_csv(args.page_events_csv)
         flyer_downloads = pd.read_csv(args.flyer_downloads_csv)
 
     structural = pd.read_csv(args.structural_csv)
     if structural["area_id"].duplicated().any():
         raise ValueError("Structural input contains duplicate area_id values")
-    valid_area_ids = set(structural["area_id"].astype(str))
+    structural["area_id"] = structural["area_id"].astype(str)
+    period_key = f"{SCORING_VERSION}:{period_start}:{period_end}"
+    dataset_id = str(uuid5(NAMESPACE_URL, period_key))
     eligible, input_report = prepare_eligible_events(
         page_events,
         flyer_downloads,
-        valid_area_ids,
+        set(structural["area_id"]),
         period_start,
         period_end,
     )
-    label = args.dataset_label or f"Web behavior pilot through {period_end.isoformat()}"
-    dataset_id = str(
-        uuid5(
-            NAMESPACE_URL,
-            f"{SCORING_VERSION}:{period_start}:{period_end}:{label}",
-        )
+    area_demand = build_area_demand(
+        eligible, structural, dataset_id, thresholds
     )
-    area_demand = build_area_demand(eligible, structural, dataset_id, thresholds)
-    shadow_scores = build_shadow_scores(
-        area_demand, structural, args.digital_weight
+    category_summary = build_category_summary(eligible)
+    visitor_tags = build_visitor_tags(
+        area_demand, category_summary, period_start, period_end
     )
-    dataset = build_dataset_record(
+    observed = build_observed_need_index(
+        area_demand, category_summary, args.window_days, period_end
+    )
+    vulnerability_v2 = build_vulnerability_v2(observed, structural)
+    quality_report = build_quality_report(
         dataset_id,
-        label,
         period_start,
         period_end,
         args.window_days,
@@ -637,39 +823,39 @@ def main() -> None:
         input_report,
         area_demand,
     )
-    quality_report = {
-        "dataset": dataset,
-        "input_validation": input_report,
-        "guardrails": {
-            "production_gap_score_modified": False,
-            "raw_analytics_public": False,
-            "legacy_events_eligible": False,
-            "maximum_digital_weight": 0.25,
-        },
-    }
+
     args.output_dir.mkdir(parents=True, exist_ok=True)
-    area_demand.to_csv(args.output_dir / "digital_demand_area.csv", index=False)
-    shadow_scores.to_csv(
-        args.output_dir / "priority_score_v2_shadow.csv", index=False
+    visitor_tags.to_csv(args.output_dir / "database_visitor_tag.csv", index=False)
+    area_demand.to_csv(args.output_dir / "web_observed_area.csv", index=False)
+    observed.to_csv(args.output_dir / "observed_need_index.csv", index=False)
+    category_summary.to_csv(
+        args.output_dir / "observed_need_category_summary.csv", index=False
+    )
+    vulnerability_v2.to_csv(
+        args.output_dir / "vulnerability_index_v2.csv", index=False
     )
     (args.output_dir / "quality_report.json").write_text(
         json.dumps(quality_report, indent=2, sort_keys=True) + "\n",
         encoding="utf-8",
     )
+
     if args.publish:
-        if not supabase_url or not supabase_secret_key:
+        if not supabase_url or not secret_key:
             raise SystemExit(
                 "Set VITE_SUPABASE_URL and SUPABASE_SECRET_KEY before using --publish"
             )
         publish_supabase_results(
             supabase_url,
-            supabase_secret_key,
-            dataset,
-            area_demand,
-            shadow_scores,
+            secret_key,
+            visitor_tags,
+            observed,
+            category_summary,
+            vulnerability_v2,
         )
+
     print(
-        f"Built {len(area_demand)} area rows; quality={dataset['quality_status']}; "
+        f"Built {len(area_demand)} area rows; "
+        f"quality={quality_report['quality_status']}; "
         f"eligible_events={input_report['eligible_events']}; "
         f"output={args.output_dir}"
     )
