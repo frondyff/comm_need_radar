@@ -1,7 +1,7 @@
 """Load the project data into a single SQLite database (free, file-based, no server).
 
 Builds data/community_radar.sqlite with tables, primary keys, and foreign keys
-matching docs/mvp-system-erd.md. Regenerable from the CSVs at any time.
+matching docs/archive/mvp-system-erd.md. Regenerable from the CSVs at any time.
 
 Tables:
   Real (ERD real-index extension):

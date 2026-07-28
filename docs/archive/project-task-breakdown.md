@@ -15,7 +15,7 @@
 
 | Handoff | From | To | Artifact |
 | --- | --- | --- | --- |
-| MVP scope | Chloe | All | `docs/project-definition.md` |
+| MVP scope | Chloe | All | `docs/archive/project-definition.md` |
 | Synthetic raw data | Laura | Frondy | `data/raw/*.csv` |
 | Scored processed outputs | Frondy | Jessie and Mariam | `data/processed/*.csv` |
 | Dashboard workflows | Jessie | Chloe | Streamlit app |
@@ -25,7 +25,7 @@
 ## Acceptance Criteria
 
 - Raw and processed MVP data exist.
-- Processed outputs match `docs/interfaces.md`.
+- Processed outputs match `docs/reference/data/interfaces.md`.
 - V1 encounter/category summaries reconcile and enforce the `k >= 5` privacy floor.
 - V2 exposes its structural and observed components and falls back to structural
   scoring when observed data is insufficient.

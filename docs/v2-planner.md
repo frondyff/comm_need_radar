@@ -185,6 +185,6 @@ Until then, dry runs remain no-publish, production `gap_score` remains
 unchanged, and structural-only fallback remains active.
 
 Implementation and methodology details are in
-[`scoring-metrics-guide.md`](scoring-metrics-guide.md),
-[`web-observed-demand-scoring.md`](web-observed-demand-scoring.md), and
+[`scoring-metrics-guide.md`](reference/scoring/scoring-metrics-guide.md),
+[`web-observed-demand-scoring.md`](reference/scoring/web-observed-demand-scoring.md), and
 `scripts/build_web_observed_demand.py`.

@@ -50,7 +50,7 @@ and monitoring before production data replacement.
 
 ## Success Criteria
 
-- Processed outputs match `docs/interfaces.md`.
+- Processed outputs match `docs/reference/data/interfaces.md`.
 - Dashboard starts locally when dependencies are installed.
 - Dashboard is deployable on Streamlit Community Cloud with
   `streamlit_app.py` as the main file.
@@ -68,4 +68,4 @@ and monitoring before production data replacement.
   complete category breakdown without claiming unique-person counts.
 - V2 outputs expose each contributing component and structural-only fallback.
 - Simulated role activity log documents all MVP workstreams in
-  `docs/task-progress.md` and `data/processed/role_activity_log.csv`.
+  `docs/reference/submission/task-progress.md` and `data/processed/role_activity_log.csv`.

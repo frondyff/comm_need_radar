@@ -189,7 +189,7 @@ Grain: one row per monitoring check.
 ## Supabase Cloud Contract
 
 Versioned schema and RLS definitions live in `supabase/migrations/`; operational
-steps and refresh semantics live in `docs/supabase-operations.md`.
+steps and refresh semantics live in `docs/reference/operations/supabase-operations.md`.
 
 The current cloud schema contains 19 core tables plus two cloud-native
 analytics tables. Browser roles have read-only access

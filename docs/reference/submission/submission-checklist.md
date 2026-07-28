@@ -35,11 +35,11 @@
 
 ## Evidence
 
-- Census and suppression: `docs/census-variable-dictionary.md`
-- Real boundaries and joins: `docs/spatial-join-validation.md`
-- Service inventory: `docs/DATA_INVENTORY.md`
-- Scoring and bias: `docs/scoring-validation-2026-07-27.md`
-- Production URL and gates: `docs/deployment-verification-2026-07-23.md`
-- Final report and presentation: `docs/final-report.md`,
-  `docs/presentation-outline.md`
-- Pending real-user sessions: `docs/user-testing-plan.md`
+- Census and suppression: `docs/reference/data/census-variable-dictionary.md`
+- Real boundaries and joins: `docs/reference/data/spatial-join-validation.md`
+- Service inventory: `docs/reference/data/DATA_INVENTORY.md`
+- Scoring and bias: `docs/reference/scoring/scoring-validation-2026-07-27.md`
+- Production URL and gates: `docs/reference/operations/deployment-verification-2026-07-23.md`
+- Final report and presentation: `docs/reference/submission/final-report.md`,
+  `docs/reference/submission/presentation-outline.md`
+- Pending real-user sessions: `docs/reference/submission/user-testing-plan.md`

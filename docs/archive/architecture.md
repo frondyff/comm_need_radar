@@ -30,7 +30,7 @@ flowchart LR
 
 No bronze, silver, or gold layers are used.
 
-See `docs/mvp-system-erd.md` for the application-facing and scoring-pipeline data
+See `docs/archive/mvp-system-erd.md` for the application-facing and scoring-pipeline data
 models.
 
 ## Processing Layer
