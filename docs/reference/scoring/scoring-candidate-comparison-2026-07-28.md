@@ -1,14 +1,15 @@
 # Candidate Scoring Comparison — 2026-07-28
 
-Status: **no-publish candidate review**
+Status: **approved for controlled POC release; not yet published**
 
 This report is generated locally. It does not update Supabase or Vercel.
 
-## Decision Requested
+## Decision
 
-Approve, defer, or reject `ACCESS-REAL-02` and `GAP-CANON-02`. Until approval,
-production remains `GAP-PROD-01`, which combines `STRUCT-01` with
-`ACCESS-LEGACY-01`.
+`ACCESS-REAL-02` and `GAP-CANON-02` were approved for the POC interface on
+2026-07-28. Production remains `GAP-PROD-01`, which combines `STRUCT-01` with
+`ACCESS-LEGACY-01`, until the controlled migration, refresh, validation, and
+deployment finish.
 
 ## Twelve-Area Comparison
 
@@ -69,9 +70,13 @@ availability.
 
 ## Approval Record
 
-- Decision: `approve / defer / reject`
-- Owner:
-- Date:
-- Rationale:
-- Approved formula IDs:
-- Follow-up:
+- Decision: `approve`
+- Owner: repository maintainer, recorded from the implementation-thread approval
+- Date: 2026-07-28
+- Rationale: resolve the mixed vulnerability contract and use the reviewed real
+  service directory while retaining POC labels, documented limitations, and no
+  policy classification.
+- Approved formula IDs: `STRUCT-01`, `ACCESS-REAL-02`, `GAP-CANON-02`
+- Follow-up: apply the additive migration, publish the three scoring tables
+  atomically, validate owner/public contracts, grill the staged release, and
+  record the production snapshot and deployment.

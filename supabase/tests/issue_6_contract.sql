@@ -61,6 +61,26 @@ begin
     ) is null then
         raise exception 'Private web-observed publication function is missing';
     end if;
+    if to_regprocedure(
+        'public.publish_scoring_contract_02(jsonb,jsonb,jsonb)'
+    ) is null then
+        raise exception 'Private scoring-contract publication function is missing';
+    end if;
+    if has_function_privilege(
+        'anon',
+        'public.publish_scoring_contract_02(jsonb,jsonb,jsonb)',
+        'EXECUTE'
+    ) or has_function_privilege(
+        'authenticated',
+        'public.publish_scoring_contract_02(jsonb,jsonb,jsonb)',
+        'EXECUTE'
+    ) or not has_function_privilege(
+        'service_role',
+        'public.publish_scoring_contract_02(jsonb,jsonb,jsonb)',
+        'EXECUTE'
+    ) then
+        raise exception 'Scoring publication function permissions are unsafe';
+    end if;
 
     select string_agg(name, ', ' order by name)
     into failed_objects

@@ -8,7 +8,7 @@ Status: **candidate — not deployed**
 | Candidate formula set | `GAP-CANON-02` |
 | Candidate formula-set version | `scoring-contract-02` |
 | Candidate taxonomy | `planning-needs-9-v1` |
-| Approval owner and date | Pending |
+| Approval owner and date | Repository maintainer; approved 2026-07-28 in the implementation thread |
 | Effective production date | Pending |
 | Implementation commit | Pending |
 | Supabase snapshot | Pending |
@@ -158,8 +158,9 @@ shows:
 - 1.5, 2.5, and 5 km sensitivity;
 - 25/75, 50/50, and 75/25 distance/count sensitivity.
 
-Production remains `GAP-PROD-01` until that report records approve, defer, or
-reject.
+The candidate was approved for the POC production interface on 2026-07-28.
+Production remains `GAP-PROD-01` until migration, atomic refresh, validation,
+and Vercel promotion complete.
 
 ## Promotion Checklist
 
