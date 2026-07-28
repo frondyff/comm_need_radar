@@ -40,6 +40,8 @@ env:
   VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
   VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
   VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+  VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+  VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
   SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
   GRILL_MODE: ${{ inputs.mode || vars.PROD_GRILL_MODE || 'report' }}
 
@@ -65,7 +67,14 @@ jobs:
 
       - name: Validate required release secrets
         run: |
-          for name in VERCEL_TOKEN VERCEL_ORG_ID VERCEL_PROJECT_ID VERCEL_AUTOMATION_BYPASS_SECRET SUPABASE_SECRET_KEY; do
+          for name in \
+            VERCEL_TOKEN \
+            VERCEL_ORG_ID \
+            VERCEL_PROJECT_ID \
+            VERCEL_AUTOMATION_BYPASS_SECRET \
+            VITE_SUPABASE_URL \
+            VITE_SUPABASE_PUBLISHABLE_KEY \
+            SUPABASE_SECRET_KEY; do
             if [[ -z "${!name}" ]]; then
               echo "::error::Missing required secret ${name}"
               exit 1
@@ -78,6 +87,14 @@ jobs:
           release_sha="$(git rev-parse HEAD)"
           echo "sha=${release_sha}" >> "$GITHUB_OUTPUT"
           echo "Releasing ${release_sha}" >> "$GITHUB_STEP_SUMMARY"
+          if git diff --quiet "${release_sha}^" "$release_sha" -- \
+            supabase/migrations/202607280001_scoring_contract_consistency.sql \
+            data/processed/scoring_formula_manifest.json \
+            scripts/publish_scoring_contract.py; then
+            echo "scoring_publish_required=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "scoring_publish_required=true" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Install and run repository release gates
         run: |
@@ -111,6 +128,14 @@ jobs:
       - name: Install release browser
         working-directory: frontend
         run: npx playwright install --with-deps chromium
+
+      - name: Publish approved scoring contract and validate public access
+        if: steps.release.outputs.scoring_publish_required == 'true'
+        id: scoring_publish
+        run: |
+          python3 scripts/publish_scoring_contract.py --publish
+          cd frontend
+          npm run validate:supabase-contract
 
       - name: Capture current production deployment
         id: prior
@@ -229,6 +254,7 @@ jobs:
           path: |
             frontend/playwright-report
             frontend/test-results
+            data/derived/scoring_release/
           retention-days: 14
 
       - name: Open or update a release failure issue

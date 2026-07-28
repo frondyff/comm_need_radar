@@ -393,6 +393,20 @@ for (const objectName of privateObjects) {
   }
 }
 
+const { error: scoringPublishError } = await client.rpc(
+  "publish_scoring_contract_02",
+  {
+    p_area_profiles: [],
+    p_accessibility: [],
+    p_gap_scores: [],
+  }
+);
+if (!scoringPublishError) {
+  fail("anonymous browser role can execute publish_scoring_contract_02");
+} else {
+  pass("anonymous browser role cannot execute publish_scoring_contract_02");
+}
+
 if (failures.length > 0) {
   console.error(`\nSupabase validation failed with ${failures.length} issue(s).`);
   process.exit(1);
