@@ -33,7 +33,9 @@ CT_PATH = PROJECT_ROOT / "data" / "raw" / "boundaries" / "ct_centroids_montreal.
 GEOJSON_PATH = PROJECT_ROOT / "frontend" / "public" / "geo" / "areas.geojson"
 SUMMARY_PATH = PROJECT_ROOT / "data" / "processed" / "spatial_join_summary.csv"
 ISSUES_PATH = PROJECT_ROOT / "data" / "processed" / "spatial_join_issues.csv"
-REPORT_PATH = PROJECT_ROOT / "docs" / "spatial-join-validation.md"
+REPORT_PATH = (
+    PROJECT_ROOT / "docs" / "reference" / "data" / "spatial-join-validation.md"
+)
 VALIDATION_DATE = "2026-07-14"
 RAW_PAYLOAD_BUDGET_BYTES = 600_000
 GZIP_PAYLOAD_BUDGET_BYTES = 200_000

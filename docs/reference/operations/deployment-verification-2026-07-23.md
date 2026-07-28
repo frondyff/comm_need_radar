@@ -1,5 +1,11 @@
 # Production Deployment Verification — 2026-07-23
 
+> Current update, 2026-07-28: the canonical production alias is
+> https://comm-need-radar.vercel.app. Guarded release run
+> [30377427156](https://github.com/frondyff/comm_need_radar/actions/runs/30377427156)
+> promoted `dev` commit `0ffbdfc` after its required gates passed. The details
+> below preserve the original 2026-07-23 deployment record.
+
 ## Deployment
 
 - Vercel project: `frondy-s-projects/comm-mvp`
@@ -40,6 +46,8 @@
 - `LLM_API_KEY` is not configured. The assistant intentionally uses the
   deterministic grounded fallback and states this in its response metadata.
 - Formal user testing under issue #12 is not yet complete.
-- The V1/V2 product-label decision under issue #9 remains open.
-- Production observed-needs replacement under issue #10 remains blocked on an
-  approved privacy-protected partner dataset.
+- The Planner product label is separate from experimental
+  `vulnerability_index_v2`.
+- The 2026-07-28 web-observed dry run had 0 of 12 reviewable areas. It did not
+  publish, production `gap_score` stayed unchanged, and structural-only
+  fallback remained active.
