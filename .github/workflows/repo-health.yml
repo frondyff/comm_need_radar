@@ -28,15 +28,10 @@ jobs:
 
           required_files=(
             "README.md"
-            "docs/project-definition.md"
-            "docs/project-task-breakdown.md"
-            "docs/architecture.md"
-            "docs/interfaces.md"
-            "docs/decisions.md"
-            "docs/task-progress.md"
-            "docs/data-requirements.md"
-            "docs/submission-checklist.md"
-            "docs/github-workflow.md"
+            "docs/v1-frontline.md"
+            "docs/v2-planner.md"
+            "docs/chatbot.md"
+            "docs/archive/index.md"
             ".github/ISSUE_TEMPLATE/work-item.md"
             ".github/ISSUE_TEMPLATE/interface-change.md"
             ".github/pull_request_template.md"
@@ -50,6 +45,9 @@ jobs:
               exit 1
             }
           done
+
+      - name: Validate documentation
+        run: python3 scripts/validate_docs.py
 
       - name: Verify private-data guardrails
         shell: bash
