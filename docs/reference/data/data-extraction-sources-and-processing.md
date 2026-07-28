@@ -55,8 +55,8 @@ public source exists yet); it is clearly labelled and swappable for real data.
 ## 3. What it produces
 
 Vulnerability index → service accessibility → **gap score / priority areas**, plus
-the observed-need (V1 demand) and composite (V2) layers. See `docs/DATA_INVENTORY.md`
-for the full table-by-table breakdown and `docs/shared-database-setup.md` for team
+the observed-need (V1 demand) and composite (V2) layers. See `docs/reference/data/DATA_INVENTORY.md`
+for the full table-by-table breakdown and `docs/reference/operations/shared-database-setup.md` for team
 access.
 
 ## Reproduce

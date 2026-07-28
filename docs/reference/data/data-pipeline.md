@@ -2,7 +2,7 @@
 
 Reproducible extraction + processing that replaces the synthetic MVP inputs with
 real Greater-Montreal public data, in the exact schemas the team contract expects
-(`docs/data-requirements.md`, `docs/interfaces.md`, `docs/laura-data-request-real-index.md`).
+(`docs/archive/data-requirements.md`, `docs/reference/data/interfaces.md`, `docs/archive/laura-data-request-real-index.md`).
 Owner: Laura (data engineering). It produces the **raw inputs** Frondy's scoring
 scripts consume — it does not change the scoring.
 
@@ -76,7 +76,7 @@ python scripts/data_pipeline/build_database.py   # -> data/community_radar.sqlit
 
 `build_database.py` loads every table into `data/community_radar.sqlite` (free,
 file-based, no server) with primary keys, foreign keys, indexes, and views that
-match `docs/mvp-system-erd.md`. It is **regenerable** (gitignored) — the CSVs are
+match `docs/archive/mvp-system-erd.md`. It is **regenerable** (gitignored) — the CSVs are
 the source of truth. Query it with any SQLite client, or:
 
 ```python

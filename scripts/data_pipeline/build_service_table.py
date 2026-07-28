@@ -1,7 +1,7 @@
 """Build the real processed service table from database_centers.csv.
 
 Writes data/processed/service_table_real.csv following the same shape as the
-synthetic data/processed/service_table.csv (docs/interfaces.md), but populated
+synthetic data/processed/service_table.csv (docs/reference/data/interfaces.md), but populated
 with the real Montreal service points. Named with the `_real` suffix to sit
 alongside the synthetic MVP contract file without overwriting it (mirrors
 area_vulnerability_index_real.csv).

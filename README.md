@@ -149,18 +149,19 @@ npm run build
 
 Production browser, accessibility, security, performance, load, promotion, and
 rollback checks are documented in
-[`docs/production-testing.md`](docs/production-testing.md).
+[`docs/reference/operations/production-testing.md`](docs/reference/operations/production-testing.md).
 
 ## Read next
 
 - [V1 Community View](docs/v1-frontline.md)
 - [V2 Planner View and scoring](docs/v2-planner.md)
 - [Guided chatbot](docs/chatbot.md)
-- [Data inventory](docs/DATA_INVENTORY.md)
-- [Interfaces and table contracts](docs/interfaces.md)
-- [Scoring and metrics guide](docs/scoring-metrics-guide.md)
-- [Supabase operations](docs/supabase-operations.md)
-- [Submission checklist](docs/submission-checklist.md)
+- [Data inventory](docs/reference/data/DATA_INVENTORY.md)
+- [Interfaces and table contracts](docs/reference/data/interfaces.md)
+- [Scoring and metrics guide](docs/reference/scoring/scoring-metrics-guide.md)
+- [Supabase operations](docs/reference/operations/supabase-operations.md)
+- [Submission checklist](docs/reference/submission/submission-checklist.md)
+- [Historical planning archive](docs/archive/index.md)
 
 ## Collaboration and release model
 

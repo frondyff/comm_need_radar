@@ -46,7 +46,7 @@ def load_centers() -> list[dict[str, str]]:
 def main() -> None:
     if not DATABASE_CENTERS_PATH.exists():
         print(f"database_centers.csv not found at {DATABASE_CENTERS_PATH}. Skipping center-area mapping.")
-        print("Deliver data/raw/database_centers.csv (see docs/laura-data-request-real-index.md) and rerun.")
+        print("Deliver data/raw/database_centers.csv (see docs/archive/laura-data-request-real-index.md) and rerun.")
         return
 
     boundaries = build_area_boundaries_from_files(AREA_RAW_PATH, BOROUGHS_GEOJSON_PATH)

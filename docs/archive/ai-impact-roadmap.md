@@ -17,8 +17,8 @@ workflow validation, not reliable prediction. Collect operational evidence
 first, then introduce forecasting after enough production history exists.
 
 This roadmap extends the current [project definition](project-definition.md),
-[V1/V2 design](vulnerability-index-v2-plan.md), and
-[data contracts](interfaces.md). V1 and V2 calculations remain deterministic
+[V1/V2 design](../reference/scoring/vulnerability-index-v2-plan.md), and
+[data contracts](../reference/data/interfaces.md). V1 and V2 calculations remain deterministic
 and auditable.
 
 ## Intended Impact
