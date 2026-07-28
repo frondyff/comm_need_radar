@@ -1,22 +1,21 @@
 {
-  "candidate_formula_set": "GAP-CANON-02",
-  "document_status": "candidate",
+  "document_status": "official_production",
   "formula_set_version": "scoring-contract-02",
   "formulas": {
     "ACCESS-LEGACY-01": {
       "name": "Synthetic distance-plus-count accessibility",
-      "production_use": "current gap input until candidate release",
-      "status": "legacy"
+      "production_use": "none; superseded by ACCESS-REAL-02",
+      "status": "historical"
     },
     "ACCESS-REAL-02": {
       "name": "Relative accessibility from services_master",
-      "production_use": "none until approval and deployment",
-      "status": "candidate"
+      "production_use": "current production accessibility input",
+      "status": "production"
     },
     "CLASS-LEGACY-01": {
       "name": "Unvalidated High/Watch/Lower thresholds",
-      "production_use": "current labels until candidate release",
-      "status": "legacy"
+      "production_use": "none; public classifications are retired",
+      "status": "historical"
     },
     "FOCUS-EXP-01": {
       "name": "Immigrant and language Census concern",
@@ -30,23 +29,23 @@
     },
     "GAP-CANON-02": {
       "name": "Canonical structural plus relative-service-access gap",
-      "production_use": "none until approval and deployment",
-      "status": "candidate"
-    },
-    "GAP-PROD-01": {
-      "name": "Current mixed-basis production gap",
       "production_use": "current production formula set",
       "status": "production"
     },
+    "GAP-PROD-01": {
+      "name": "Current mixed-basis production gap",
+      "production_use": "none; superseded by GAP-CANON-02",
+      "status": "historical"
+    },
     "PROFILE-LEGACY-01": {
       "name": "Synthetic area-profile vulnerability",
-      "production_use": "current profile/chatbot until candidate release",
-      "status": "legacy"
+      "production_use": "none; superseded by STRUCT-01",
+      "status": "historical"
     },
     "STRUCT-01": {
       "name": "StatCan 2021 equal-weight five-indicator structural vulnerability",
-      "production_use": "current gap input and candidate canonical score",
-      "status": "production_component"
+      "production_use": "current profile, chatbot, and gap structural input",
+      "status": "production"
     },
     "V1-DEMAND-EXP-01": {
       "name": "Frontline demand score",
@@ -69,7 +68,10 @@
       "status": "experimental"
     }
   },
-  "production_formula_set": "GAP-PROD-01",
+  "implementation_commit": "39fa91b04f834827dac088030f9bdcd8a17f1729",
+  "previous_production_formula_set": "GAP-PROD-01",
+  "production_effective_date": "2026-07-28",
+  "production_formula_set": "GAP-CANON-02",
   "service_category_crosswalk": {
     "Community & Advocacy": "General Support",
     "Disability": "General Support",
@@ -93,5 +95,7 @@
     "Youth & Family": "Family Services"
   },
   "service_snapshot_date": "2026-07-28",
-  "taxonomy_version": "planning-needs-9-v1"
+  "service_snapshot_id": "97c29b249d986c4ffa5de6fe21400dc99dd5121f6026bda0a779116869806c1b",
+  "taxonomy_version": "planning-needs-9-v1",
+  "vercel_deployment_id": "dpl_BHUGiRk4rJdvTp24YVNtkaDLPzEM"
 }

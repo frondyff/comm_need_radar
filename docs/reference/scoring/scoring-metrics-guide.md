@@ -1,9 +1,9 @@
 # Scoring And Metrics Guide
 
-> **Legacy and historical reference.** The authoritative status and candidate
-> contract are in
+> **Legacy and historical reference.** The authoritative production contract
+> is in
 > [`production-scoring-contract.md`](production-scoring-contract.md). Examples
-> below document the currently deployed mixed formula and experimental layers;
+> below document the superseded mixed formula and experimental layers;
 > they do not mean every formula is approved for production.
 
 Owner: Frondy (geospatial / analytics lead)

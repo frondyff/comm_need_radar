@@ -61,7 +61,7 @@ flowchart LR
 ```
 
 The deployed interface reads application-ready rows rather than calculating
-scores in the browser. The current production and candidate formulas are
+scores in the browser. Production, historical, and experimental formulas are
 versioned in the
 [production scoring contract](docs/reference/scoring/production-scoring-contract.md):
 
@@ -69,14 +69,14 @@ versioned in the
    sources into reproducible tables.
 2. `STRUCT-01` is the equal-weight average of five normalized Census
    dimensions: income, age, language, recent immigration, and housing.
-3. The current deployed `GAP-PROD-01` combines `STRUCT-01` with
-   `ACCESS-LEGACY-01`, a synthetic accessibility fixture. The deployed Area
-   Profile/chatbot still expose a different synthetic value,
-   `PROFILE-LEGACY-01`.
-4. Candidate `ACCESS-REAL-02` uses the mappable `services_master` directory and
-   candidate `GAP-CANON-02` reconciles the profile, chatbot, and gap to
-   `STRUCT-01`. It is not production until the recorded approval and deployment
-   gate passes.
+3. Production `ACCESS-REAL-02` uses 3,200 mappable records from the 3,664-row
+   `services_master` snapshot to calculate relative distance and availability
+   across the 12 review areas.
+4. Production `GAP-CANON-02` combines `STRUCT-01` with the
+   `ACCESS-REAL-02` access deficit. Area Profile, guided chatbot, and gap
+   calculations now share the same structural score. The older
+   `PROFILE-LEGACY-01`, `ACCESS-LEGACY-01`, and `GAP-PROD-01` formulas are
+   historical only.
 5. Supabase serves the area, score, accessibility, and service tables to the
    React application; Vercel hosts the frontend and server routes.
 6. Anonymous V1 interactions can be written to `page_events` and
@@ -163,7 +163,7 @@ never alters schema; it only loads rows.
 | Table | Contents |
 | --- | --- |
 | `services_master` | The 3,664 deduplicated organizations, with category, audience tags, coordinates, geocode precision, area, and source |
-| `area_profile` | Per-area score, rank, source geography, basis, and formula lineage; candidate compatibility aliases equal `STRUCT-01` |
+| `area_profile` | Per-area score, rank, source geography, basis, and formula lineage; compatibility aliases equal production `STRUCT-01` |
 | `gap_score` | Per-area structural score, accessibility, POC gap, rank, formula IDs, and classification status |
 | `accessibility` | Per-area, per-category distance and availability components, service snapshot, taxonomy, and formula ID |
 | `observed_need_index` | Per-area observed-demand aggregate and top needs, source-labelled |
@@ -223,10 +223,10 @@ validation steps, see the [Planner guided chatbot reference](docs/chatbot.md).
 
 | Layer | Current basis | Production use |
 | --- | --- | --- |
-| Structural vulnerability | Statistics Canada 2021 Census indicators | `STRUCT-01` is deployed in `gap_score`; candidate contract makes it canonical in `area_profile` and chatbot |
+| Structural vulnerability | Statistics Canada 2021 Census indicators | Production `STRUCT-01` is canonical in `area_profile`, guided chatbot, and `gap_score` |
 | Area boundaries | Ville de Montréal open boundary data, including the documented A001/A002 partition | Used by the Planner map and spatial processing |
 | Service directory | `services_master`, 3,664 deduplicated rows assembled from the published, licensed 211 Greater Montréal PDF and public/open sources | Used by V1 Community View, Planner maps, and Planner chatbot service lookup |
-| Accessibility | Deployed synthetic fixture; candidate uses mappable `services_master` locations and a 2.5 km relative proxy | `ACCESS-LEGACY-01` remains live until candidate `ACCESS-REAL-02` is approved and deployed |
+| Accessibility | 3,200 mappable `services_master` locations and a 2.5 km relative distance/log-availability proxy | Production `ACCESS-REAL-02`; the synthetic `ACCESS-LEGACY-01` fixture is historical |
 | Web behavior | Anonymous version-2 events in `page_events` and `flyer_downloads`, privacy-gated at `k >= 5` | Experimental digital-demand candidate; not published into `gap_score` |
 | Demonstration inputs | Clearly labelled UI fallback data and committed synthetic visitor-tag examples | Development and explanation only; excluded from `GAP-CANON-02` |
 
@@ -307,7 +307,7 @@ rollback checks are documented in
 - [Interfaces and table contracts](docs/reference/data/interfaces.md)
 - [Scoring and metrics guide](docs/reference/scoring/scoring-metrics-guide.md)
 - [Authoritative production scoring contract](docs/reference/scoring/production-scoring-contract.md)
-- [Candidate score and rank comparison](docs/reference/scoring/scoring-candidate-comparison-2026-07-28.md)
+- [Production score and rank comparison](docs/reference/scoring/scoring-candidate-comparison-2026-07-28.md)
 - [Supabase operations](docs/reference/operations/supabase-operations.md)
 - [Submission checklist](docs/reference/submission/submission-checklist.md)
 - [Historical planning archive](docs/archive/index.md)

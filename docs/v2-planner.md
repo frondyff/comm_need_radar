@@ -2,8 +2,8 @@
 
 Scoring status and formula IDs are governed by the
 [production scoring contract](reference/scoring/production-scoring-contract.md).
-That contract distinguishes the deployed mixed-basis score from candidate
-`GAP-CANON-02`.
+That contract distinguishes production `GAP-CANON-02` from historical and
+experimental formulas.
 
 ## Purpose
 
@@ -31,7 +31,7 @@ Production cards, map colours, and priority rankings currently use
 The detail bars are real Census-derived fields. They are not the older
 synthetic demonstration indicators.
 
-## Deployed scoring pending candidate approval
+## Production scoring — `scoring-contract-02`
 
 ### `STRUCT-01` — structural vulnerability
 
@@ -52,60 +52,56 @@ vulnerability_score =
 Equal weights keep the proof-of-concept method explainable and avoid implying
 empirical precision that has not been established.
 
-### `ACCESS-LEGACY-01` — deployed accessibility
+### `ACCESS-REAL-02` — relative service accessibility
 
 For each service category:
 
 ```text
+radius_km = 2.5
+
 distance_component =
-  max(0, 100 - (nearest_service_km / 2.5) × 70)
+  100 × max(0, 1 − min(nearest_service_km, radius_km) / radius_km)
 
-count_component =
-  min(service_count_within_2.5_km, 5) × 6
+availability_component =
+  100 × log1p(service_count_within_2.5_km)
+      / log1p(max_category_count_across_12_areas)
 
-accessibility_score =
-  min(100, distance_component + count_component)
+category_accessibility =
+  0.50 × distance_component + 0.50 × availability_component
+
+service_accessibility_score =
+  equal-weight mean of the nine category scores
 ```
 
-The deployed area accessibility value is the average across the nine synthetic
-service categories. This is a legacy fixture, not the 3,664-row real service
-directory.
+The production snapshot contains 3,664 deduplicated `services_master` rows;
+3,200 records with usable coordinates contribute to the nine-category relative
+score. This measures directory proximity and relative presence—not travel
+time, capacity, eligibility, service quality, or successful receipt.
 
-### `GAP-PROD-01` and `CLASS-LEGACY-01`
+### `GAP-CANON-02`
 
 ```text
 gap_score =
-  vulnerability_score × (100 - overall_accessibility_score) / 100
+  structural_vulnerability_score
+  × (100 − service_accessibility_score)
+  / 100
 ```
 
-| Gap score | Label |
-| ---: | --- |
-| 45 or greater | High priority |
-| 28 to less than 45 | Watch |
-| Less than 28 | Lower priority |
+The calculation runs in the data pipeline, not in the browser. The production
+label is **POC relative service-gap index**. The interface displays score and
+rank out of 12 only; `classification_status = unvalidated_poc` prohibits the
+historical High/Watch/Lower labels.
 
-This makes the gap high only when structural pressure is high and the
-accessibility proxy is low. The calculation runs in the data pipeline, not in
-the browser.
-
-These fixed labels are unvalidated. Candidate `GAP-CANON-02` removes them and
-shows only the POC relative service-gap score and rank until a separate
-threshold decision is approved.
-
-## Candidate `GAP-CANON-02`
-
-Candidate `ACCESS-REAL-02` replaces the synthetic service input with 3,200
-mappable `services_master` rows, carries formula and snapshot IDs, and uses a
-relative distance/log-availability calculation. The full formula, category
-crosswalk, limitations, and publication gate are defined only in the
+The full formula, category crosswalk, limitations, and release evidence are in
+the
 [production scoring contract](reference/scoring/production-scoring-contract.md).
 The [comparison report](reference/scoring/scoring-candidate-comparison-2026-07-28.md)
-records all 12 score and rank changes.
+records all 12 score and rank changes from historical `GAP-PROD-01`.
 
 ## Scoring decision memo
 
-Decision as of 2026-07-28: keep the production gap score unchanged and keep
-the experimental observed-demand composite in structural-only fallback.
+Decision as of 2026-07-28: keep experimental observed demand outside production
+`GAP-CANON-02` and keep the experimental composite in structural-only fallback.
 
 | Candidate | Inputs | Current status | Appropriate use |
 | --- | --- | --- | --- |

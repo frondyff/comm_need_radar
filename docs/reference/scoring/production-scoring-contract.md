@@ -1,65 +1,64 @@
 # Production Scoring Contract
 
-Status: **candidate — not deployed**
+Status: **official POC production**
 
 | Metadata | Value |
 | --- | --- |
-| Current production formula set | `GAP-PROD-01` |
-| Candidate formula set | `GAP-CANON-02` |
-| Candidate formula-set version | `scoring-contract-02` |
-| Candidate taxonomy | `planning-needs-9-v1` |
+| Current production formula set | `GAP-CANON-02` |
+| Formula-set version | `scoring-contract-02` |
+| Production taxonomy | `planning-needs-9-v1` |
 | Approval owner and date | Repository maintainer; approved 2026-07-28 in the implementation thread |
-| Effective production date | Pending |
-| Implementation commit | Pending |
-| Supabase snapshot | Pending |
-| Vercel deployment | Pending |
+| Effective production date | 2026-07-28 |
+| Implementation commit | `39fa91b04f834827dac088030f9bdcd8a17f1729` |
+| Supabase snapshot | `97c29b249d986c4ffa5de6fe21400dc99dd5121f6026bda0a779116869806c1b` |
+| Supabase publication | Run `30406140070`; 12 / 108 / 12 rows |
+| Vercel deployment | `dpl_BHUGiRk4rJdvTp24YVNtkaDLPzEM` |
+| Production release | Run `30406589519`; https://comm-need-radar.vercel.app |
 
 This is the authoritative entry point for scoring status, formulas, lineage,
-and allowed interpretation. The candidate must not be called official
-production until the approval, Supabase snapshot, test, commit, and deployment
-fields above are populated.
+allowed interpretation, and the initial controlled release evidence.
 
 ## What Production Uses Today
 
-The deployed application does not currently have one consistent vulnerability
+The deployed application uses one consistent structural and service-gap
 contract:
 
 | Surface | Formula | Current input basis |
 | --- | --- | --- |
-| Area Profile and guided chatbot | `PROFILE-LEGACY-01` | Synthetic five-indicator demonstration profile |
+| Area Profile and guided chatbot | `STRUCT-01` | Statistics Canada 2021 equal-weight structural index |
 | Planner gap vulnerability | `STRUCT-01` | Statistics Canada 2021 equal-weight structural index |
-| Planner accessibility | `ACCESS-LEGACY-01` | Fourteen synthetic service locations |
-| Planner gap | `GAP-PROD-01` | `STRUCT-01` plus `ACCESS-LEGACY-01` |
-| Planner priority label | `CLASS-LEGACY-01` | Unvalidated fixed cutoffs |
+| Planner accessibility | `ACCESS-REAL-02` | 3,200 mappable rows from the 3,664-row `services_master` snapshot |
+| Planner gap | `GAP-CANON-02` | `STRUCT-01` plus `ACCESS-REAL-02` |
+| Planner interpretation | `unvalidated_poc` | Score and rank only; no policy-priority classification |
 | Stored V2 | `V2-COMP-EXP-01` | Experimental; does not feed the production gap |
 | Web-observed demand | `WEB-DEMAND-EXP-01` | Experimental; does not feed the production gap |
 
-All 12 deployed areas have different vulnerability values between
-`area_profile` and `gap_score`. The current gap arithmetic itself reconciles;
-the inconsistency is the duplicated name and mixed input lineage.
+For all 12 areas, the compatibility `vulnerability_score` fields equal
+`structural_vulnerability_score` within 0.01, and every stored gap reconciles
+to the formula below.
 
 ## Formula Registry
 
 | Formula ID | Formula or purpose | Status |
 | --- | --- | --- |
-| `PROFILE-LEGACY-01` | Mean of five synthetic area indicators | Legacy; deployed profile/chatbot |
-| `STRUCT-01` | Mean of five normalized StatCan 2021 indicators | Production component; candidate canonical score |
-| `ACCESS-LEGACY-01` | Synthetic distance plus capped count | Legacy; deployed gap input |
-| `GAP-PROD-01` | `STRUCT-01 × (100 − ACCESS-LEGACY-01) / 100` | Current production |
-| `CLASS-LEGACY-01` | High ≥45; Watch ≥28; otherwise Lower | Legacy and unvalidated |
+| `PROFILE-LEGACY-01` | Mean of five synthetic area indicators | Historical; no production use |
+| `STRUCT-01` | Mean of five normalized StatCan 2021 indicators | Production structural score |
+| `ACCESS-LEGACY-01` | Synthetic distance plus capped count | Historical; no production use |
+| `GAP-PROD-01` | `STRUCT-01 × (100 − ACCESS-LEGACY-01) / 100` | Historical; superseded |
+| `CLASS-LEGACY-01` | High ≥45; Watch ≥28; otherwise Lower | Historical, unvalidated, and retired |
 | `FOCUS-EXP-01` | Immigrant and language Census concern | Experimental |
 | `FOCUS-EXP-02` | Immigrant/Indigenous focus composite | Experimental |
 | `V1-DEMAND-EXP-01` | 70% volume plus 30% top-category pressure | Experimental |
 | `V2-OBS-EXP-01` | Fixed 30/20/20/20/10 observed components | Experimental |
 | `V2-COMP-EXP-01` | 60% focus structural plus 40% observed | Experimental |
 | `WEB-DEMAND-EXP-01` | Coverage-gated anonymous web intent | Experimental |
-| `ACCESS-REAL-02` | Relative access from `services_master` | Candidate |
-| `GAP-CANON-02` | `STRUCT-01 × (100 − ACCESS-REAL-02) / 100` | Candidate |
+| `ACCESS-REAL-02` | Relative access from `services_master` | Production accessibility |
+| `GAP-CANON-02` | `STRUCT-01 × (100 − ACCESS-REAL-02) / 100` | Production gap |
 
 The machine-readable registry is
 [`scoring_formula_manifest.json`](../../../data/processed/scoring_formula_manifest.json).
 
-## Candidate Structural Score — `STRUCT-01`
+## Production Structural Score — `STRUCT-01`
 
 ```text
 structural_vulnerability_score =
@@ -76,7 +75,7 @@ The five dimensions have equal weight. Scaling is relative to the 11 source
 boroughs. Parc Extension and Saint-Michel inherit the same borough-level
 structural value and must display that limitation.
 
-Candidate invariants:
+Production invariants:
 
 - `area_profile.structural_vulnerability_score`
 - `area_profile.vulnerability_score`
@@ -90,9 +89,9 @@ The compatibility `population` field remains synthetic and is tagged
 `synthetic_demo_not_for_scoring`. It must not be presented as a Census
 population or used by `STRUCT-01` or `GAP-CANON-02`.
 
-## Candidate Accessibility — `ACCESS-REAL-02`
+## Production Accessibility — `ACCESS-REAL-02`
 
-The candidate uses the 3,664-row deduplicated `services_master`; 3,200 records
+Production uses the 3,664-row deduplicated `services_master`; 3,200 records
 with usable coordinates contribute to scoring. Each source category maps once
 into nine planning categories under `planning-needs-9-v1`.
 
@@ -127,7 +126,7 @@ Interpretation limits:
   successful service receipt;
 - availability is relative to these 12 areas and this service snapshot.
 
-## Candidate Gap — `GAP-CANON-02`
+## Production Gap — `GAP-CANON-02`
 
 ```text
 gap_score =
@@ -144,7 +143,7 @@ equivalent policy priority.
 The experimental focus score, V1, V2, `page_events`, and `flyer_downloads` do
 not enter this calculation.
 
-## Candidate Review
+## Review And Release Record
 
 The generated
 [12-area comparison and sensitivity report](scoring-candidate-comparison-2026-07-28.md)
@@ -158,23 +157,27 @@ shows:
 - 1.5, 2.5, and 5 km sensitivity;
 - 25/75, 50/50, and 75/25 distance/count sensitivity.
 
-The candidate was approved for the POC production interface on 2026-07-28.
-Production remains `GAP-PROD-01` until migration, atomic refresh, validation,
-and Vercel promotion complete.
+The contract was approved on 2026-07-28 and released through these gates:
 
-## Promotion Checklist
+- [x] additive migration and private atomic publisher applied;
+- [x] 12 `area_profile`, 108 `accessibility`, and 12 `gap_score` rows
+  published in one transaction;
+- [x] structural aliases, access components, taxonomy, snapshot, and all gap
+  rows reconciled;
+- [x] public scoring access remained read-only, private objects remained
+  unreadable, and anonymous execution of the publisher was denied;
+- [x] repository tests, deterministic rebuild, spatial joins, bias validation,
+  frontend build, and dependency audit passed;
+- [x] staged candidate smoke plus 10 desktop/mobile browser tests passed;
+- [x] canonical production smoke plus the same 10 browser tests passed in
+  enforce mode after promotion.
 
-Change this document to `Status: official production` only after all items pass:
+The first safe-update attempt failed before any row changed, and the first
+candidate grill caught a stale legacy expectation before promotion. Both
+failures were corrected and rerun. The successful release evidence is recorded
+in the metadata table above.
 
-- approval record is complete;
-- migrations are applied;
-- Supabase is transactionally refreshed with candidate formula IDs;
-- structural aliases and all gap rows reconcile;
-- public RLS remains read-only for scoring tables;
-- frontend, chatbot, PDF, accessibility, analytics-write, and grill tests pass;
-- the deployed app reports `GAP-CANON-02`;
-- implementation commit, snapshot ID, Vercel deployment, and effective date are
-  recorded.
-
-On promotion, mark `GAP-PROD-01`, `ACCESS-LEGACY-01`, and
-`CLASS-LEGACY-01` historical. Formula IDs themselves never change.
+`GAP-PROD-01`, `ACCESS-LEGACY-01`, and `CLASS-LEGACY-01` are historical.
+Formula IDs themselves never change. Any future formula, taxonomy, source
+snapshot, or interpretation change requires a new version and controlled
+release record.

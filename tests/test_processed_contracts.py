@@ -149,13 +149,28 @@ class ProcessedContractTests(unittest.TestCase):
             {"synthetic_demo_not_for_scoring"},
         )
 
-    def test_formula_manifest_is_candidate_not_deployed(self):
+    def test_formula_manifest_records_official_production_release(self):
         import json
 
         manifest = json.loads(SCORING_FORMULA_MANIFEST_PATH.read_text(encoding="utf-8"))
-        self.assertEqual(manifest["document_status"], "candidate")
-        self.assertEqual(manifest["production_formula_set"], "GAP-PROD-01")
-        self.assertEqual(manifest["candidate_formula_set"], "GAP-CANON-02")
+        self.assertEqual(manifest["document_status"], "official_production")
+        self.assertEqual(manifest["production_formula_set"], "GAP-CANON-02")
+        self.assertEqual(
+            manifest["previous_production_formula_set"],
+            "GAP-PROD-01",
+        )
+        self.assertEqual(
+            manifest["formulas"]["ACCESS-REAL-02"]["status"],
+            "production",
+        )
+        self.assertEqual(
+            manifest["formulas"]["GAP-CANON-02"]["status"],
+            "production",
+        )
+        self.assertEqual(
+            manifest["formulas"]["GAP-PROD-01"]["status"],
+            "historical",
+        )
         self.assertEqual(len(manifest["service_category_crosswalk"]), 20)
 
     def test_role_activity_has_all_roles(self):
