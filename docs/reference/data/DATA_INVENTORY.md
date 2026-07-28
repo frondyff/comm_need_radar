@@ -220,5 +220,5 @@ committed CSVs** (the CSVs remain the source of truth).
 - `v_visit_needs_by_center` — observed needs joined to their service centre.
 - `v_ct_vulnerability` — census tracts joined to their centroids.
 
-The database is the **data layer**: the scoring scripts and the Streamlit dashboard
+The database is the **data layer**: the scoring scripts and the React/Vite dashboard
 read from it; it stores every input and every computed result the project needs.
