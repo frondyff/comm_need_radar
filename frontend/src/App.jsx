@@ -634,8 +634,8 @@ function PlannerView({ lang, setLang, onSwitch, onExit, location, onChangeLocati
           {selectedAreaData?.gapFormulaId && (
             <div style={{fontSize:12,color:"#475569",background:"#F8FAFC",border:"1px solid #E2E8F0",borderRadius:6,padding:"9px 11px",marginBottom:14}}>
               {isEN
-                ? `Candidate POC methodology: ${selectedAreaData.structuralFormulaId} + ${selectedAreaData.accessibilityFormulaId} → ${selectedAreaData.gapFormulaId}. Census source: ${selectedAreaData.sourceYear || "2021"} ${selectedAreaData.sourceGeographyLevel || "borough"} level.`
-                : `Méthode PDC candidate : ${selectedAreaData.structuralFormulaId} + ${selectedAreaData.accessibilityFormulaId} → ${selectedAreaData.gapFormulaId}. Source du recensement : niveau ${selectedAreaData.sourceGeographyLevel || "arrondissement"}, ${selectedAreaData.sourceYear || "2021"}.`}
+                ? `Approved POC methodology: ${selectedAreaData.structuralFormulaId} + ${selectedAreaData.accessibilityFormulaId} → ${selectedAreaData.gapFormulaId}. Census source: ${selectedAreaData.sourceYear || "2021"} ${selectedAreaData.sourceGeographyLevel || "borough"} level.`
+                : `Méthode PDC approuvée : ${selectedAreaData.structuralFormulaId} + ${selectedAreaData.accessibilityFormulaId} → ${selectedAreaData.gapFormulaId}. Source du recensement : niveau ${selectedAreaData.sourceGeographyLevel || "arrondissement"}, ${selectedAreaData.sourceYear || "2021"}.`}
             </div>
           )}
 
