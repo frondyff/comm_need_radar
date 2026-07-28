@@ -37,15 +37,16 @@ layer:
 | Output field | Inputs | Meaning |
 |---|---|---|
 | `immigrant_census_concern_score` | Average of `recent_immigrant_pct_scaled` and `no_official_language_pct_scaled` | Structural concern proxy for newcomer and language-access barriers. |
-| `indigenous_census_concern_score` | `indigenous_identity_pct_scaled`, when available | Structural concern proxy for Indigenous-specific service planning. Blank when the census source does not include the required column. |
-| `mvp_focus_census_index` | Average of available focus concern scores | MVP focus score. Currently immigrant-only when Indigenous census data is missing. |
+| `indigenous_census_concern_score` | `indigenous_identity_pct_scaled` | Structural concern proxy for Indigenous-specific service planning. Populated for all 12 areas from the current census extract. |
+| `mvp_focus_census_index` | Average of available focus concern scores | MVP focus score. Now combines immigrant and Indigenous concern, since both census inputs are available. |
 | `mvp_focus_data_basis` | Generated flag | Explains whether the focus score used immigrant-only or immigrant-plus-Indigenous census inputs. |
 | `mvp_focus_top_concern` | Generated label | Plain-language top focus concern for the row. |
 
-Current real census extract status: `recent_immigrant_pct` and
-`no_official_language_pct` are available. `indigenous_identity_pct` is not in the
-current raw StatCan extract, so `indigenous_census_concern_score` is blank and
-`mvp_focus_data_basis` is `immigrant_census_only_indigenous_missing`.
+Current real census extract status: all five index variables plus
+`indigenous_identity_pct` are available in the StatCan CT extract (986 of the
+1,004 tracts carry Indigenous identity; 18 are StatCan-suppressed). As a result
+`indigenous_census_concern_score` is populated for all 12 areas and
+`mvp_focus_data_basis` is `immigrant_and_indigenous_census`.
 
 The implemented observed layer can carry Indigenous-specific service needs via
 k-anonymized `Database_Visitor` tags when the subgroup count meets `k >= 5`.

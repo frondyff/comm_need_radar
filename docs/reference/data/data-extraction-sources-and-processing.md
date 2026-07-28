@@ -45,6 +45,8 @@ public source exists yet); it is clearly labelled and swappable for real data.
 directory used by V1, the maps, and the chatbot: it merges the 211 directory with
 the open-data services above. `database_center` (4,255) is the earlier open-data
 centre layer, retained as the input to the current accessibility and gap scoring.
+The per-source service counts above are raw pre-deduplication figures; cross-source
+de-duplication produces the 4,255 rows in `database_center`.
 
 ## 2. Processing done
 
