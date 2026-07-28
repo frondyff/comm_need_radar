@@ -16,7 +16,7 @@
   description: Data acquisition, processing, or validation
 - name: dashboard
   color: "FBCA04"
-  description: Streamlit dashboard or user experience work
+  description: React/Vite dashboard or user experience work
 - name: scoring
   color: "D93F0B"
   description: Vulnerability, accessibility, or gap scoring

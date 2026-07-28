@@ -29,7 +29,7 @@ Add the implementation artifacts described by the planning docs.
 
 - [ ] Synthetic raw data exists.
 - [ ] Processed dashboard-ready data exists.
-- [ ] Streamlit dashboard source exists.
+- [ ] React/Vite dashboard source exists.
 - [ ] Local tests exist and run in CI.
 
 ## Reconcile submission checklist after implementation
