@@ -1,10 +1,10 @@
-# Guided chatbot
+# Planner guided chatbot
 
 ## Current production behavior
 
-The floating chatbot in the React application is a guided, deterministic query
-interface. Users choose from menus; each answer comes from a supported Supabase
-query and displays the source table.
+The Planner View includes a floating, guided, deterministic query interface.
+It is not displayed in V1 Community View. Planner users choose from menus; each
+answer comes from a supported Supabase query and displays the source table.
 
 The production widget does **not** send free-text prompts to a language model,
 does not require an LLM API key, and does not currently call `/api/chat`.
@@ -91,7 +91,7 @@ npm run build
 
 Manual verification should cover:
 
-1. opening the widget in both application views;
+1. confirming the widget opens in Planner View and is absent from Community View;
 2. selecting a map area and using that area in chat;
 3. each of the four top-level menus;
 4. source labels on every result;

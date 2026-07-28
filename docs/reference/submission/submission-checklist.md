@@ -6,8 +6,7 @@
 - [x] V1, V2, and chatbot behavior have canonical guides.
 - [x] Current references are separated from historical planning documents.
 - [x] Relative documentation links and stale canonical wording are checked in CI.
-- [x] React/Vite is identified as the production UI; Streamlit is labelled as a
-  retained analytical reference.
+- [x] React/Vite is identified as the only supported local and production UI.
 - [x] Branch and release responsibilities for `dev` and `main` are documented.
 
 ## Product and data
