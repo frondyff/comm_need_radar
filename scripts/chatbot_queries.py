@@ -189,20 +189,19 @@ INDICATORS = {   # question keyword -> (area_profile column, human label)
     "newcomer": ("immigration_indicator", "immigrant concentration"),
     "language": ("language_indicator", "language-access need"),
     "housing": ("housing_indicator", "housing pressure"),
-    "population": ("population", "population"),
 }
 
 
 def area_stats(area):
     aid, name = area
-    r = rows("SELECT population, income_indicator, immigration_indicator, language_indicator, "
-             "housing_indicator, vulnerability_score FROM area_profile WHERE area_id=:a", {"a": aid})
+    r = rows("SELECT income_indicator, immigration_indicator, language_indicator, "
+             "housing_indicator, structural_vulnerability_score, structural_formula_id "
+             "FROM area_profile WHERE area_id=:a", {"a": aid})
     if not r:
         return (f"No profile is available for {name}.", "area_profile")
-    pop, inc, imm, lang, hou, vul = r[0]
+    inc, imm, lang, hou, vul, formula_id = r[0]
     return (f"{name} (census-based profile):\n"
-            f"  Population: about {int(pop):,}\n"
-            f"  Vulnerability: {float(vul):.0f}/100\n"
+            f"  Structural vulnerability: {float(vul):.0f}/100 ({formula_id})\n"
             f"  Pressure indicators (0-100): income {inc}, immigrant concentration {imm}, "
             f"language-access need {lang}, housing {hou}",
             "area_profile (real, census-based)")
@@ -223,32 +222,42 @@ def total_services():
 
 
 def most_vulnerable():
-    r = rows("SELECT area_name, vulnerability_score FROM area_profile ORDER BY vulnerability_rank LIMIT 5")
-    lst = "\n".join(f"  {i}. {nm} (vulnerability {float(sc):.0f}/100)" for i, (nm, sc) in enumerate(r, 1))
-    return (f"The most vulnerable areas (structural vulnerability from census data):\n{lst}",
+    r = rows("SELECT area_name, structural_vulnerability_score FROM area_profile "
+             "ORDER BY structural_vulnerability_rank LIMIT 5")
+    lst = "\n".join(f"  {i}. {nm} (structural score {float(sc):.0f}/100)"
+                    for i, (nm, sc) in enumerate(r, 1))
+    return (f"Areas with the highest structural vulnerability scores:\n{lst}",
             "area_profile / area_vulnerability_index_real (real, census-based)")
 
 
 def highest_gap():
-    r = rows("SELECT area_name, gap_score, priority_flag FROM gap_score ORDER BY gap_rank LIMIT 5")
-    lst = "\n".join(f"  {i}. {nm} (gap {float(g):.0f})" + (f" - {pf}" if pf else "")
-                    for i, (nm, g, pf) in enumerate(r, 1))
-    return (f"The areas with the largest service gap (high need, low access):\n{lst}", "gap_score")
+    r = rows("SELECT area_name, gap_score, gap_formula_id FROM gap_score "
+             "ORDER BY gap_rank LIMIT 5")
+    lst = "\n".join(f"  {i}. {nm} (relative gap {float(g):.0f}, {formula_id})"
+                    for i, (nm, g, formula_id) in enumerate(r, 1))
+    return (f"Areas with the highest relative POC service-gap scores:\n{lst}", "gap_score")
 
 
 def explain_area(area):
     aid, name = area
-    v = rows("SELECT vulnerability_score, vulnerability_rank, top_vulnerability_drivers "
+    v = rows("SELECT structural_vulnerability_score, structural_vulnerability_rank, "
+             "top_vulnerability_drivers, structural_formula_id "
              "FROM area_profile WHERE area_id=:a", {"a": aid})
-    g = rows("SELECT gap_score, gap_rank, priority_flag FROM gap_score WHERE area_id=:a", {"a": aid})
+    g = rows("SELECT gap_score, gap_rank, gap_formula_id FROM gap_score WHERE area_id=:a", {"a": aid})
     n = rows("SELECT top_key_needs FROM observed_need_index WHERE area_id=:a", {"a": aid})
     parts = [f"{name}:"]
     if v:
-        vs, vr, drv = v[0]
-        parts.append(f"  Vulnerability {float(vs):.0f}/100 (rank {vr} of 12). Main drivers: {drv}.")
+        vs, vr, drv, formula_id = v[0]
+        parts.append(
+            f"  Structural vulnerability {float(vs):.0f}/100 "
+            f"(rank {vr} of 12, {formula_id}). Main drivers: {drv}."
+        )
     if g:
-        gs, gr, pf = g[0]
-        parts.append(f"  Service gap {float(gs):.0f} (rank {gr})" + (f", {pf}." if pf else "."))
+        gs, gr, formula_id = g[0]
+        parts.append(
+            f"  Relative POC service gap {float(gs):.0f} "
+            f"(rank {gr}, {formula_id})."
+        )
     if n and n[0][0]:
         parts.append(f"  Most reported needs: {n[0][0]}.")
     return ("\n".join(parts), "area_profile + gap_score + observed_need_index")

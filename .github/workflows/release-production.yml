@@ -83,6 +83,17 @@ jobs:
         run: |
           pip install -r requirements.txt
           python -m unittest discover -s tests
+          python scripts/build_processed_data.py
+          python scripts/compare_scoring_contracts.py
+          python scripts/validate_docs.py
+          git diff --exit-code -- \
+            data/processed/area_profile.csv \
+            data/processed/accessibility_table.csv \
+            data/processed/gap_score_table.csv \
+            data/processed/flyer_examples.csv \
+            data/processed/monitoring_summary.csv \
+            data/processed/scoring_formula_manifest.json \
+            docs/reference/scoring/scoring-candidate-comparison-2026-07-28.md
           python scripts/validate_spatial_joins.py
           python scripts/validate_scoring_bias.py
           cd frontend

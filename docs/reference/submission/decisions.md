@@ -31,6 +31,7 @@ runtime was removed after React/Vite became the sole application interface.
 | 2026-07-28 | Make `main` the GitHub default while production releases continue from `dev` | Separates the stable submission snapshot from the tested integration and deployment path |
 | 2026-07-28 | Treat React/Vite as the only supported application UI and keep the guided chatbot Planner-only | Matches the implemented and deployed product; earlier Streamlit proposals are historical only |
 | 2026-07-28 | Remove the obsolete Streamlit runtime and its exclusive Plotly dependency | Eliminates an unsupported duplicate UI while retaining dated Streamlit references as historical project records |
+| 2026-07-28 | Number every legacy, canonical, and experimental scoring formula | Prevents two different measures from sharing the ambiguous `vulnerability_score` name and makes stored lineage auditable |
 
 ## Pending Decisions For Real Data Version
 
@@ -40,3 +41,4 @@ runtime was removed after React/Vite became the sole application interface.
 | Future high-resolution geography level | Laura and Frondy | Current release uses 11 official administrative polygons mapped to 12 stable project IDs; reconsider tracts when scoring supports them |
 | Validate V1/V2 weights and saturation thresholds | Frondy and Chloe | Current weights are implemented but experimental |
 | Wire V2 into gap scoring and application views | Frondy and Jessie | Defer until production coverage, web-observed quality artifacts, and representative-user interpretation are validated |
+| Promote `scoring-contract-02` (`STRUCT-01` + `ACCESS-REAL-02` + `GAP-CANON-02`) to production | Chloe, Frondy, Laura, and Jessie | Candidate artifacts and the no-publish comparison are implemented. Production remains `GAP-PROD-01` until reviewers approve/defer/reject the score and rank changes, taxonomy, relative-access method, POC labels, and refresh/deployment |

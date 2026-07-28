@@ -23,7 +23,8 @@ lives in `data/raw/source_metadata.csv`; this document summarizes and explains i
 | Committed visits / service-usage fixture | **Synthetic** | no public partner source exists for who visits which service |
 | Web-observed demand | **Real, experimental** | anonymous `page_events` and `flyer_downloads`, exposure-normalized and k-anonymized |
 | Observed need and V2 demand scores | **Source-dependent** | synthetic fixture until atomically replaced by a web-observed publication |
-| Accessibility and gap (current MVP) | **Placeholder** | built on MVP inputs until scoring migrates to real services |
+| Accessibility and gap (current production) | **Mixed basis** | real structural score plus a synthetic service fixture (`GAP-PROD-01`) |
+| Accessibility and gap (candidate artifacts) | **Real inputs, POC method** | real Census structure plus 3,200 mappable `services_master` rows (`GAP-CANON-02`); not deployed |
 | CISV, transit | **Real (reference)** | used for validation / future use, not in the app yet |
 
 Every chatbot answer and every table below is labelled with which of these it is.
@@ -102,7 +103,11 @@ k-anonymized area snapshots in `database_visitor_tag`, replaces the synthetic
 observed materialization, and applies the same original 60/40 V2 composite.
 
 **H. Access, gap, assembly.** The accessibility and gap tables are produced by the
-processing pipeline (`src/comm_need_radar/processing/pipeline.py`);
+processing pipeline (`src/comm_need_radar/processing/pipeline.py`). The candidate
+pipeline uses the official five-indicator `STRUCT-01` score, real mappable
+`services_master` rows, the versioned 20-to-9 category crosswalk, relative
+`ACCESS-REAL-02` accessibility, and `GAP-CANON-02`. These generated artifacts
+must not be published until the recorded approval gate is complete;
 `map_centers_to_areas.py` builds `center_area_lookup`. `build_database.py` loads
 every CSV into SQLite; `load_to_cloud.py` refreshes Supabase.
 
@@ -229,15 +234,22 @@ One row per MVP area; the main area key used across the app.
 | `area_name` | TEXT | Area name |
 | `borough_name` | TEXT | Borough |
 | `latitude` / `longitude` | REAL | Area centroid |
-| `population` | INT | Area population (from census) |
+| `population` | INT | Legacy synthetic display value; excluded from scoring |
+| `population_basis` | TEXT | Explicit non-scoring provenance for the population alias |
 | `income_indicator` | INT | Income-pressure indicator, 0-100 |
 | `age_indicator` | INT | Age-related need indicator, 0-100 |
 | `language_indicator` | INT | Language-access need indicator, 0-100 |
 | `immigration_indicator` | INT | Immigrant-concentration indicator, 0-100 |
 | `housing_indicator` | INT | Housing-pressure indicator, 0-100 |
-| `vulnerability_score` | REAL | Overall structural vulnerability, 0-100 |
-| `vulnerability_rank` | INT | Rank among the 12 areas (1 = most vulnerable) |
+| `structural_vulnerability_score` | REAL | Canonical `STRUCT-01` structural vulnerability, 0-100 |
+| `vulnerability_score` | REAL | Compatibility alias; exactly equals the structural score |
+| `structural_vulnerability_rank` | INT | Rank by canonical structural score |
+| `vulnerability_rank` | INT | Compatibility alias; exactly equals structural rank |
 | `top_vulnerability_drivers` | TEXT | Main drivers of the score |
+| `structural_formula_id` | TEXT | `STRUCT-01` |
+| `score_basis`, `score_version` | TEXT | Machine-readable score lineage |
+| `source_year` | INT | Census reference year |
+| `source_geography_level`, `source_geography_name` | TEXT | Aggregation lineage |
 
 #### `area_vulnerability_index_real` — 12 rows. Source: build_statcan_vulnerability_index.py + aggregate_ct_to_areas.py.
 Detailed structural vulnerability per area, with raw and scaled census inputs.
@@ -356,10 +368,12 @@ web publication atomically replaces it with variable-count, k-anonymized
 | `weighted_demand_share_pct` | REAL | Category share of accumulated web demand |
 | `source_type` | TEXT | `web_behavior` for real published website aggregates |
 
-### 4.5 Accessibility and gap (MVP / mixed)
+### 4.5 Accessibility and gap (candidate contract; not yet deployed)
 
 #### `accessibility` — 108 rows (12 areas x 9 categories). Source: processing pipeline.
-Service accessibility per area and category.
+Relative service accessibility per area and category. The candidate uses 3,200
+mappable rows from the 3,664-row canonical `services_master` snapshot. The
+legacy production table still uses `ACCESS-LEGACY-01` until approval and refresh.
 
 | Column | Type | Description |
 | --- | --- | --- |
@@ -367,23 +381,38 @@ Service accessibility per area and category.
 | `service_category` | TEXT | Service category |
 | `nearest_service_distance_km` | REAL | Distance to nearest service of that category |
 | `service_count_within_threshold` | INT | Services within the distance threshold |
-| `accessibility_score` | REAL | Accessibility score for the area/category |
-| `accessibility_method` | TEXT | Method note |
+| `distance_component` | REAL | Linear nearest-distance component, 0-100 |
+| `availability_component` | REAL | Log-normalized category availability component, 0-100 |
+| `accessibility_score` | REAL | Equal-weight relative accessibility, 0-100 |
+| `accessibility_method` | TEXT | Human-readable method note |
+| `accessibility_basis`, `accessibility_version` | TEXT | Machine-readable lineage |
+| `accessibility_formula_id` | TEXT | `ACCESS-REAL-02` |
+| `formula_set_version` | TEXT | `scoring-contract-02` |
+| `taxonomy_version` | TEXT | `planning-needs-9-v1` |
+| `service_snapshot_id`, `service_snapshot_date` | TEXT/DATE | Input snapshot lineage |
+| `service_snapshot_total_rows`, `service_snapshot_mappable_rows` | INT | Full and eligible source counts |
 
 #### `gap_score` — 12 rows. Source: processing pipeline (need vs access).
-The headline gap map: high need + low access = high gap.
+The candidate relative POC gap map. It is not an eligibility, funding, or
+automatic priority decision.
 
 | Column | Type | Description |
 | --- | --- | --- |
 | `area_id`, `area_name`, `borough_name` | TEXT | Area keys |
 | `latitude` / `longitude` | REAL | Area centroid |
-| `vulnerability_score` | REAL | Need side (structural vulnerability) |
-| `overall_accessibility_score` | REAL | Access side |
-| `gap_score` | REAL | Combined gap |
-| `gap_rank` | INT | Rank (1 = largest gap) |
-| `priority_flag` | TEXT | Priority label (e.g. High priority / Watch / Lower priority) |
+| `structural_vulnerability_score` | REAL | Canonical `STRUCT-01` structural input |
+| `vulnerability_score` | REAL | Compatibility alias; exactly equals structural score |
+| `service_accessibility_score` | REAL | Mean of nine candidate category-access scores |
+| `overall_accessibility_score` | REAL | Compatibility alias; exactly equals service accessibility |
+| `gap_score` | REAL | `structural × (100 - access) / 100` |
+| `gap_rank` | INT | Relative rank (1 = largest gap) |
+| `priority_flag` | TEXT | Empty compatibility field; public classification retired |
+| `classification_status` | TEXT | `unvalidated_poc` |
 | `gap_drivers` | TEXT | Main drivers of the gap |
 | `summary_en` / `summary_fr` | TEXT | Plain-language summary (English / French) |
+| `structural_formula_id`, `accessibility_formula_id`, `gap_formula_id` | TEXT | `STRUCT-01`, `ACCESS-REAL-02`, `GAP-CANON-02` |
+| `formula_set_version`, `gap_basis`, `gap_version` | TEXT | Formula lineage |
+| `taxonomy_version`, `service_snapshot_id` | TEXT | Taxonomy and service-input lineage |
 
 ### 4.6 Reference data (REAL, not used by the app yet)
 

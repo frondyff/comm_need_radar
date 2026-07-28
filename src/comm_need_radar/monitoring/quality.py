@@ -15,7 +15,11 @@ def unique_count(rows: list[dict[str, object]], column: str) -> int:
 def write_monitoring_summary(path: Path, summary_rows: list[dict[str, object]]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("w", newline="", encoding="utf-8") as f:
-        writer = csv.DictWriter(f, fieldnames=["check_name", "status", "value", "details"])
+        writer = csv.DictWriter(
+            f,
+            fieldnames=["check_name", "status", "value", "details"],
+            lineterminator="\n",
+        )
         writer.writeheader()
         writer.writerows(summary_rows)
 

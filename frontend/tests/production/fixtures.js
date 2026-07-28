@@ -23,6 +23,7 @@ async function realIndicatorFixture() {
     "shelter_cost_burden_pct_scaled",
     "recent_immigrant_pct",
     "recent_immigrant_pct_scaled",
+    "vulnerability_index",
   ];
   return {
     source: "statistics_canada_2021_census_test_fixture",
