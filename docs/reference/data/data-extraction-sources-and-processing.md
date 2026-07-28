@@ -36,15 +36,17 @@ public source exists yet); it is clearly labelled and swappable for real data.
 | · Social facilities (412) | OpenStreetMap (Overpass) | ODbL | → `database_center` |
 | · Indigenous orgs (24) | INDex / Réseau Montréal (scraped + geocoded) | research use | → `database_center` |
 | · Shelters + food banks (48) | Curated public directories | public | → `database_center` |
-| **211 directory** | **211 Grand Montréal / Centraide** (licensed PDF, kept out of the repo) | © 211 GM / Centraide, academic use | **`services_master`** |
+| **211 directory** | **211 Grand Montréal / Centraide** (published, licensed PDF; raw PDF gitignored and processed extract committed) | © 211 GM / Centraide, academic use | **`services_master`** |
 | CISV validation (5,555 DAs) | StatCan Canadian Index of Social Vulnerability 2021 | OGL–Canada | `cisv_reference` |
 | Transit stops (9,188) | STM GTFS | open | `stm_stop` |
 | Visitor / observed needs (1,408) | **Synthetic** (no public source) | model-generated | `database_visitor_tag` |
 
 `services_master` (3,664 organizations) is the canonical, deduplicated service
-directory used by V1, the maps, and the chatbot: it merges the 211 directory with
-the open-data services above. `database_center` (4,255) is the earlier open-data
-centre layer, retained as the input to the current accessibility and gap scoring.
+directory used by V1 Community View, the maps, and the chatbot: it merges the
+211 directory with the open-data services above. Of those rows, 3,200 are
+mappable and 1,676 currently fall within a review area. `database_center`
+(4,255) is the earlier open-data centre layer, retained as the input to the
+current accessibility and gap scoring.
 The per-source service counts above are raw pre-deduplication figures; cross-source
 de-duplication produces the 4,255 rows in `database_center`.
 
@@ -67,9 +69,9 @@ de-duplication produces the 4,255 rows in `database_center`.
 - **Scoring inputs:** delivered the raw schemas Frondy's structural + observed/V1/V2
   pipeline consumes — verified consistent (32/32 tests pass, ERD-aligned, 0
   foreign-key violations).
-- **Database:** loaded all 18 tables + 2 views into a local **SQLite**
-  (`data/community_radar.sqlite`) and a shared **Supabase** cloud database the whole
-  team can query.
+- **Database:** loaded the builder's declared project tables and views into a
+  local **SQLite** database (`data/community_radar.sqlite`) and the app-ready
+  contract into the shared **Supabase** database.
 
 ## 3. What it produces
 
