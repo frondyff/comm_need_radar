@@ -1,7 +1,7 @@
--- Candidate scoring contract 02.
+-- Approved POC scoring contract 02.
 --
 -- This migration is additive. It does not publish candidate rows or change
--- RLS. GAP-PROD-01 remains live until the separately approved atomic refresh.
+-- RLS. GAP-PROD-01 remains live until the approved atomic refresh succeeds.
 
 begin;
 
@@ -161,9 +161,9 @@ create index if not exists ix_gap_score_formula
 comment on column public.area_profile.structural_vulnerability_score is
     'STRUCT-01: StatCan 2021 equal-weight five-indicator structural score.';
 comment on column public.accessibility.accessibility_formula_id is
-    'Stable formula identifier. ACCESS-REAL-02 remains candidate until approved.';
+    'ACCESS-REAL-02: approved POC service-accessibility formula identifier.';
 comment on column public.gap_score.gap_formula_id is
-    'Stable gap formula identifier. GAP-CANON-02 remains candidate until approved.';
+    'GAP-CANON-02: approved POC relative service-gap formula identifier.';
 comment on column public.gap_score.classification_status is
     'unvalidated_poc means no High/Watch/Lower policy label may be displayed.';
 
