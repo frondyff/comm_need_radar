@@ -1,141 +1,104 @@
-# Community Radar chatbot
+# Guided chatbot
 
-A simple, grounded, no-LLM assistant. It matches keywords in a question, runs a
-query against the project database, and answers in plain language with the source
-table shown on every reply. No API key, no cost, no maintenance, and it cannot
-hallucinate: every answer comes from a real table, and anything it cannot map to
-a supported query is declined instead of guessed.
+## Current production behavior
 
-## How to run
+The floating chatbot in the React application is a guided, deterministic query
+interface. Users choose from menus; each answer comes from a supported Supabase
+query and displays the source table.
 
-From the repository root:
+The production widget does **not** send free-text prompts to a language model,
+does not require an LLM API key, and does not currently call `/api/chat`.
 
-```bash
-cd comm_need_radar
+Implementation:
 
-# interactive (type 'quit' to stop)
-python3 scripts/chatbot.py --chat
+- `frontend/src/chatbot/ChatbotWidget.jsx` controls menus and session history.
+- `frontend/src/chatbot/groundedChatbot.js` runs the browser-side Supabase
+  queries.
+- `frontend/src/App.jsx` supplies the selected Planner area to the widget.
 
-# a single question
-python3 scripts/chatbot.py "list all the shelters in Verdun"
-```
+## Supported questions
 
-### Guided (decision-tree) mode
-
-Instead of typing questions, the user picks from menus. Same grounded backend, so
-every answer is accurate and shows its source, and the user can only ask what the
-data supports (no misroutes, nothing to decline).
-
-```bash
-python3 scripts/chatbot_menu.py
-```
-
-The menu tree:
-
-```
-What would you like to know?
-  1. Find services / organizations  -> category -> area -> group
-  2. Service demand and visits      -> category -> (total visits / demand by area /
-                                                    top centres / areas needing more)
-  3. About an area                  -> area -> (overview / demographics / needs / demand)
-  4. City-wide rankings             -> (most vulnerable / highest gap / most immigrants /
-                                        lowest income / housing pressure)
-```
-
-For the frontend, wire buttons/dropdowns to the structured entry point (it returns
-the same `(answer, source_table)`):
-
-```python
-from chatbot_menu import answer_structured
-answer_structured("find_services", category="Shelter", area="Verdun",
-                  audience={"immigrant": True})
-answer_structured("demand", category="food", area="Verdun", metric="visits")
-answer_structured("ranking", metric="vulnerable")
-```
-
-### Open-text mode
-
-By default it reads the local `data/community_radar.sqlite` and needs only
-Python's standard library. If `python3` is not found, use the Anaconda Python
-(`/opt/anaconda3/bin/python3`).
-
-To query the shared Supabase database instead of the local file, set one
-environment variable and run the same commands (this path needs `sqlalchemy` and
-`psycopg2`):
-
-```bash
-export DATABASE_URL="postgresql://postgres.<ref>:<password>@aws-1-ca-central-1.pooler.supabase.com:5432/postgres"
-python3 scripts/chatbot.py --chat
-```
-
-From Python (for the frontend or a notebook):
-
-```python
-import sys; sys.path.insert(0, "scripts")
-from chatbot import answer
-print(answer("How many food organizations serve immigrants in Cote-des-Neiges?"))
-```
-
-## What you can ask
-
-Name a category (shelter, food, medical, legal, translation), a group, and/or one
-of the 12 areas (Parc Extension, Saint-Michel, Cote-des-Neiges, Montreal-Nord,
-Hochelaga, Verdun, Ahuntsic, Lachine, Westmount, Plateau Mont-Royal,
-Pointe-Saint-Charles, Riviere-des-Prairies).
-
-| Question type | Example | Source table |
+| Menu | Examples | Source |
 | --- | --- | --- |
-| List / count organizations | "list all shelters in Verdun" | `services_master` (real) |
-| By group / gender / age | "organizations for Indigenous people", "services for women in Verdun" | `services_master` (real) |
-| Total services | "how many services are there in total?" | `services_master` (real) |
-| Visits / requests | "how many sessions showed food-service interest in Verdun?" | `observed_need_category_summary` (source-labelled aggregate) |
-| Highest demand by area | "which areas show the highest observed legal-service demand?" | `observed_need_category_summary` (source-labelled aggregate) |
-| Most-visited centres | "which shelters receive the most visitors?" | `v_visit_needs_by_center` (synthetic) |
-| Areas needing more resources | "which areas most need additional medical resources?" | demand vs `services_master` |
-| Area demographics | "what is the population of Hochelaga?", "which area has the most immigrants?" | `area_profile` (real) |
-| Area vulnerability / gap | "how vulnerable is Ahuntsic?", "which areas have the highest service gap?" | `area_profile`, `gap_score` (real) |
-| Area profile | "tell me about Hochelaga" | `area_profile` + `gap_score` + `observed_need_index` |
+| Find services | Category, area, and audience-filtered organizations | `services_master` |
+| Service demand | Category interest in an area or highest-demand areas | `observed_need_category_summary` |
+| About an area | Vulnerability, gap, demographics, and aggregate demand | `area_profile`, `gap_score`, `observed_need_index` |
+| City-wide rankings | Highest vulnerability, gap, immigration pressure, or income pressure | `area_profile`, `gap_score` |
 
-## Architecture
+The chatbot offers all 12 areas and can also use the area selected on the
+Planner map. Service answers are capped at 20 displayed organizations and show
+the total count when more matches exist.
 
-Two files:
+Demand answers read the stored `source_type` or `observed_data_basis`. If the
+materialization is web-observed, answers say anonymous website sessions; they
+must not call those events resident visits or partner encounters.
 
-- `scripts/chatbot_queries.py` (data layer): one `rows()` gateway to the database
-  (SQLite locally, Supabase if `DATABASE_URL` is set), detectors that turn text
-  into filters (category, area, audience), and one function per answer type. Each
-  function returns `(answer_text, source_table)`.
-- `scripts/chatbot.py` (router): `answer()` applies guardrails, matches one intent
-  by keywords, calls the query function, and formats the reply with its source.
+## Data and safety boundary
 
-```
-question -> chatbot.py answer()
-              guardrails (out of scope / not collected)
-              parse: category, area, audience
-              match one intent (services / visits / demand / demographics /
-                                 vulnerability / gap / area profile)
-              -> chatbot_queries.py function
-              -> rows(sql) -> SQLite or Supabase
-              -> (answer, source table)
-              -> "answer + Source (table): ..."
+The widget uses the same public Supabase configuration as the dashboard:
+
+```text
+VITE_SUPABASE_URL
+VITE_SUPABASE_PUBLISHABLE_KEY
 ```
 
-The router only selects a query function; it never writes an answer itself. Every
-answer therefore comes from a real table.
+It only runs predefined selects against public application tables. There is no
+free-text case-note field, model context, persistent chat profile, or user
+authentication in the current proof of concept.
 
-## Grounding and honesty
+The chatbot is not suitable for:
 
-- Every answer shows its source table. Observed-demand answers distinguish
-  real web-behavior aggregates from the committed synthetic fixture.
-- Questions the database does not collect (occupancy, day-of-week demand,
-  case-resolution time, specific languages) are declined, not guessed.
-- Out-of-scope questions (weather, advice, etc.) are politely refused.
+- emergencies or crisis response;
+- professional, legal, medical, or immigration advice;
+- eligibility decisions;
+- complete provider availability or wait-time information;
+- individual vulnerability assessment; or
+- claims about population demand from website activity.
 
-## Known limitations
+Users should confirm service details directly with the provider.
 
-- Until a web-observed snapshot is published, visit and demand answers use the
-  labelled synthetic fixture. Published web rows are reported as anonymous
-  website sessions, never as residents or service encounters.
-- The group / gender / age filters come from a keyword-based classification, so
-  group and gender are reliable while the age filter is broad.
-- Being keyword-based, an unusual phrasing may not match a supported query. When
-  that happens it declines and lists what it can answer, rather than inventing.
+## Language behavior
+
+The launcher greeting follows the application's English/French setting, but
+the guided menus and generated answers are currently English-only. The
+interface explicitly discloses this limitation.
+
+## Optional server route
+
+`frontend/api/chat.ts` is an experimental server-side route retained for
+contract testing and possible future integration. It can use a configured LLM
+or a deterministic fallback, but the shipped `ChatbotWidget` is not wired to
+that route.
+
+Treating the route as production would require a separate product decision,
+privacy and threat review, bilingual behavior, prompt-injection testing,
+source-citation rules, monitoring, and an explicit interface change. Server
+secrets must never be placed in `VITE_` variables.
+
+The Python menu and query scripts under `scripts/chatbot*.py` are analytical
+and local references, not the production UI.
+
+## Validate a change
+
+```bash
+cd frontend
+npm ci
+npm run validate:chatbot
+npm run test:unit
+npm run typecheck:api
+npm run build
+```
+
+Manual verification should cover:
+
+1. opening the widget in both application views;
+2. selecting a map area and using that area in chat;
+3. each of the four top-level menus;
+4. source labels on every result;
+5. empty, failed, and unconfigured Supabase states;
+6. English/French limitation disclosure; and
+7. session summary and close behavior.
+
+Any new query must remain parameterized through the Supabase client, use an
+approved public table, disclose its source, and be reflected in interface and
+contract tests.
