@@ -1,5 +1,10 @@
 # V2 Planner View and scoring
 
+Scoring status and formula IDs are governed by the
+[production scoring contract](reference/scoring/production-scoring-contract.md).
+That contract distinguishes the deployed mixed-basis score from candidate
+`GAP-CANON-02`.
+
 ## Purpose
 
 The Planner View compares structural vulnerability with nearby service access
@@ -17,7 +22,7 @@ Production cards, map colours, and priority rankings currently use
 | Interface element | Runtime source |
 | --- | --- |
 | Area profile and structural score | `area_profile` |
-| Gap score, gap rank, priority, and explanation | `gap_score` |
+| Gap score, gap rank, classification status, formula IDs, and explanation | `gap_score` |
 | Service-access details | `accessibility` |
 | Service locations | `services_master` |
 | Low-income, housing-cost-burden, and recent-immigration detail bars | `/api/area-vulnerability`, backed by `area_vulnerability_index_real` |
@@ -26,9 +31,9 @@ Production cards, map colours, and priority rankings currently use
 The detail bars are real Census-derived fields. They are not the older
 synthetic demonstration indicators.
 
-## Production scoring
+## Deployed scoring pending candidate approval
 
-### Structural vulnerability
+### `STRUCT-01` — structural vulnerability
 
 Five area-level 2021 Census dimensions are normalized to 0–100 across the
 comparison areas and averaged with equal weight:
@@ -47,7 +52,7 @@ vulnerability_score =
 Equal weights keep the proof-of-concept method explainable and avoid implying
 empirical precision that has not been established.
 
-### Accessibility
+### `ACCESS-LEGACY-01` — deployed accessibility
 
 For each service category:
 
@@ -62,10 +67,11 @@ accessibility_score =
   min(100, distance_component + count_component)
 ```
 
-The production area accessibility value is the average across service
-categories.
+The deployed area accessibility value is the average across the nine synthetic
+service categories. This is a legacy fixture, not the 3,664-row real service
+directory.
 
-### Gap and priority
+### `GAP-PROD-01` and `CLASS-LEGACY-01`
 
 ```text
 gap_score =
@@ -81,6 +87,20 @@ gap_score =
 This makes the gap high only when structural pressure is high and the
 accessibility proxy is low. The calculation runs in the data pipeline, not in
 the browser.
+
+These fixed labels are unvalidated. Candidate `GAP-CANON-02` removes them and
+shows only the POC relative service-gap score and rank until a separate
+threshold decision is approved.
+
+## Candidate `GAP-CANON-02`
+
+Candidate `ACCESS-REAL-02` replaces the synthetic service input with 3,200
+mappable `services_master` rows, carries formula and snapshot IDs, and uses a
+relative distance/log-availability calculation. The full formula, category
+crosswalk, limitations, and publication gate are defined only in the
+[production scoring contract](reference/scoring/production-scoring-contract.md).
+The [comparison report](reference/scoring/scoring-candidate-comparison-2026-07-28.md)
+records all 12 score and rank changes.
 
 ## Scoring decision memo
 

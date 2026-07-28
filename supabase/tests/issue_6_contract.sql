@@ -61,6 +61,26 @@ begin
     ) is null then
         raise exception 'Private web-observed publication function is missing';
     end if;
+    if to_regprocedure(
+        'public.publish_scoring_contract_02(jsonb,jsonb,jsonb)'
+    ) is null then
+        raise exception 'Private scoring-contract publication function is missing';
+    end if;
+    if has_function_privilege(
+        'anon',
+        'public.publish_scoring_contract_02(jsonb,jsonb,jsonb)',
+        'EXECUTE'
+    ) or has_function_privilege(
+        'authenticated',
+        'public.publish_scoring_contract_02(jsonb,jsonb,jsonb)',
+        'EXECUTE'
+    ) or not has_function_privilege(
+        'service_role',
+        'public.publish_scoring_contract_02(jsonb,jsonb,jsonb)',
+        'EXECUTE'
+    ) then
+        raise exception 'Scoring publication function permissions are unsafe';
+    end if;
 
     select string_agg(name, ', ' order by name)
     into failed_objects
@@ -213,6 +233,56 @@ begin
         raise exception 'Web visitor-tag columns missing: %', missing_objects;
     end if;
 
+    -- Candidate scoring-contract-02 columns. This owner-level test is expected
+    -- to pass only after the additive migration and approved atomic data
+    -- refresh; it is not a command to publish the candidate.
+    select string_agg(spec.table_name || '.' || spec.column_name, ', ' order by 1)
+    into missing_objects
+    from (
+        values
+            ('area_profile', 'population_basis'),
+            ('area_profile', 'structural_vulnerability_score'),
+            ('area_profile', 'structural_vulnerability_rank'),
+            ('area_profile', 'structural_formula_id'),
+            ('area_profile', 'score_basis'),
+            ('area_profile', 'score_version'),
+            ('area_profile', 'source_year'),
+            ('area_profile', 'source_geography_level'),
+            ('area_profile', 'source_geography_name'),
+            ('accessibility', 'distance_component'),
+            ('accessibility', 'availability_component'),
+            ('accessibility', 'accessibility_basis'),
+            ('accessibility', 'accessibility_version'),
+            ('accessibility', 'accessibility_formula_id'),
+            ('accessibility', 'formula_set_version'),
+            ('accessibility', 'taxonomy_version'),
+            ('accessibility', 'service_snapshot_id'),
+            ('accessibility', 'service_snapshot_date'),
+            ('accessibility', 'service_snapshot_total_rows'),
+            ('accessibility', 'service_snapshot_mappable_rows'),
+            ('gap_score', 'structural_vulnerability_score'),
+            ('gap_score', 'service_accessibility_score'),
+            ('gap_score', 'classification_status'),
+            ('gap_score', 'structural_formula_id'),
+            ('gap_score', 'accessibility_formula_id'),
+            ('gap_score', 'gap_formula_id'),
+            ('gap_score', 'formula_set_version'),
+            ('gap_score', 'gap_basis'),
+            ('gap_score', 'gap_version'),
+            ('gap_score', 'taxonomy_version'),
+            ('gap_score', 'service_snapshot_id')
+    ) as spec(table_name, column_name)
+    where not exists (
+        select 1
+        from information_schema.columns c
+        where c.table_schema = 'public'
+          and c.table_name = spec.table_name
+          and c.column_name = spec.column_name
+    );
+    if missing_objects is not null then
+        raise exception 'Candidate scoring columns missing: %', missing_objects;
+    end if;
+
     if not exists (
         select 1 from pg_class
         where oid = 'public.v_visit_needs_by_center'::regclass
@@ -274,6 +344,56 @@ begin
         select 1 from public.vulnerability_index_v2
         where v2_data_basis is null or btrim(v2_data_basis) = ''
     ) then raise exception 'vulnerability_index_v2 has a missing data basis'; end if;
+    if exists (
+        select 1
+        from public.area_profile
+        where structural_formula_id is distinct from 'STRUCT-01'
+           or structural_vulnerability_score is null
+           or structural_vulnerability_rank is null
+           or abs(vulnerability_score - structural_vulnerability_score) > 0.01
+           or vulnerability_rank <> structural_vulnerability_rank
+    ) then raise exception 'area_profile structural aliases or formula IDs are inconsistent'; end if;
+    if exists (
+        select 1
+        from public.accessibility
+        where accessibility_formula_id is distinct from 'ACCESS-REAL-02'
+           or formula_set_version is distinct from 'scoring-contract-02'
+           or taxonomy_version is distinct from 'planning-needs-9-v1'
+           or distance_component not between 0 and 100
+           or availability_component not between 0 and 100
+           or accessibility_score not between 0 and 100
+           or abs(
+                accessibility_score
+                - (0.5 * distance_component + 0.5 * availability_component)
+           ) > 0.011
+           or service_snapshot_total_rows <> 3664
+           or service_snapshot_mappable_rows <> 3200
+    ) then raise exception 'accessibility rows violate scoring-contract-02'; end if;
+    select count(distinct service_category) into actual_count
+    from public.accessibility;
+    if actual_count <> 9 then
+        raise exception 'accessibility expected 9 planning categories, found %', actual_count;
+    end if;
+    if exists (
+        select 1
+        from public.gap_score
+        where structural_formula_id is distinct from 'STRUCT-01'
+           or accessibility_formula_id is distinct from 'ACCESS-REAL-02'
+           or gap_formula_id is distinct from 'GAP-CANON-02'
+           or formula_set_version is distinct from 'scoring-contract-02'
+           or classification_status is distinct from 'unvalidated_poc'
+           or structural_vulnerability_score is null
+           or service_accessibility_score is null
+           or nullif(btrim(priority_flag), '') is not null
+           or abs(vulnerability_score - structural_vulnerability_score) > 0.01
+           or abs(overall_accessibility_score - service_accessibility_score) > 0.01
+           or abs(
+                gap_score
+                - structural_vulnerability_score
+                  * (100.0 - service_accessibility_score)
+                  / 100.0
+           ) > 0.011
+    ) then raise exception 'gap_score rows violate scoring-contract-02'; end if;
     if exists (
         select 1 from public.vulnerability_index_v2
         where abs((structural_weight + observed_weight) - 1.0) > 0.000001

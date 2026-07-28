@@ -6,7 +6,10 @@ import {
   mapServiceRowsToDashboardServices,
   serviceMatchesSearch,
 } from "./dashboardAdapter.js";
-import { validateRealAreaIndicators } from "./supabaseData.js";
+import {
+  validateCandidateScoringContract,
+  validateRealAreaIndicators,
+} from "./supabaseData.js";
 
 test("service rows parse names, categories, ages, groups, and tags", () => {
   const [service] = mapServiceRowsToDashboardServices([{
@@ -44,19 +47,34 @@ test("search resolves case, accents, service type, address, and tags", () => {
   assert.equal(serviceMatchesSearch(service, "unrelated"), false);
 });
 
-test("area scoring retains real indicator labels and priority metadata", () => {
+test("area scoring retains real indicators and candidate formula lineage", () => {
   const [area] = mapAreaRowsToAreas(
     [{
       area_id: "A003",
       area_name: "Cote-des-Neiges",
       borough_name: "Cote-des-Neiges-Notre-Dame-de-Grace",
-      gap_score: 56.99,
-      vulnerability_score: 64.39,
+      gap_score: 26.29,
+      structural_vulnerability_score: 62.87,
+      vulnerability_score: 62.87,
+      service_accessibility_score: 58.18,
       gap_rank: 1,
-      priority_flag: "High priority",
-      gap_drivers: "Low income; access score 11.49",
+      priority_flag: "",
+      classification_status: "unvalidated_poc",
+      structural_formula_id: "STRUCT-01",
+      accessibility_formula_id: "ACCESS-REAL-02",
+      gap_formula_id: "GAP-CANON-02",
+      formula_set_version: "scoring-contract-02",
+      gap_drivers: "Low income; comparatively weaker access: Legal Aid",
     }],
-    [{ area_id: "A003", latitude: 45.5, longitude: -73.63 }],
+    [{
+      area_id: "A003",
+      latitude: 45.5,
+      longitude: -73.63,
+      score_basis: "statcan-2021-equal5-borough",
+      source_year: 2021,
+      source_geography_level: "borough",
+      source_geography_name: "Cote-des-Neiges-Notre-Dame-de-Grace",
+    }],
     [],
     [{
       area_id: "A003",
@@ -69,12 +87,23 @@ test("area scoring retains real indicator labels and priority metadata", () => {
     }]
   );
 
-  assert.equal(area.gapScore, 0.57);
-  assert.equal(area.priorityFlag, "High priority");
-  assert.deepEqual(area.drivers, ["Low income"]);
+  assert.equal(area.gapScore, 0.26);
+  assert.equal(area.vulnerability, 0.63);
+  assert.equal(area.accessibility, 0.58);
+  assert.equal(area.priorityFlag, "");
+  assert.equal(area.classificationStatus, "unvalidated_poc");
+  assert.equal(area.structuralFormulaId, "STRUCT-01");
+  assert.equal(area.accessibilityFormulaId, "ACCESS-REAL-02");
+  assert.equal(area.gapFormulaId, "GAP-CANON-02");
+  assert.deepEqual(area.drivers, [
+    "Low income",
+    "comparatively weaker access: Legal Aid",
+  ]);
   assert.equal(area.incomePct, 20.89);
   assert.equal(area.housingPct, 27.62);
   assert.equal(area.immigrationPct, 9.33);
+  assert.equal(area.sourceYear, 2021);
+  assert.equal(area.sourceGeographyLevel, "borough");
 });
 
 test("real indicator contract rejects duplicate and non-numeric rows", () => {
@@ -86,6 +115,7 @@ test("real indicator contract rejects duplicate and non-numeric rows", () => {
     shelter_cost_burden_pct_scaled: 40,
     recent_immigrant_pct: 5,
     recent_immigrant_pct_scaled: 60,
+    vulnerability_index: 50,
   });
   const valid = { areas: Array.from({ length: 12 }, (_, index) => validRow(index)) };
   assert.equal(validateRealAreaIndicators(valid).length, 12);
@@ -102,5 +132,66 @@ test("real indicator contract rejects duplicate and non-numeric rows", () => {
   assert.throws(
     () => validateRealAreaIndicators(nonNumeric),
     /violated the frontend data contract/
+  );
+});
+
+test("candidate scoring contract accepts a complete reconciled snapshot", () => {
+  const areas = Array.from({ length: 12 }, (_, index) => ({
+    area_id: `A${String(index + 1).padStart(3, "0")}`,
+    structural_vulnerability_score: 60,
+    vulnerability_score: 60,
+    structural_vulnerability_rank: index + 1,
+    vulnerability_rank: index + 1,
+    structural_formula_id: "STRUCT-01",
+  }));
+  const gap = areas.map(area => ({
+    area_id: area.area_id,
+    structural_vulnerability_score: 60,
+    vulnerability_score: 60,
+    service_accessibility_score: 50,
+    overall_accessibility_score: 50,
+    gap_score: 30,
+    priority_flag: "",
+    classification_status: "unvalidated_poc",
+    structural_formula_id: "STRUCT-01",
+    accessibility_formula_id: "ACCESS-REAL-02",
+    gap_formula_id: "GAP-CANON-02",
+    formula_set_version: "scoring-contract-02",
+  }));
+  const accessibility = areas.flatMap(area =>
+    Array.from({ length: 9 }, (_, categoryIndex) => ({
+      area_id: area.area_id,
+      service_category: `Category ${categoryIndex + 1}`,
+      distance_component: 40,
+      availability_component: 60,
+      accessibility_score: 50,
+      accessibility_formula_id: "ACCESS-REAL-02",
+      formula_set_version: "scoring-contract-02",
+      taxonomy_version: "planning-needs-9-v1",
+      service_snapshot_total_rows: 3664,
+      service_snapshot_mappable_rows: 3200,
+    }))
+  );
+
+  assert.doesNotThrow(() =>
+    validateCandidateScoringContract({ areas, gap, accessibility })
+  );
+});
+
+test("candidate scoring contract rejects a mixed legacy snapshot", () => {
+  assert.throws(
+    () => validateCandidateScoringContract({
+      areas: Array(12).fill({
+        structural_formula_id: "",
+        vulnerability_score: 74.6,
+      }),
+      gap: Array(12).fill({
+        gap_formula_id: "GAP-PROD-01",
+      }),
+      accessibility: Array(108).fill({
+        accessibility_formula_id: "ACCESS-LEGACY-01",
+      }),
+    }),
+    /scoring-contract-02|complete candidate matrix/
   );
 });

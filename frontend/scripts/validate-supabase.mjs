@@ -44,9 +44,18 @@ const requiredColumns = {
     "language_indicator",
     "immigration_indicator",
     "housing_indicator",
+    "structural_vulnerability_score",
     "vulnerability_score",
+    "structural_vulnerability_rank",
     "vulnerability_rank",
-    "top_vulnerability_drivers"
+    "top_vulnerability_drivers",
+    "structural_formula_id",
+    "score_basis",
+    "score_version",
+    "source_year",
+    "source_geography_level",
+    "source_geography_name",
+    "population_basis"
   ],
   gap_score: [
     "area_id",
@@ -54,22 +63,44 @@ const requiredColumns = {
     "borough_name",
     "latitude",
     "longitude",
+    "structural_vulnerability_score",
     "vulnerability_score",
+    "service_accessibility_score",
     "overall_accessibility_score",
     "gap_score",
     "gap_rank",
     "priority_flag",
+    "classification_status",
     "gap_drivers",
     "summary_en",
-    "summary_fr"
+    "summary_fr",
+    "structural_formula_id",
+    "accessibility_formula_id",
+    "gap_formula_id",
+    "formula_set_version",
+    "gap_basis",
+    "gap_version",
+    "taxonomy_version",
+    "service_snapshot_id"
   ],
   accessibility: [
     "area_id",
     "service_category",
     "nearest_service_distance_km",
     "service_count_within_threshold",
+    "distance_component",
+    "availability_component",
     "accessibility_score",
-    "accessibility_method"
+    "accessibility_method",
+    "accessibility_basis",
+    "accessibility_version",
+    "accessibility_formula_id",
+    "formula_set_version",
+    "taxonomy_version",
+    "service_snapshot_id",
+    "service_snapshot_date",
+    "service_snapshot_total_rows",
+    "service_snapshot_mappable_rows"
   ],
   service_table: [
     "service_id",
@@ -255,6 +286,90 @@ for (const table of [
   }
 }
 
+const profileById = new Map(
+  (tableRows.area_profile ?? []).map((row) => [row.area_id, row])
+);
+const scoringErrors = [];
+for (const row of tableRows.gap_score ?? []) {
+  const profile = profileById.get(row.area_id);
+  const expectedGap =
+    Number(row.structural_vulnerability_score)
+    * (100 - Number(row.service_accessibility_score))
+    / 100;
+  if (!profile) continue;
+  if (
+    Math.abs(
+      Number(profile.structural_vulnerability_score)
+      - Number(profile.vulnerability_score)
+    ) > 0.01
+    || Number(profile.structural_vulnerability_rank)
+      !== Number(profile.vulnerability_rank)
+    || Math.abs(
+      Number(row.structural_vulnerability_score)
+      - Number(row.vulnerability_score)
+    ) > 0.01
+    || Math.abs(
+      Number(row.structural_vulnerability_score)
+      - Number(profile.structural_vulnerability_score)
+    ) > 0.01
+  ) {
+    scoringErrors.push(`${row.area_id} structural aliases disagree`);
+  }
+  if (Math.abs(Number(row.gap_score) - expectedGap) > 0.011) {
+    scoringErrors.push(`${row.area_id} gap formula does not reconcile`);
+  }
+  if (
+    row.structural_formula_id !== "STRUCT-01"
+    || row.accessibility_formula_id !== "ACCESS-REAL-02"
+    || row.gap_formula_id !== "GAP-CANON-02"
+    || row.formula_set_version !== "scoring-contract-02"
+    || row.classification_status !== "unvalidated_poc"
+    || String(row.priority_flag ?? "").trim() !== ""
+  ) {
+    scoringErrors.push(`${row.area_id} formula metadata is not candidate contract 02`);
+  }
+}
+if (scoringErrors.length > 0) {
+  scoringErrors.forEach(fail);
+} else {
+  pass("candidate scoring aliases, formula IDs, classification, and gap arithmetic reconcile");
+}
+
+const accessibilityCategoriesByArea = new Map();
+for (const row of tableRows.accessibility ?? []) {
+  const categories = accessibilityCategoriesByArea.get(row.area_id) ?? new Set();
+  categories.add(row.service_category);
+  accessibilityCategoriesByArea.set(row.area_id, categories);
+  if (
+    row.accessibility_formula_id !== "ACCESS-REAL-02"
+    || row.formula_set_version !== "scoring-contract-02"
+    || row.taxonomy_version !== "planning-needs-9-v1"
+    || Number(row.distance_component) < 0
+    || Number(row.distance_component) > 100
+    || Number(row.availability_component) < 0
+    || Number(row.availability_component) > 100
+    || Math.abs(
+      Number(row.accessibility_score)
+      - (
+        0.5 * Number(row.distance_component)
+        + 0.5 * Number(row.availability_component)
+      )
+    ) > 0.011
+    || Number(row.service_snapshot_total_rows) !== 3664
+    || Number(row.service_snapshot_mappable_rows) !== 3200
+  ) {
+    fail(`${row.area_id}/${row.service_category} accessibility metadata is invalid`);
+  }
+}
+if (
+  accessibilityCategoriesByArea.size === 12
+  && [...accessibilityCategoriesByArea.values()].every(categories => categories.size === 9)
+) {
+  pass("accessibility contains nine candidate planning categories for all 12 areas");
+} else {
+  fail("accessibility is not a complete 12 area x 9 category matrix");
+}
+
 for (const [table, columns] of Object.entries(keyColumns)) {
   const firstRow = tableRows[table]?.[0];
   if (!firstRow) continue;
@@ -276,6 +391,20 @@ for (const objectName of privateObjects) {
   } else {
     pass(`${objectName} is not readable by the anonymous browser role`);
   }
+}
+
+const { error: scoringPublishError } = await client.rpc(
+  "publish_scoring_contract_02",
+  {
+    p_area_profiles: [],
+    p_accessibility: [],
+    p_gap_scores: [],
+  }
+);
+if (!scoringPublishError) {
+  fail("anonymous browser role can execute publish_scoring_contract_02");
+} else {
+  pass("anonymous browser role cannot execute publish_scoring_contract_02");
 }
 
 if (failures.length > 0) {

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import re
 import subprocess
 import sys
@@ -16,8 +17,11 @@ REQUIRED_FILES = (
     "docs/v2-planner.md",
     "docs/chatbot.md",
     "docs/archive/index.md",
+    "docs/reference/scoring/production-scoring-contract.md",
+    "docs/reference/scoring/scoring-candidate-comparison-2026-07-28.md",
 )
 CANONICAL_FILES = REQUIRED_FILES[:4]
+FORMULA_MANIFEST = "data/processed/scoring_formula_manifest.json"
 STALE_CANONICAL_PATTERNS = {
     "feature/dashboard": re.compile(r"feature/dashboard", re.IGNORECASE),
     "planned target architecture": re.compile(
@@ -70,11 +74,7 @@ def validate() -> list[str]:
                     f"{relative_path} contains stale canonical wording: {label}"
                 )
 
-    markdown_files = [
-        ROOT / path
-        for path in tracked
-        if path == "README.md" or path.startswith("docs/") and path.endswith(".md")
-    ]
+    markdown_files = [ROOT / "README.md", *sorted((ROOT / "docs").rglob("*.md"))]
     for source in markdown_files:
         content = source.read_text(encoding="utf-8")
         for match in MARKDOWN_LINK.finditer(content):
@@ -96,6 +96,31 @@ def validate() -> list[str]:
                     f"{source.relative_to(ROOT)}:{line} has broken link: {target}"
                 )
 
+    manifest_path = ROOT / FORMULA_MANIFEST
+    contract_path = ROOT / "docs/reference/scoring/production-scoring-contract.md"
+    if not manifest_path.is_file():
+        errors.append(f"missing formula manifest: {FORMULA_MANIFEST}")
+    elif contract_path.is_file():
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        contract = contract_path.read_text(encoding="utf-8")
+        if manifest.get("document_status") != "candidate":
+            errors.append("formula manifest must remain candidate until deployment")
+        for formula_id in manifest.get("formulas", {}):
+            if formula_id not in contract:
+                errors.append(
+                    "official scoring contract is missing formula id: "
+                    f"{formula_id}"
+                )
+        if manifest.get("production_formula_set") != "GAP-PROD-01":
+            errors.append(
+                "formula manifest must identify GAP-PROD-01 as current production "
+                "until approval and deployment"
+            )
+        if manifest.get("candidate_formula_set") != "GAP-CANON-02":
+            errors.append(
+                "formula manifest must identify GAP-CANON-02 as the candidate"
+            )
+
     return errors
 
 
@@ -107,7 +132,7 @@ def main() -> int:
         return 1
     print(
         "Documentation validation passed: canonical files, single README, "
-        "current wording, and relative links."
+        "current wording, formula registry, and relative links."
     )
     return 0
 

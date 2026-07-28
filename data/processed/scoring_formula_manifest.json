@@ -1,0 +1,97 @@
+{
+  "candidate_formula_set": "GAP-CANON-02",
+  "document_status": "candidate",
+  "formula_set_version": "scoring-contract-02",
+  "formulas": {
+    "ACCESS-LEGACY-01": {
+      "name": "Synthetic distance-plus-count accessibility",
+      "production_use": "current gap input until candidate release",
+      "status": "legacy"
+    },
+    "ACCESS-REAL-02": {
+      "name": "Relative accessibility from services_master",
+      "production_use": "none until approval and deployment",
+      "status": "candidate"
+    },
+    "CLASS-LEGACY-01": {
+      "name": "Unvalidated High/Watch/Lower thresholds",
+      "production_use": "current labels until candidate release",
+      "status": "legacy"
+    },
+    "FOCUS-EXP-01": {
+      "name": "Immigrant and language Census concern",
+      "production_use": "none",
+      "status": "experimental"
+    },
+    "FOCUS-EXP-02": {
+      "name": "Immigrant and Indigenous focus Census composite",
+      "production_use": "none",
+      "status": "experimental"
+    },
+    "GAP-CANON-02": {
+      "name": "Canonical structural plus relative-service-access gap",
+      "production_use": "none until approval and deployment",
+      "status": "candidate"
+    },
+    "GAP-PROD-01": {
+      "name": "Current mixed-basis production gap",
+      "production_use": "current production formula set",
+      "status": "production"
+    },
+    "PROFILE-LEGACY-01": {
+      "name": "Synthetic area-profile vulnerability",
+      "production_use": "current profile/chatbot until candidate release",
+      "status": "legacy"
+    },
+    "STRUCT-01": {
+      "name": "StatCan 2021 equal-weight five-indicator structural vulnerability",
+      "production_use": "current gap input and candidate canonical score",
+      "status": "production_component"
+    },
+    "V1-DEMAND-EXP-01": {
+      "name": "Frontline demand score",
+      "production_use": "none in gap",
+      "status": "experimental"
+    },
+    "V2-COMP-EXP-01": {
+      "name": "Structural-focus plus observed-needs composite",
+      "production_use": "none in gap",
+      "status": "experimental"
+    },
+    "V2-OBS-EXP-01": {
+      "name": "Fixed-component observed-needs score",
+      "production_use": "none in gap",
+      "status": "experimental"
+    },
+    "WEB-DEMAND-EXP-01": {
+      "name": "Coverage-gated anonymous web-demand score",
+      "production_use": "none in gap",
+      "status": "experimental"
+    }
+  },
+  "production_formula_set": "GAP-PROD-01",
+  "service_category_crosswalk": {
+    "Community & Advocacy": "General Support",
+    "Disability": "General Support",
+    "Domestic Violence & Safety": "General Support",
+    "Education & Literacy": "General Support",
+    "Employment & Income": "Employment",
+    "Food": "Food Support",
+    "Gender & LGBTQ+": "General Support",
+    "Government Services": "General Support",
+    "Immigration & Newcomers": "Newcomer Support",
+    "Indigenous": "General Support",
+    "Legal": "Legal Aid",
+    "Material Aid": "General Support",
+    "Medical": "Health & Mental Health",
+    "Other": "General Support",
+    "Recreation & Culture": "General Support",
+    "Seniors": "Senior Support",
+    "Shelter": "Housing & Shelter",
+    "Translation": "Newcomer Support",
+    "Transportation": "General Support",
+    "Youth & Family": "Family Services"
+  },
+  "service_snapshot_date": "2026-07-28",
+  "taxonomy_version": "planning-needs-9-v1"
+}

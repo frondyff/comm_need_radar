@@ -3,8 +3,9 @@
 Reproducible extraction + processing that replaces the synthetic MVP inputs with
 real Greater-Montreal public data, in the exact schemas the team contract expects
 (`docs/archive/data-requirements.md`, `docs/reference/data/interfaces.md`, `docs/archive/laura-data-request-real-index.md`).
-Owner: Laura (data engineering). It produces the **raw inputs** Frondy's scoring
-scripts consume — it does not change the scoring.
+Owner: Laura (data engineering). It produces the raw inputs consumed by the
+versioned scoring pipeline. Formula definitions live in
+[`production-scoring-contract.md`](../scoring/production-scoring-contract.md).
 
 ## What it produces
 
@@ -72,7 +73,7 @@ python scripts/data_pipeline/build_cisv_reference.py
 python scripts/data_pipeline/build_transit_stops.py
 python scripts/data_pipeline/generate_synthetic_visitor_tags.py   # synthetic (no real source)
 
-# 5. feed Frondy's scoring (real immigrant/Indigenous focus index)
+# 5. build the real structural inputs
 python scripts/build_statcan_vulnerability_index.py
 python scripts/aggregate_ct_to_areas.py
 
@@ -80,6 +81,10 @@ python scripts/aggregate_ct_to_areas.py
 python scripts/build_area_boundaries.py
 python scripts/map_centers_to_areas.py
 python scripts/validate_spatial_joins.py
+
+# 5c. build candidate STRUCT-01 / ACCESS-REAL-02 / GAP-CANON-02 artifacts
+python scripts/build_processed_data.py
+python scripts/compare_scoring_contracts.py
 
 # 6. (optional) load everything into a single SQLite database
 python scripts/data_pipeline/build_database.py   # -> data/community_radar.sqlite
@@ -115,8 +120,8 @@ value-for-value (verified) so any teammate can regenerate them from public sourc
   app, maps, and chatbot: the licensed 211 Grand Montréal directory merged and
   de-duplicated with the open-data services below. Of these, 3,200 are mappable
   and 1,676 currently fall within one of the 12 review areas.
-- **4,255** service centers (the earlier open-data centre layer, retained for the
-  current accessibility and gap scoring): 3,476 recreation · 100 cultural ·
+- **4,255** service centers (the earlier open-data centre layer, retained for
+  compatibility and historical analysis): 3,476 recreation · 100 cultural ·
   **653 community/social** (MSSS facilities, OpenStreetMap, curated
   shelters/newcomer/women's-youth, and Indigenous-led INDex orgs) · 26 food banks.
 - **5,555** dissemination areas of CISV (validation reference).

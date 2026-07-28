@@ -232,25 +232,23 @@ function parseDrivers(raw, maxItems = 6, maxLen = 50) {
     .slice(0, maxItems);
 }
 
-// One row per AREA (not aggregated to borough) — carries the richer
-// gap_score fields (rank, priority flag, bilingual narrative summary, key
-// drivers) plus the area_profile / accessibility indicators. Used for the
-// Area Profile drill-down and an area-level "Top priority" list, since
+// One row per AREA (not aggregated to borough) — carries the auditable
+// gap_score fields (rank, formula IDs, bilingual narrative summary, key
+// drivers) plus the area_profile indicators. Used for the Area Profile
+// drill-down and an area-level relative-gap ranking, since
 // text fields like summary/drivers can't be meaningfully averaged the way
 // mapAreaRowsToBoroughScores averages the numeric score for the choropleth.
 export function mapAreaRowsToAreas(
   gapRows,
   areaRows,
-  accessibilityRows = [],
+  _accessibilityRows = [],
   vulnerabilityRows = []
 ) {
   const profileById = new Map(areaRows.map(area => [area.area_id, area]));
-  const accessById = new Map(accessibilityRows.map(row => [row.area_id, row]));
   const vulnerabilityById = new Map(vulnerabilityRows.map(row => [row.area_id, row]));
   return gapRows
     .map(row => {
       const profile = profileById.get(row.area_id);
-      const access = accessById.get(row.area_id);
       const vulnerability = vulnerabilityById.get(row.area_id);
       const lat = row.latitude != null ? Number(row.latitude) : (profile?.latitude != null ? Number(profile.latitude) : null);
       const lng = row.longitude != null ? Number(row.longitude) : (profile?.longitude != null ? Number(profile.longitude) : null);
@@ -261,12 +259,27 @@ export function mapAreaRowsToAreas(
         lat: Number.isFinite(lat) ? lat : null,
         lng: Number.isFinite(lng) ? lng : null,
         gapScore: normalizeMetric(row.gap_score, 100),
-        vulnerability: normalizeMetric(row.vulnerability_score, 100),
-        // prefer the dedicated accessibility table's score; fall back to
-        // gap_score's own overall_accessibility_score if that row is missing
-        accessibility: normalizeMetric(access?.accessibility_score ?? row.overall_accessibility_score, 100),
+        vulnerability: normalizeMetric(
+          row.structural_vulnerability_score ?? row.vulnerability_score,
+          100
+        ),
+        // The accessibility table has nine category rows per area. The gap
+        // row carries their authoritative equal-weight area average.
+        accessibility: normalizeMetric(
+          row.service_accessibility_score ?? row.overall_accessibility_score,
+          100
+        ),
         rank: row.gap_rank != null ? Number(row.gap_rank) : null,
         priorityFlag: normalizeText(row.priority_flag),
+        classificationStatus: normalizeText(row.classification_status),
+        structuralFormulaId: normalizeText(row.structural_formula_id),
+        accessibilityFormulaId: normalizeText(row.accessibility_formula_id),
+        gapFormulaId: normalizeText(row.gap_formula_id),
+        formulaSetVersion: normalizeText(row.formula_set_version),
+        scoreBasis: normalizeText(profile?.score_basis),
+        sourceYear: profile?.source_year != null ? Number(profile.source_year) : null,
+        sourceGeographyLevel: normalizeText(profile?.source_geography_level),
+        sourceGeographyName: normalizeText(profile?.source_geography_name),
         drivers: parseDrivers(row.gap_drivers),
         summaryEn: normalizeText(row.summary_en),
         summaryFr: normalizeText(row.summary_fr),
@@ -281,8 +294,6 @@ export function mapAreaRowsToAreas(
           ? Number(vulnerability.shelter_cost_burden_pct) : null,
         immigrationPct: vulnerability?.recent_immigrant_pct != null
           ? Number(vulnerability.recent_immigrant_pct) : null,
-        nearestServiceKm: access?.nearest_service_distance_km != null ? Number(access.nearest_service_distance_km) : null,
-        serviceCountWithinThreshold: access?.service_count_within_threshold != null ? Number(access.service_count_within_threshold) : null,
       };
     })
     .sort((a, b) => (b.gapScore || 0) - (a.gapScore || 0));

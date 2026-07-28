@@ -1,11 +1,18 @@
 # V1/V2 Scoring Validation — 2026-07-27
 
+> Historical validation of `STRUCT-01`, `V1-DEMAND-EXP-01`,
+> `V2-OBS-EXP-01`, and `V2-COMP-EXP-01`. See the
+> [production scoring contract](production-scoring-contract.md) for the current
+> deployed/candidate boundary.
+
 ## Decision Summary
 
-The structural V1 census layer is suitable for the current production gap
-score. V2 should remain experimental and should **not** replace the production
-gap score until a product owner approves the weights after user review and the
-synthetic observed-needs input is replaced.
+`STRUCT-01` is suitable as the structural layer. The current overall
+`GAP-PROD-01` is not decision-ready because it combines that real structural
+score with `ACCESS-LEGACY-01`, a synthetic accessibility input. All 12 deployed
+`area_profile` vulnerability values also differ from the structural values used
+by `gap_score`. V2 should remain experimental and must not replace the gap
+without a separate product decision.
 
 This is a technical recommendation, not the product decision assigned to Chloe
 in issue #9.

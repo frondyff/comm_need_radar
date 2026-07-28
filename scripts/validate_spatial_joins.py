@@ -25,7 +25,8 @@ from comm_need_radar.geospatial.boundaries import (  # noqa: E402
 )
 
 
-AREA_PATH = PROJECT_ROOT / "data" / "processed" / "area_profile.csv"
+AREA_REGISTRY_PATH = PROJECT_ROOT / "data" / "raw" / "synthetic_area_profiles.csv"
+SCORED_AREA_PATH = PROJECT_ROOT / "data" / "processed" / "area_profile.csv"
 BOROUGH_PATH = PROJECT_ROOT / "data" / "raw" / "boundaries" / "montreal_boroughs.geojson"
 CENTER_PATH = PROJECT_ROOT / "data" / "raw" / "database_centers.csv"
 CENTER_LOOKUP_PATH = PROJECT_ROOT / "data" / "processed" / "center_area_lookup.csv"
@@ -244,12 +245,22 @@ or citywide high-resolution geography.
 
 
 def main() -> None:
-    area_rows = read_csv(AREA_PATH)
-    generated_boundaries = build_area_boundaries_from_files(AREA_PATH, BOROUGH_PATH)
+    area_registry = read_csv(AREA_REGISTRY_PATH)
+    scored_area_rows = read_csv(SCORED_AREA_PATH)
+    generated_boundaries = build_area_boundaries_from_files(
+        AREA_REGISTRY_PATH,
+        BOROUGH_PATH,
+    )
     committed_collection = json.loads(GEOJSON_PATH.read_text(encoding="utf-8"))
     reproducible = committed_collection == area_feature_collection(generated_boundaries)
-    boundaries = area_boundaries_from_feature_collection(committed_collection, area_rows)
-    area_summary, area_issues = evaluate_area_contract(area_rows, boundaries)
+    boundaries = area_boundaries_from_feature_collection(
+        committed_collection,
+        area_registry,
+    )
+    area_summary, area_issues = evaluate_area_contract(
+        scored_area_rows,
+        boundaries,
+    )
 
     center_lookup = {
         row["center_id"]: row["area_id"] for row in read_csv(CENTER_LOOKUP_PATH)

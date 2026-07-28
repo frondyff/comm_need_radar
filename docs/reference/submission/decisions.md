@@ -31,6 +31,8 @@ runtime was removed after React/Vite became the sole application interface.
 | 2026-07-28 | Make `main` the GitHub default while production releases continue from `dev` | Separates the stable submission snapshot from the tested integration and deployment path |
 | 2026-07-28 | Treat React/Vite as the only supported application UI and keep the guided chatbot Planner-only | Matches the implemented and deployed product; earlier Streamlit proposals are historical only |
 | 2026-07-28 | Remove the obsolete Streamlit runtime and its exclusive Plotly dependency | Eliminates an unsupported duplicate UI while retaining dated Streamlit references as historical project records |
+| 2026-07-28 | Number every legacy, canonical, and experimental scoring formula | Prevents two different measures from sharing the ambiguous `vulnerability_score` name and makes stored lineage auditable |
+| 2026-07-28 | Approve `scoring-contract-02` for the POC production interface | Resolves the displayed/calculated structural-score mismatch and replaces synthetic accessibility with the reviewed real service snapshot while retaining POC labels, documented limitations, and no policy-priority classification |
 
 ## Pending Decisions For Real Data Version
 

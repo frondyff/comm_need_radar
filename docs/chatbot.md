@@ -22,8 +22,13 @@ Implementation:
 | --- | --- | --- |
 | Find services | Category, area, and audience-filtered organizations | `services_master` |
 | Service demand | Category interest in an area or highest-demand areas | `observed_need_category_summary` |
-| About an area | Vulnerability, gap, demographics, and aggregate demand | `area_profile`, `gap_score`, `observed_need_index` |
-| City-wide rankings | Highest vulnerability, gap, immigration pressure, or income pressure | `area_profile`, `gap_score` |
+| About an area | Structural vulnerability, relative service accessibility, POC gap, source geography, and aggregate demand | `area_profile`, `gap_score`, `observed_need_index` |
+| City-wide rankings | Highest structural vulnerability, relative gap rank, immigration pressure, or income pressure | `area_profile`, `gap_score` |
+
+Candidate scoring responses name `STRUCT-01` and `GAP-CANON-02`, omit the
+synthetic population claim, and never assign High/Watch/Lower while
+`classification_status = unvalidated_poc`. The authoritative formula status is
+the [production scoring contract](reference/scoring/production-scoring-contract.md).
 
 The chatbot offers all 12 areas and can also use the area selected on the
 Planner map. Service answers are capped at 20 displayed organizations and show

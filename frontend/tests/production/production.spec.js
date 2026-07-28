@@ -164,7 +164,7 @@ test("planner workflow loads live areas, switches language, and completes a chat
   await page.getByTestId("open-chat").click();
   await expect(page.getByTestId("chatbot")).toBeVisible();
   await page.getByRole("button", { name: "City-wide rankings" }).click();
-  await page.getByRole("button", { name: "Highest service gap" }).click();
+  await page.getByRole("button", { name: "Highest relative service-gap rank" }).click();
   await expect(page.getByTestId("chat-result")).toBeVisible({ timeout: 30_000 });
   await expect(page.getByText(/Source \(table\):/)).toBeVisible();
 

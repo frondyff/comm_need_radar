@@ -10,11 +10,14 @@ sys.path.insert(0, str(PROJECT_ROOT / "src"))
 from comm_need_radar.config.paths import (
     ACCESSIBILITY_TABLE_PATH,
     AREA_PROFILE_PATH,
+    AREA_VULNERABILITY_INDEX_REAL_PATH,
     GAP_SCORE_PATH,
     OBSERVED_NEED_CATEGORY_SUMMARY_PATH,
     OBSERVED_NEED_INDEX_PATH,
     PROCESSED_DIR,
     ROLE_ACTIVITY_LOG_PATH,
+    SCORING_FORMULA_MANIFEST_PATH,
+    SERVICES_MASTER_PATH,
     SERVICE_TABLE_PATH,
     VULNERABILITY_INDEX_V2_PATH,
 )
@@ -26,12 +29,134 @@ class ProcessedContractTests(unittest.TestCase):
             self.assertTrue(path.exists(), f"Missing {path}")
 
     def test_gap_score_contract(self):
+        profile = pd.read_csv(AREA_PROFILE_PATH)
         gap = pd.read_csv(GAP_SCORE_PATH)
-        required = {"area_id", "area_name", "vulnerability_score", "overall_accessibility_score", "gap_score", "gap_rank", "priority_flag"}
+        real = pd.read_csv(AREA_VULNERABILITY_INDEX_REAL_PATH)
+        required = {
+            "area_id",
+            "area_name",
+            "structural_vulnerability_score",
+            "vulnerability_score",
+            "service_accessibility_score",
+            "overall_accessibility_score",
+            "gap_score",
+            "gap_rank",
+            "priority_flag",
+            "classification_status",
+            "structural_formula_id",
+            "accessibility_formula_id",
+            "gap_formula_id",
+            "formula_set_version",
+        }
         self.assertTrue(required.issubset(gap.columns))
         self.assertEqual(gap["area_id"].nunique(), len(gap))
         self.assertTrue(gap["gap_score"].between(0, 100).all())
         self.assertEqual(gap["gap_rank"].nunique(), len(gap))
+        self.assertTrue(gap["priority_flag"].isna().all())
+        self.assertEqual(set(gap["classification_status"]), {"unvalidated_poc"})
+        self.assertEqual(set(gap["structural_formula_id"]), {"STRUCT-01"})
+        self.assertEqual(set(gap["accessibility_formula_id"]), {"ACCESS-REAL-02"})
+        self.assertEqual(set(gap["gap_formula_id"]), {"GAP-CANON-02"})
+        self.assertEqual(set(gap["formula_set_version"]), {"scoring-contract-02"})
+        self.assertTrue(
+            (
+                profile["structural_vulnerability_rank"]
+                == profile["vulnerability_rank"]
+            ).all()
+        )
+
+        joined = (
+            gap.merge(
+                profile[
+                    [
+                        "area_id",
+                        "structural_vulnerability_score",
+                        "vulnerability_score",
+                    ]
+                ],
+                on="area_id",
+                suffixes=("_gap", "_profile"),
+                validate="one_to_one",
+            )
+            .merge(
+                real[["area_id", "vulnerability_index"]],
+                on="area_id",
+                validate="one_to_one",
+            )
+        )
+        for column in [
+            "structural_vulnerability_score_gap",
+            "vulnerability_score_gap",
+            "structural_vulnerability_score_profile",
+            "vulnerability_score_profile",
+        ]:
+            self.assertTrue(
+                (joined[column] - joined["vulnerability_index"]).abs().le(0.01).all(),
+                column,
+            )
+        expected_gap = (
+            joined["structural_vulnerability_score_gap"]
+            * (100 - joined["service_accessibility_score"])
+            / 100
+        )
+        self.assertTrue((joined["gap_score"] - expected_gap).abs().le(0.011).all())
+
+    def test_real_service_accessibility_contract(self):
+        accessibility = pd.read_csv(ACCESSIBILITY_TABLE_PATH)
+        services = pd.read_csv(SERVICES_MASTER_PATH)
+        self.assertEqual(len(accessibility), 108)
+        self.assertEqual(accessibility["area_id"].nunique(), 12)
+        self.assertTrue(
+            (accessibility.groupby("area_id")["service_category"].nunique() == 9).all()
+        )
+        self.assertEqual(set(accessibility["accessibility_formula_id"]), {"ACCESS-REAL-02"})
+        self.assertEqual(set(accessibility["taxonomy_version"]), {"planning-needs-9-v1"})
+        self.assertEqual(set(accessibility["service_snapshot_total_rows"]), {3664})
+        self.assertEqual(set(accessibility["service_snapshot_mappable_rows"]), {3200})
+        self.assertEqual(len(services), 3664)
+        self.assertTrue(accessibility["distance_component"].between(0, 100).all())
+        self.assertTrue(accessibility["availability_component"].between(0, 100).all())
+        expected_access = (
+            0.5 * accessibility["distance_component"]
+            + 0.5 * accessibility["availability_component"]
+        ).round(2)
+        self.assertTrue(
+            (accessibility["accessibility_score"] - expected_access)
+            .abs()
+            .le(0.011)
+            .all()
+        )
+        overall = accessibility.groupby("area_id")["accessibility_score"].mean()
+        self.assertGreaterEqual(overall.round(2).nunique(), 6)
+        self.assertFalse((overall >= 95).all())
+
+    def test_structural_regression_examples(self):
+        profile = pd.read_csv(AREA_PROFILE_PATH).set_index("area_id")
+        expected = {
+            "A001": 62.87,
+            "A003": 64.39,
+            "A005": 30.24,
+            "A009": 52.06,
+        }
+        for area_id, score in expected.items():
+            self.assertAlmostEqual(
+                profile.loc[area_id, "structural_vulnerability_score"],
+                score,
+                places=2,
+            )
+        self.assertEqual(
+            set(profile["population_basis"]),
+            {"synthetic_demo_not_for_scoring"},
+        )
+
+    def test_formula_manifest_is_candidate_not_deployed(self):
+        import json
+
+        manifest = json.loads(SCORING_FORMULA_MANIFEST_PATH.read_text(encoding="utf-8"))
+        self.assertEqual(manifest["document_status"], "candidate")
+        self.assertEqual(manifest["production_formula_set"], "GAP-PROD-01")
+        self.assertEqual(manifest["candidate_formula_set"], "GAP-CANON-02")
+        self.assertEqual(len(manifest["service_category_crosswalk"]), 20)
 
     def test_role_activity_has_all_roles(self):
         log = pd.read_csv(ROLE_ACTIVITY_LOG_PATH)
