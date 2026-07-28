@@ -9,8 +9,6 @@ description = "Synthetic MVP for Community Needs Radar"
 requires-python = ">=3.11"
 dependencies = [
     "pandas>=2.2",
-    "streamlit>=1.54",
-    "plotly>=6.0",
     "shapely>=2.1",
 ]
 
