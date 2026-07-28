@@ -5,7 +5,7 @@ was deployed to production on 2026-07-23 at https://comm-mvp.vercel.app.
 Remaining product acceptance, LLM configuration, user testing, and final
 handoff work stays tracked by the linked GitHub issues.
 
-Use this guide with `docs/production-web-architecture.md`. The architecture
+Use this guide with `docs/archive/production-web-architecture.md`. The architecture
 explains the target system shape; this file orders the work by GitHub issue so
 the team can implement and review each dependency cleanly.
 
@@ -54,8 +54,8 @@ Implementation steps:
    contracts, and CSV demo fallback in the dashboard-baseline app.
 5. Do not keep hardcoded dashboard constants such as `SERVICES` or
    `BOROUGH_SCORES` as production data sources.
-6. Record the final frontend decision in `docs/decisions.md` and
-   `docs/task-progress.md`.
+6. Record the final frontend decision in `docs/reference/submission/decisions.md` and
+   `docs/reference/submission/task-progress.md`.
 
 Backend integration requirement:
 
@@ -108,7 +108,7 @@ Implementation artifacts:
 - `supabase/tests/issue_6_contract.sql`
 - `scripts/data_pipeline/load_to_cloud.py`
 - `frontend/scripts/validate-supabase.mjs`
-- `docs/supabase-operations.md`
+- `docs/reference/operations/supabase-operations.md`
 
 Backend integration requirement:
 
@@ -424,6 +424,6 @@ Before closing any production-web issue:
   changed.
 - Smoke-test Vercel preview when API routes, env vars, deployment config, or
   frontend runtime behavior changed.
-- Update `docs/task-progress.md` with owner, activity, output, blocker, and
+- Update `docs/reference/submission/task-progress.md` with owner, activity, output, blocker, and
   next step.
-- Update `docs/interfaces.md` when shared schemas or public contracts change.
+- Update `docs/reference/data/interfaces.md` when shared schemas or public contracts change.

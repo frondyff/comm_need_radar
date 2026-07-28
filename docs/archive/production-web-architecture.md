@@ -9,7 +9,7 @@ LLM chatbot behind a server-side API route so secrets and retrieval rules stay
 out of browser code.
 
 Implementation order and issue-by-issue acceptance steps are documented in
-`docs/production-web-implementation-guide.md`.
+`docs/archive/production-web-implementation-guide.md`.
 
 ## System Flow
 
@@ -88,7 +88,7 @@ flowchart LR
   `flyer_downloads` but cannot read them. `database_visitor_tag` remains private
   even to anonymous/authenticated browser roles.
 - Website behavior never updates `area_vulnerability_index_real` or
-  `gap_score`. See `docs/web-observed-demand-scoring.md` for deduplication,
+  `gap_score`. See `docs/reference/scoring/web-observed-demand-scoring.md` for deduplication,
   exposure normalization, quality gates, and the owner decision boundary.
 
 ## Chatbot Service Boundary

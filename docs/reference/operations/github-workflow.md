@@ -31,9 +31,9 @@
 ## Pull Request Rules
 
 - Keep each PR scoped to one issue.
-- Update `docs/task-progress.md` when work changes project state or handoff
+- Update `docs/reference/submission/task-progress.md` when work changes project state or handoff
   status.
-- Update `docs/interfaces.md` and `docs/decisions.md` for shared contract or
+- Update `docs/reference/data/interfaces.md` and `docs/reference/submission/decisions.md` for shared contract or
   project-decision changes.
 - Confirm no secrets, private data, or personally identifiable information are
   committed.
@@ -44,7 +44,7 @@ After the repository is pushed, create these issues:
 
 1. Configure branch protection for `main` and `dev`.
 2. Build the missing MVP source, data, and tests described by the planning docs.
-3. Reconcile `docs/submission-checklist.md` after implementation artifacts are
+3. Reconcile `docs/reference/submission/submission-checklist.md` after implementation artifacts are
    added.
 4. Add monitoring artifacts and keep implementation progress updated.
 

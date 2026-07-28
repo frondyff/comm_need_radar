@@ -6,7 +6,7 @@ the team's contract file:
     data/raw/statcan_2021_montreal_ct_variables.csv
 
 one row per Montreal CMA (462) census tract, with the five locked vulnerability
-variables from docs/census-variable-dictionary.md plus the immigrant/Indigenous
+variables from docs/reference/data/census-variable-dictionary.md plus the immigrant/Indigenous
 MVP-focus fields.
 
 Characteristic IDs (2021 Census Profile, 98-401-X2021007):

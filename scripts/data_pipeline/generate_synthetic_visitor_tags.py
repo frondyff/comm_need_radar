@@ -1,6 +1,6 @@
 """Generate SYNTHETIC observed/visitor-need data for the v2 observed-needs index.
 
-The Priority-4 dataset in docs/laura-data-request-real-index.md (k-anonymized
+The Priority-4 dataset in docs/archive/laura-data-request-real-index.md (k-anonymized
 frontline visit aggregates) has NO public source -- it requires a partner
 organization. Until a partner provides real data, this generates a synthetic
 stand-in that is *grounded in the real service centers* so the observed-needs
@@ -34,7 +34,7 @@ SEED = 42
 PERIOD_START = "2026-04-01"
 PERIOD_END = "2026-06-30"   # a single trailing 90-day window
 
-# Recommended key_need vocabulary (docs/laura-data-request-real-index.md).
+# Recommended key_need vocabulary (docs/archive/laura-data-request-real-index.md).
 KEY_NEEDS = [
     "Housing & Shelter", "Mental Health", "Health & Wellness", "Food Support",
     "Employment", "Legal Aid", "Settlement Navigation", "Language Access",

@@ -106,7 +106,7 @@ npm run build
 
 The Supabase validations require the documented environment variables and
 appropriate test credentials. Production browser coverage is described in
-[`production-testing.md`](production-testing.md).
+[`reference/operations/production-testing.md`](reference/operations/production-testing.md).
 
 ## Assumptions and limitations
 

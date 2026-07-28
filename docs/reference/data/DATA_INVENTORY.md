@@ -20,7 +20,7 @@ each file is also machine-readable in `data/raw/source_metadata.csv`.
   `seniors_65plus_pct`, `recent_immigrant_pct`, `no_official_language_pct`,
   `shelter_cost_burden_pct`, `indigenous_identity_pct` (+ count + universe).
 - **Characteristics:** the 5 locked vulnerability variables (income, age,
-  immigration, language, housing) from `docs/census-variable-dictionary.md`, plus the
+  immigration, language, housing) from `docs/reference/data/census-variable-dictionary.md`, plus the
   immigrant/Indigenous MVP-focus inputs.
 - **Limitations:** Indigenous identity populated for **986/1,004** CTs (18 suppressed
   by StatCan for confidentiality). Values are base-5 rounded by StatCan.
@@ -59,7 +59,7 @@ each file is also machine-readable in `data/raw/source_metadata.csv`.
   `A001` and `A002` partition their shared official borough by nearest committed
   area centroid in a local equirectangular projection.
 - **Validation:** `scripts/validate_spatial_joins.py`; results and limitations are
-  recorded in `docs/spatial-join-validation.md`.
+  recorded in `docs/reference/data/spatial-join-validation.md`.
 - **Limitation:** the `A001`/`A002` internal divider is derived, not an official
   neighbourhood boundary. All outer geometry remains official.
 
@@ -93,7 +93,7 @@ within the social categories to merge the same facility listed by multiple sourc
 **Indigenous-led/specific:** 23 centers flagged.
 
 ### `data/processed/service_table_real.csv`
-- The 4,255 centers re-shaped to the `docs/interfaces.md` service-table contract
+- The 4,255 centers re-shaped to the `docs/reference/data/interfaces.md` service-table contract
   (real counterpart to the synthetic `service_table.csv`).
 
 ### `data/processed/services_master.csv`
@@ -106,7 +106,7 @@ within the social categories to merge the same facility listed by multiple sourc
 
 **Service-layer limitations:** ~82% of points are recreation/sport (activity proxies,
 not social services). True social services number **679** — strong for open data, but
-the *preferred* 211 directory is unavailable (see `docs/211-data-request.md`). OSM
+the *preferred* 211 directory is unavailable (see `docs/archive/211-data-request.md`). OSM
 coverage/tagging is crowd-sourced and uneven; curated/INDex coordinates are
 street-level approximate.
 
@@ -136,7 +136,7 @@ street-level approximate.
 
 | Gap | Why | Path |
 |---|---|---|
-| **211 Quebec directory** | Not open data; site blocks scraping; licence-gated | Email request — `docs/211-data-request.md` |
+| **211 Quebec directory** | Not open data; site blocks scraping; licence-gated | Email request — `docs/archive/211-data-request.md` |
 | **Observed/visitor needs** | Privacy-protected; no public source | **Synthetic stand-in in place** (`database_visitor_tags.csv`); swap in a real partner export when available |
 | **Travel-time accessibility** | A computation, not missing data | Build a routing engine over `stm_stops.csv` |
 
@@ -190,7 +190,7 @@ committed CSVs** (the CSVs remain the source of truth).
   and views; **0 foreign-key violations**.
 - **Shared (cloud):** a free **Supabase** Postgres instance loaded by
   `scripts/data_pipeline/load_to_cloud.py`. The whole team queries it in the browser
-  (Table editor / SQL editor) or via any Postgres client. Setup: `docs/shared-database-setup.md`.
+  (Table editor / SQL editor) or via any Postgres client. Setup: `docs/reference/operations/shared-database-setup.md`.
 
 ### What's in it — 18 tables
 
