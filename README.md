@@ -1,202 +1,177 @@
 # Community Needs Radar
 
-Community Needs Radar is a React/Vite dashboard project for mapping social
-vulnerability and service accessibility across Greater Montreal. The project
-combines public census indicators, geographic boundaries, and community service
-locations to identify areas where community need is high and nearby service
-access is limited.
+[![Production](https://img.shields.io/badge/production-Vercel-111827)](https://comm-need-radar.vercel.app)
 
-The project supports two product modes:
+Community Needs Radar is a decision-support web application for finding
+community services and comparing structural vulnerability with service access
+across 12 Greater Montréal review areas. It is a proof of concept: useful for
+exploration and testing, but not a case-management system, eligibility checker,
+or complete inventory of community need.
 
-- **Frontline / Community View:** help residents, newcomers, volunteers, and
-  frontline workers find relevant nearby services and generate printable flyers.
-- **Planner / Organization View:** help nonprofits, funders, borough planners,
-  and policy analysts compare vulnerability, service coverage, and priority
-  gaps across neighborhoods.
+## What the tool does
 
-## Project Goal
+| Product surface | User | What it supports |
+| --- | --- | --- |
+| **V1 Community View** | Frontline staff, volunteers, and residents | Search and filter services, view them on a map, and download a printable referral flyer. |
+| **V2 Planner View** | Community organizations, funders, and planners | Compare Census-based vulnerability, service accessibility, gap scores, rankings, and area details. |
+| **Guided chatbot** | Either audience | Choose a supported question and receive a deterministic answer from the same Supabase tables used by the dashboard. |
 
-Build a reproducible decision-support tool that lets non-technical users answer:
+Try the deployed application at
+[comm-need-radar.vercel.app](https://comm-need-radar.vercel.app).
 
-1. Where are vulnerable communities located in Greater Montreal?
-2. What services are available near those communities?
-3. Which areas show high vulnerability and lower service accessibility?
-4. What action or outreach may be appropriate for each priority area?
+## Run it locally
 
-## Expected Workflow
-
-```text
-public raw data
--> processed census, service, and geography datasets
--> vulnerability, accessibility, and gap scores
--> React dashboard and flyer generator
--> monitoring, documentation, report, and presentation
-```
-
-The integrated repository keeps a local run path while preparing the React app
-for Supabase-backed preview and production deployment.
-
-## Run Locally
-
-The canonical frontend is the React/Vite dashboard from `feature/dashboard`.
-Node.js 22+ is required.
+Requirements: Git, Node.js 22+, and npm.
 
 ```bash
-cd frontend
+git clone https://github.com/frondyff/comm_need_radar.git
+cd comm_need_radar/frontend
 npm ci
 npm run dev
 ```
 
-Then open `http://localhost:5173` in a browser. See
-[frontend/README.md](frontend/README.md) for the detailed frontend guide.
+Open `http://localhost:5173`.
 
-With `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY`, the dashboard
-loads real app-ready scores and the deduplicated `services_master` layer.
-Without that configuration it shows an explicitly labeled demo fallback.
+The app runs with an explicitly labelled demonstration fallback when Supabase
+is not configured. To use the project data, copy `frontend/.env.example` to
+`frontend/.env` and set:
 
-## Production Deployment
-
-The production React application is live at:
-
-- https://comm-need-radar.vercel.app
-
-The Vercel production deployment uses the public Supabase contract for the
-dashboard and server-side chatbot retrieval. No LLM key is configured in the
-current release, so `/api/chat` uses its grounded deterministic fallback. See
-`docs/deployment-verification-2026-07-23.md` for the release evidence and known
-limitations.
-
-## Data And Validation
-
-Python 3.11+ is required for the reproducible data, scoring, and spatial
-pipelines:
-
-```bash
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-python3 -m unittest discover -s tests
-python3 scripts/validate_spatial_joins.py
+```text
+VITE_SUPABASE_URL=https://your-project.supabase.co
+VITE_SUPABASE_PUBLISHABLE_KEY=your-public-browser-key
 ```
 
-Frontend validation:
+Never put a Supabase secret or service-role key in a `VITE_` variable. Browser
+variables are bundled into public JavaScript.
+
+## How it works
+
+```mermaid
+flowchart LR
+    A["Public sources<br/>Statistics Canada · Montréal boundaries<br/>211 PDF + open service sources"]
+    B["Python processing<br/>clean · classify · geocode · spatial join<br/>score · validate"]
+    C["Supabase<br/>app-ready tables"]
+    D["React / Vite<br/>V1 · V2 · guided chatbot"]
+    E["Vercel<br/>production web app"]
+    F["Anonymous web events<br/>page_events · flyer_downloads"]
+    G["Private no-publish review<br/>experimental digital demand"]
+
+    A --> B --> C --> D --> E
+    D --> F --> G
+```
+
+The production interface reads application-ready rows rather than calculating
+scores in the browser:
+
+1. Python scripts transform public Census, boundary, transit, and service
+   sources into reproducible tables.
+2. Structural vulnerability is the equal-weight average of five normalized
+   Census dimensions: income, age, language, recent immigration, and housing.
+3. Accessibility combines straight-line distance to services and the number of
+   services within 2.5 km.
+4. `gap_score = vulnerability_score × (100 - accessibility_score) / 100`.
+5. Supabase serves the area, score, accessibility, and service tables to the
+   React application; Vercel hosts the frontend and server routes.
+6. Anonymous V1 interactions can be written to `page_events` and
+   `flyer_downloads`. These are digital-demand signals only and do **not**
+   change the production gap score.
+
+## Data truth and scope
+
+| Layer | Current basis | Production use |
+| --- | --- | --- |
+| Structural vulnerability | Statistics Canada 2021 Census indicators | Used in `area_profile` and `gap_score` |
+| Area boundaries | Ville de Montréal open boundary data, including the documented A001/A002 partition | Used by the Planner map and spatial processing |
+| Service directory | `services_master`, 3,664 deduplicated rows assembled from the public 211 Greater Montréal PDF and other public/open sources | Used by V1, maps, and chatbot service lookup |
+| Accessibility | Current service-centre layer, 2.5 km straight-line threshold, and service counts | Used in production `gap_score` |
+| Web behavior | Anonymous version-2 events in `page_events` and `flyer_downloads`, privacy-gated at `k >= 5` | Experimental digital-demand candidate; not published into `gap_score` |
+| Demonstration inputs | Synthetic area/service fallbacks and committed synthetic visitor-tag examples | Development and explanation only; labelled and excluded from production scoring |
+
+The public 211 directory is a source for service discovery, not evidence of
+resident need. Website behavior shows interaction with this particular tool,
+not population-level demand, partner encounters, or 211 call volume.
+
+## Important assumptions and limitations
+
+- The analysis covers 12 review areas and is not a complete Greater Montréal
+  regional model.
+- Census values describe structural conditions at an area level; they do not
+  describe or predict an individual resident.
+- Accessibility is an initial proximity-and-count proxy. It does not yet model
+  transit time, mobility barriers, operating hours, capacity, eligibility,
+  waitlists, service quality, or language availability.
+- Service listings can become stale and should be confirmed with the provider
+  before referral.
+- The guided chatbot only answers predefined, data-grounded questions. It does
+  not provide professional advice or determine eligibility.
+- Analytics are anonymous and insert-only from the browser. No client name,
+  contact information, free-text case note, or precise home location should be
+  collected.
+- Experimental observed-demand scoring remains structural-only until all
+  coverage and privacy gates pass and the team records a separate approval to
+  publish it.
+
+## Repository map
+
+```text
+frontend/                 React/Vite product and Vercel server routes
+scripts/                  Data preparation, scoring, validation, and chatbot tools
+src/comm_need_radar/      Reusable Python geospatial and scoring modules
+supabase/                 Database migrations and SQL contract tests
+data/raw/                 Versioned public/sample inputs
+data/processed/           Reproducible app-ready outputs
+tests/                    Python unit and contract tests
+docs/                     Canonical product guides, reference docs, and archive
+.github/workflows/        CI, production grill, release, and dry-run automation
+```
+
+The React application is the canonical product UI. `streamlit_app.py` remains
+an analytical reference and is not the production web entrypoint.
+
+## Validate a change
+
+Run the core repository checks:
 
 ```bash
+python3 -m unittest discover -s tests
+python3 scripts/validate_spatial_joins.py
+python3 scripts/validate_scoring_bias.py
+
 cd frontend
 npm ci
+npm run typecheck:api
+npm run test:unit
 npm run validate:boundaries
 npm run validate:dashboard-adapter
+npm run validate:chatbot
 npm run build
 ```
 
-Production browser, API, security, performance, load, promotion, and rollback
-automation is documented in
+Production browser, accessibility, security, performance, load, promotion, and
+rollback checks are documented in
 [`docs/production-testing.md`](docs/production-testing.md).
 
-The owner-level Supabase SQL contract is
-`supabase/tests/issue_6_contract.sql`. Public-key validation requires the
-documented Supabase environment variables; see
-`docs/supabase-operations.md`.
+## Read next
 
-## Repository Structure
+- [V1 Community View](docs/v1-frontline.md)
+- [V2 Planner View and scoring](docs/v2-planner.md)
+- [Guided chatbot](docs/chatbot.md)
+- [Data inventory](docs/DATA_INVENTORY.md)
+- [Interfaces and table contracts](docs/interfaces.md)
+- [Scoring and metrics guide](docs/scoring-metrics-guide.md)
+- [Supabase operations](docs/supabase-operations.md)
+- [Submission checklist](docs/submission-checklist.md)
 
-```text
-comm_need_radar/
-  README.md
-  docs/
-    project-definition.md
-    project-task-breakdown.md
-    architecture.md
-    interfaces.md
-    decisions.md
-    task-progress.md
-    data-requirements.md
-    submission-checklist.md
-  data/
-    raw/
-    processed/
-  frontend/
-    README.md
-    package.json
-    public/
-      geo/
-        areas.geojson
-    src/
-      main.jsx
-      App.jsx
-      components/
-        serviceVisuals.jsx
-      flyer/
-        FlyerPreview.jsx
-        FlyerPdfExporter.js
-        flyerData.js
-        flyerStyles.js
-      lib/
-        supabaseData.js
-        dashboardAdapter.js
-        analytics.js
-  notebooks/
-  scripts/
-    data_pipeline/
-  src/comm_need_radar/
-    geospatial/
-    scoring/
-  supabase/
-    migrations/
-    tests/
-  tests/
-  .github/
-    ISSUE_TEMPLATE/
-      work-item.md
-      interface-change.md
-    pull_request_template.md
-```
+## Collaboration and release model
 
-The React dashboard is the canonical product UI. The Python/Streamlit code is
-retained as a local analytical reference and pipeline consumer, not as the
-production web baseline.
+- `dev` is the integration branch and the source of the current Vercel
+  production release workflow.
+- `main` is the stable submission branch.
+- Each change should have a linked GitHub issue and a focused pull request.
+- Data-contract changes must update the interface documentation and tests.
+- Do not commit secrets, private datasets, personally identifiable information,
+  or generated secure exports.
 
-## Team Ownership
-
-| Team Member | Primary Area | Backup Area |
-| --- | --- | --- |
-| Chloe | Product leadership, scope, timeline, proposal coordination, MVP decisions | AI/RAG and dashboard support |
-| Laura | Data engineering for census, boundaries, and service datasets | AI/RAG, geospatial, and dashboard support |
-| Frondy | Geospatial analytics, spatial joins, vulnerability score, service access score, gap score, GitHub documentation | App support |
-| Jessie | React dashboard development (Community & Planner views), interactive map UX and data visualization, Supabase integration, flyer generation/export system, usage analytics | AI/RAG, geospatial, and GitHub support |
-| Mariam | AI insights, neighborhood summaries, user testing, presentation story | Methodology wording and final presentation |
-
-## Documentation Index
-
-- [Project Definition](docs/project-definition.md)
-- [Project Task Breakdown](docs/project-task-breakdown.md)
-- [Architecture](docs/architecture.md)
-- [Interfaces](docs/interfaces.md)
-- [Decisions](docs/decisions.md)
-- [Task Progress](docs/task-progress.md)
-- [Data Requirements](docs/data-requirements.md)
-- [Submission Checklist](docs/submission-checklist.md)
-- [GitHub Workflow](docs/github-workflow.md)
-- [Data Inventory](docs/DATA_INVENTORY.md)
-- [Supabase Operations](docs/supabase-operations.md)
-- [Spatial Join Validation](docs/spatial-join-validation.md)
-- [Chatbot](docs/chatbot.md)
-- [Scoring Validation](docs/scoring-validation-2026-07-27.md)
-- [User-Testing Plan](docs/user-testing-plan.md)
-- [Final Technical Report](docs/final-report.md)
-- [Presentation Outline](docs/presentation-outline.md)
-
-## Collaboration Rules
-
-- Use GitHub issues for all implementation tasks.
-- Use one branch and one pull request per issue.
-- Use `dev` as the integration branch and reserve `main` for stable milestone
-  snapshots.
-- Include a closing keyword such as `Closes #12` in each pull request body so
-  issues and PRs stay connected.
-- Keep `docs/interfaces.md` synchronized with any shared data contract changes.
-- Update `docs/task-progress.md` after each major handoff or completed pull
-  request.
-- Record scope, data-source, scoring, and deployment decisions in
-  `docs/decisions.md`.
-- Do not commit private data, secrets, or personally identifiable information.
+The repository is licensed and governed by the terms recorded in its GitHub
+project settings; no separate software license has been declared in this proof
+of concept.
