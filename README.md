@@ -76,6 +76,130 @@ scores in the browser:
    `flyer_downloads`. These are digital-demand signals only and do **not**
    change the production gap score.
 
+## Data sources
+
+Every production record traces back to a named public source. The 211 directory
+is licensed content used with attribution; the raw PDF and its extracts are kept
+out of version control.
+
+| Source | Provider | Terms | What it contributes | Loaded into |
+| --- | --- | --- | --- | --- |
+| Directory of Social and Community Resources | 211 Grand Montréal / Centraide | Licensed, attribution required, raw file not committed | Core service directory: names, phones, addresses, categories | `services_master` |
+| 2021 Census Profile (tract level) | Statistics Canada | Open (StatCan licence) | Income, age, language, recent immigration, and housing indicators per census tract | `census_tract`, `area_profile` |
+| Review-area and borough boundaries | Ville de Montréal open data | Open (CC BY 4.0) | Geometry for the 12 review areas, including the A001/A002 partition | area geography, spatial joins |
+| Social-service points | OpenStreetMap (Overpass API) | Open (ODbL) | Additional open service locations to broaden coverage | `services_master` |
+| Health and social facilities | MSSS (Quebec) | Open | Public health and social service centres, with food-bank fallbacks | `services_master` |
+| Indigenous community resources | INDex (reseaumtlnetwork.com) | Public directory, attribution | Indigenous-serving organizations | `services_master` |
+| Transit stops | STM GTFS feed | Open | Stop locations for the accessibility layer | `stm_stop` |
+| Observed demand (visitor tags) | Synthetic, k-anonymized template | Development only, labelled | Illustrative frontline visit signals | `observed_need_index`, `observed_need_category_summary` |
+| Anonymous web behavior | This application (V1 events) | Insert-only, privacy-gated at `k >= 5` | Experimental digital-demand candidate | `page_events`, `flyer_downloads` |
+
+## Data pipeline
+
+The pipeline is a set of small, reproducible Python scripts under `scripts/` and
+`scripts/data_pipeline/`. Each stage writes a versioned CSV in `data/processed/`,
+so the whole build is inspectable and repeatable.
+
+- **Acquisition.** `download_sources.py` fetches the large public inputs (Census
+  profile, boundaries, GTFS). Service fetchers pull open directories:
+  `fetch_osm_services.py` (OpenStreetMap), `fetch_community_services.py` (MSSS),
+  and `fetch_indigenous_services.py` (INDex).
+- **Extraction.** `extract_211_directory.py` parses the licensed 211 / Centraide
+  PDF into structured rows. `build_census_ct_variables.py` extracts the census
+  indicators, `build_geography.py` prepares boundary inputs, and
+  `build_transit_stops.py` reads STM stops.
+- **Geocoding.** `geocode_211_directory.py` resolves addresses to coordinates
+  with the free OpenStreetMap Nominatim service; `geocode_211_retry.py` runs a
+  recovery pass. Each row keeps a geocode precision flag (exact, approximate, or
+  none), so map precision is never overstated. Organizations without a public
+  address are kept in the directory without a map pin.
+- **Classification.** Two grounded, no-LLM classifiers run on the service text:
+  `service_taxonomy.py` assigns a `primary_category` (Shelter, Food, Medical,
+  Legal, Translation, and further community categories) by keyword matching, and
+  `classify_service_audience.py` tags who each service serves for the app's
+  filters (`serves_indigenous`, `serves_immigrant`, `gender_focus`, and
+  `age_groups`).
+- **Deduplication and merge.** `build_services_master.py` merges the 211
+  directory with the open-data sources into one canonical table,
+  `services_master` (3,664 deduplicated organizations). It removes duplicates,
+  drops non-service noise, keeps every organization named, records each row's
+  source, and assigns each mappable organization to one of the 12 review areas.
+- **Vulnerability and spatial joins.** `aggregate_ct_to_areas.py` rolls the
+  census indicators up to the 12 areas; `map_centers_to_areas.py` and
+  `validate_spatial_joins.py` assign and check organization-to-area membership,
+  producing `area_profile`.
+- **Observed demand.** `generate_synthetic_visitor_tags.py` and
+  `build_observed_need_index.py` produce the labelled `observed_need_index` and
+  `observed_need_category_summary`, used for the chatbot's demand answers and
+  kept out of the production gap score.
+- **Assemble and load.** `build_database.py` loads every processed table into a
+  single local SQLite database, then `load_to_cloud.py` atomically refreshes
+  Supabase: the committed migrations own the schema, keys, indexes, and
+  row-level security, while the loader only truncates and reloads row data and
+  verifies row counts in one transaction.
+
+## Database and schema
+
+The SQL migrations in `supabase/migrations/` are the single source of truth for
+schema, keys, indexes, views, grants, and row-level security. The Python loader
+never alters schema; it only loads rows.
+
+| Table | Contents |
+| --- | --- |
+| `services_master` | The 3,664 deduplicated organizations, with category, audience tags, coordinates, geocode precision, area, and source |
+| `area_profile` | Per-area population, Census indicators, and structural vulnerability score and rank |
+| `gap_score` | Per-area vulnerability, accessibility, gap score, rank, and priority flag |
+| `accessibility` | Per-area, per-category service access (nearest distance, count within threshold, score) |
+| `observed_need_index` | Per-area observed-demand aggregate and top needs, source-labelled |
+| `observed_need_category_summary` | Observed demand by need category and area, source-labelled |
+| `census_tract`, `ct_centroid` | Underlying census-tract inputs and centroids |
+| `stm_stop` | STM transit stops for the accessibility layer |
+| `page_events`, `flyer_downloads` | Anonymous, insert-only V1 web-behavior events |
+
+The public browser key can only read the application tables (through `app_read_*`
+policies) and can only insert anonymous analytics events. It cannot write to any
+content table.
+
+For the full per-table, per-column reference, including data types, real-versus-
+synthetic labelling, and per-source provenance, see the
+[data dictionary](docs/reference/data/data-dictionary.md).
+
+## The Planner guided chatbot
+
+The chatbot answers planning questions using only the project's own data. It is
+grounded, deterministic, and free to run.
+
+- No language model and no API key. It is a guided decision tree: the user
+  navigates menus and every leaf runs one parameterized Supabase query.
+- Every answer displays the source table it came from, so results are traceable
+  and never invented. It declines cleanly when data is not collected, and on
+  exit it shows a summary of the session and a short closing message.
+- It appears only in the V2 Planner View, not in V1 Community View.
+
+There are two parallel implementations with the same behavior: a terminal
+version in Python (`scripts/chatbot.py`, `scripts/chatbot_menu.py`,
+`scripts/chatbot_queries.py`) and the web widget
+(`frontend/src/chatbot/ChatbotWidget.jsx` for menus and session history,
+`frontend/src/chatbot/groundedChatbot.js` for the browser-side queries).
+
+Supported question types:
+
+- **Find services** by category, area, and audience (Indigenous, immigrant,
+  women, youth, seniors). Age filters exclude the "serves all ages" default so a
+  group filter returns organizations that actually focus on that group.
+- **Service demand** for a category: the recorded demand in a chosen area, or
+  the areas with the highest demand.
+- **About an area**: an overview (vulnerability and gap), demographics, or total
+  observed demand for any of the 12 areas.
+- **City-wide rankings**: most vulnerable areas, largest service gap, most
+  immigrants, or income pressure.
+
+Demand answers are labelled by their basis (synthetic visitor tags or anonymous
+web behavior), so they are never presented as verified population demand.
+
+For the full safety boundary, language behavior, per-menu source mapping, and
+validation steps, see the [Planner guided chatbot reference](docs/chatbot.md).
+
 ## Data truth and scope
 
 | Layer | Current basis | Production use |
