@@ -48,23 +48,47 @@ source is actually active.
 ```
 frontend/
 ├── public/geo/areas.geojson         ← Versioned planning-area boundaries (V2 choropleth)
-├── scripts/validate-boundaries.mjs
+├── api/
+│   ├── area-vulnerability.ts
+│   ├── chat.ts
+│   ├── chatContract.js
+│   ├── chatContract.test.js
+│   └── events.ts
+├── scripts/
+│   ├── production-smoke.mjs
+│   ├── validate-analytics-writes.mjs
+│   ├── validate-boundaries.mjs
+│   ├── validate-chatbot-client.mjs
+│   ├── validate-dashboard-adapter.mjs
+│   ├── validate-supabase-dashboard.mjs
+│   ├── validate-supabase.mjs
+│   ├── vercel-release-state.mjs
+│   └── vercel-release-state.test.mjs
 ├── src/
 │   ├── main.jsx
 │   ├── App.jsx                      ← Main UI: V1 (Community View) + V2 (Planner View)
+│   ├── chatbot/
+│   │   ├── ChatbotWidget.jsx
+│   │   ├── chatbotApi.js
+│   │   ├── chatbotStyles.js
+│   │   └── groundedChatbot.js
 │   ├── components/
 │   │   └── serviceVisuals.jsx       ← Category colors/icons, map marker builders
 │   ├── flyer/
 │   │   ├── FlyerPreview.jsx         ← The flyer's on-screen layout
 │   │   ├── FlyerPdfExporter.js      ← Screenshots the preview into a PDF
 │   │   ├── flyerData.js             ← "Also nearby" sorting, PDF filename
+│   │   ├── flyerMapState.js
 │   │   └── flyerStyles.js           ← Shared flyer colors/dimensions
 │   └── lib/
 │       ├── supabaseData.js          ← Supabase client + raw table loading
 │       ├── dashboardAdapter.js      ← Maps raw Supabase rows → the shapes the UI uses
 │       └── analytics.js             ← Writes to flyer_downloads / page_events
+├── README.md
 ├── index.html
 ├── package.json
+├── tsconfig.api.json
+├── vercel.json
 └── vite.config.js
 ```
 
@@ -76,7 +100,7 @@ columns, renamed tables, new filters) usually start in **`lib/dashboardAdapter.j
 ## Features
 
 ### V1 — Community View (Social Workers)
-- Search and filter nearby services by group, gender, age, and category
+- Search and filter nearby services by group, gender, age, distance, and category
   (Shelter / Food / Medical / Legal / Translation are quick chips; everything
   else (~15 more real categories) is in the "Other" dropdown, searchable)
 - View services on a real Montréal map (Leaflet), with a distinct "You are
@@ -95,7 +119,9 @@ columns, renamed tables, new filters) usually start in **`lib/dashboardAdapter.j
 - Top priority areas ranked by real Gap Score
 - Service locations map, filtered to the selected area (falls back to the
   whole borough if that specific area has no services tagged yet)
-- Chatbot input for area-specific questions (UI only — not wired to a backend yet)
+- Guided chatbot: click through a predefined set of questions (for example,
+  area demographics and service demand); answers are computed from the
+  dashboard's Supabase-backed data rather than hardcoded.
 
 ---
 
@@ -108,7 +134,7 @@ columns, renamed tables, new filters) usually start in **`lib/dashboardAdapter.j
 | `/api/area-vulnerability` → `area_vulnerability_index_real` | Real census low-income, shelter-cost-burden, and recent-immigration indicators per area |
 | `accessibility` | Service-access metrics per area |
 | `flyer_downloads` | Analytics — one row per flyer download, with the filters active at the time |
-| `page_events` | Analytics — passive events (page view, filter clicked, map opened, etc.) |
+| `page_events` | Analytics — passive events (for example, page view, filter clicked, or map opened) |
 
 All tables need Row Level Security policies granting the `anon` role `SELECT`
 (for the four data tables) or `INSERT` (for the two analytics tables), plus a
@@ -280,4 +306,4 @@ branch-protection API.
 
 ---
 
-## McGill University · BUSA 649 · Team Next Level
+### McGill University · BUSA 649 · Team Next Level
