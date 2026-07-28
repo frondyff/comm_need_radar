@@ -138,9 +138,12 @@ test("planner workflow loads live areas, switches language, and completes a chat
 
   await expect(page.getByText("Tracts analyzed")).toBeVisible();
   await expect(page.getByTestId("priority-area")).toHaveCount(5);
-  await expect(page.getByTestId("area-profile-income")).toContainText("20.89%");
-  await expect(page.getByTestId("area-profile-housing")).toContainText("27.62%");
-  await expect(page.getByTestId("area-profile-immigration")).toContainText("9.33%");
+  await expect(page.getByTestId("priority-area").first()).toContainText("Saint-Michel");
+  // GAP-CANON-02 ranks Saint-Michel first. These are its source profile
+  // percentages, not the normalized STRUCT-01 indicator scores.
+  await expect(page.getByTestId("area-profile-income")).toContainText("21.23%");
+  await expect(page.getByTestId("area-profile-housing")).toContainText("22.72%");
+  await expect(page.getByTestId("area-profile-immigration")).toContainText("6.13%");
   const initialProfile = await page.getByTestId("area-profile").textContent();
   const firstPolygon = page
     .getByTestId("planner-boundary-map")
