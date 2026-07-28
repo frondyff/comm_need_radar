@@ -59,7 +59,7 @@ Keep report mode for at least seven days and twenty smoke runs. Change it to
 
 ## Release Behavior
 
-After `Production Web` succeeds on `integration/production-web`, the release
+After `Production Web` succeeds on `dev`, the release
 workflow:
 
 1. Re-runs the repository release gates.

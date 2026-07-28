@@ -24,6 +24,7 @@
 | 2026-07-27 | Keep production gap scoring unchanged while web-observed V2 is evaluated | Preserves the current application contract; the code applies the original 60/40 V2 only after all areas pass coverage and otherwise uses structural-only fallback |
 | 2026-07-28 | Defer web-observed application integration after the no-publish review | The 90-day dry run produced 0 of 12 reviewable areas; structural-only fallback, `k >= 5`, and the unchanged production `gap_score` remain the approved state |
 | 2026-07-28 | Use one root README plus canonical V1, V2, and chatbot guides | Gives reviewers a short entrypoint while keeping detailed references and superseded planning material navigable |
+| 2026-07-28 | Make `main` the GitHub default while production releases continue from `dev` | Separates the stable submission snapshot from the tested integration and deployment path |
 
 ## Pending Decisions For Real Data Version
 
