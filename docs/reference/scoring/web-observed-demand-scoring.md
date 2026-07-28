@@ -2,8 +2,8 @@
 
 Formula ID: `WEB-DEMAND-EXP-01`
 
-> Experimental digital-demand signal only. It cannot modify `STRUCT-01`,
-> `GAP-PROD-01`, or candidate `GAP-CANON-02` without a separate approved
+> Experimental digital-demand signal only. It cannot modify `STRUCT-01` or
+> production `GAP-CANON-02` without a separate approved
 > application-integration decision. See the
 > [production scoring contract](production-scoring-contract.md).
 

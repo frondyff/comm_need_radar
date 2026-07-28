@@ -1,11 +1,9 @@
 # Shared Interfaces
 
-Status: `scoring-contract-02` candidate interface as of 2026-07-28.
+Status: `scoring-contract-02` production interface as of 2026-07-28.
 
-The generated CSVs in this branch implement the candidate contract. Production
-Supabase continues to use the legacy mixed-basis contract until the comparison
-report is approved and the schema/data refresh is deployed. The authoritative
-formula definitions and deployment state are in
+The generated CSVs and production Supabase tables implement the official POC
+contract. The authoritative formula definitions and deployment state are in
 [`production-scoring-contract.md`](../scoring/production-scoring-contract.md).
 
 ## Area Profile Table
@@ -80,7 +78,7 @@ Required fields:
 | `distance_component` | Linear nearest-distance component, 0-100 |
 | `availability_component` | Log-normalized within-radius availability component, 0-100 |
 | `accessibility_score` | Equal-weight component average, 0-100; higher is relatively better |
-| `accessibility_method` | Human-readable candidate method |
+| `accessibility_method` | Human-readable production POC method |
 | `accessibility_basis` / `accessibility_version` | Machine-readable lineage |
 | `accessibility_formula_id` | `ACCESS-REAL-02` |
 | `formula_set_version` | `scoring-contract-02` |

@@ -14,6 +14,14 @@ from pathlib import Path
 FORMULA_SET_VERSION = "scoring-contract-02"
 TAXONOMY_VERSION = "planning-needs-9-v1"
 SERVICE_SNAPSHOT_DATE = "2026-07-28"
+PRODUCTION_EFFECTIVE_DATE = "2026-07-28"
+PRODUCTION_IMPLEMENTATION_COMMIT = (
+    "39fa91b04f834827dac088030f9bdcd8a17f1729"
+)
+PRODUCTION_SERVICE_SNAPSHOT_ID = (
+    "97c29b249d986c4ffa5de6fe21400dc99dd5121f6026bda0a779116869806c1b"
+)
+PRODUCTION_VERCEL_DEPLOYMENT_ID = "dpl_BHUGiRk4rJdvTp24YVNtkaDLPzEM"
 
 PROFILE_LEGACY_FORMULA_ID = "PROFILE-LEGACY-01"
 STRUCTURAL_FORMULA_ID = "STRUCT-01"
@@ -32,28 +40,28 @@ GAP_FORMULA_ID = "GAP-CANON-02"
 SCORING_FORMULAS = {
     PROFILE_LEGACY_FORMULA_ID: {
         "name": "Synthetic area-profile vulnerability",
-        "status": "legacy",
-        "production_use": "current profile/chatbot until candidate release",
+        "status": "historical",
+        "production_use": "none; superseded by STRUCT-01",
     },
     STRUCTURAL_FORMULA_ID: {
         "name": "StatCan 2021 equal-weight five-indicator structural vulnerability",
-        "status": "production_component",
-        "production_use": "current gap input and candidate canonical score",
+        "status": "production",
+        "production_use": "current profile, chatbot, and gap structural input",
     },
     ACCESSIBILITY_LEGACY_FORMULA_ID: {
         "name": "Synthetic distance-plus-count accessibility",
-        "status": "legacy",
-        "production_use": "current gap input until candidate release",
+        "status": "historical",
+        "production_use": "none; superseded by ACCESS-REAL-02",
     },
     GAP_LEGACY_FORMULA_ID: {
         "name": "Current mixed-basis production gap",
-        "status": "production",
-        "production_use": "current production formula set",
+        "status": "historical",
+        "production_use": "none; superseded by GAP-CANON-02",
     },
     CLASSIFICATION_LEGACY_FORMULA_ID: {
         "name": "Unvalidated High/Watch/Lower thresholds",
-        "status": "legacy",
-        "production_use": "current labels until candidate release",
+        "status": "historical",
+        "production_use": "none; public classifications are retired",
     },
     FOCUS_IMMIGRANT_FORMULA_ID: {
         "name": "Immigrant and language Census concern",
@@ -87,13 +95,13 @@ SCORING_FORMULAS = {
     },
     ACCESSIBILITY_FORMULA_ID: {
         "name": "Relative accessibility from services_master",
-        "status": "candidate",
-        "production_use": "none until approval and deployment",
+        "status": "production",
+        "production_use": "current production accessibility input",
     },
     GAP_FORMULA_ID: {
         "name": "Canonical structural plus relative-service-access gap",
-        "status": "candidate",
-        "production_use": "none until approval and deployment",
+        "status": "production",
+        "production_use": "current production formula set",
     },
 }
 
@@ -128,12 +136,16 @@ PLANNING_SERVICE_CATEGORIES = tuple(sorted(set(SERVICE_CATEGORY_CROSSWALK.values
 
 def formula_manifest() -> dict[str, object]:
     return {
-        "document_status": "candidate",
-        "production_formula_set": GAP_LEGACY_FORMULA_ID,
-        "candidate_formula_set": GAP_FORMULA_ID,
+        "document_status": "official_production",
+        "production_formula_set": GAP_FORMULA_ID,
+        "previous_production_formula_set": GAP_LEGACY_FORMULA_ID,
         "formula_set_version": FORMULA_SET_VERSION,
         "taxonomy_version": TAXONOMY_VERSION,
         "service_snapshot_date": SERVICE_SNAPSHOT_DATE,
+        "production_effective_date": PRODUCTION_EFFECTIVE_DATE,
+        "implementation_commit": PRODUCTION_IMPLEMENTATION_COMMIT,
+        "service_snapshot_id": PRODUCTION_SERVICE_SNAPSHOT_ID,
+        "vercel_deployment_id": PRODUCTION_VERCEL_DEPLOYMENT_ID,
         "formulas": SCORING_FORMULAS,
         "service_category_crosswalk": SERVICE_CATEGORY_CROSSWALK,
     }

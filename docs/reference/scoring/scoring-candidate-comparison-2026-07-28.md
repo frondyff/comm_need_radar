@@ -1,19 +1,20 @@
-# Candidate Scoring Comparison — 2026-07-28
+# Scoring Contract Comparison — 2026-07-28
 
-Status: **approved for controlled POC release; not yet published**
+Status: **approved and promoted to the POC production interface**
 
-This report is generated locally. It does not update Supabase or Vercel.
+This report is generated locally. Generation does not update Supabase or
+Vercel; the release evidence below records the separate controlled publication.
 
 ## Decision
 
 `ACCESS-REAL-02` and `GAP-CANON-02` were approved for the POC interface on
-2026-07-28. Production remains `GAP-PROD-01`, which combines `STRUCT-01` with
-`ACCESS-LEGACY-01`, until the controlled migration, refresh, validation, and
-deployment finish.
+2026-07-28 and promoted that day. Production now uses `GAP-CANON-02`;
+`GAP-PROD-01` and `ACCESS-LEGACY-01` are retained only as historical
+comparison formulas.
 
 ## Twelve-Area Comparison
 
-| Area | Legacy profile vuln | STRUCT-01 | Legacy synthetic access | GAP-PROD-01 | Legacy rank | Old formula + real services access | Old formula + real services gap | ACCESS-REAL-02 | GAP-CANON-02 | Candidate rank | Rank change |
+| Area | Legacy profile vuln | STRUCT-01 | Legacy synthetic access | GAP-PROD-01 | Legacy rank | Old formula + real services access | Old formula + real services gap | ACCESS-REAL-02 | GAP-CANON-02 | Production rank | Rank change |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | Saint-Michel | 73.0 | 62.87 | 10.59 | 56.21 | 2 | 86.18 | 8.69 | 58.18 | 26.29 | 1 | 1 |
 | Montreal-Nord | 76.0 | 53.72 | 10.93 | 47.85 | 4 | 86.77 | 7.11 | 58.79 | 22.14 | 2 | 2 |
@@ -28,8 +29,8 @@ deployment finish.
 | Riviere-des-Prairies | 52.6 | 11.06 | 10.18 | 9.93 | 12 | 73.87 | 2.89 | 39.29 | 6.71 | 11 | 1 |
 | Plateau Mont-Royal | 33.0 | 50.94 | 18.02 | 41.76 | 7 | 100.0 | 0.0 | 92.64 | 3.75 | 12 | -5 |
 
-`Rank change` is legacy rank minus candidate rank; a positive value means the
-area moves upward under the candidate.
+`Rank change` is legacy rank minus production rank; a positive value means the
+area moved upward under the production contract.
 
 The “old formula + real services” columns demonstrate the saturation defect:
 the count component was calibrated for 14 synthetic services and collapses most
@@ -49,7 +50,7 @@ real-service gaps toward zero.
 | 5.0 | 0.5 | 0.5 | 0.895 | 4 | Montreal-Nord |
 | 5.0 | 0.75 | 0.25 | 0.965 | 2 | Montreal-Nord |
 
-The candidate default is radius 2.5 km with 50% distance and 50% log-scaled
+The production default is radius 2.5 km with 50% distance and 50% log-scaled
 availability.
 
 ## Coverage And Bias Limitations
@@ -77,6 +78,12 @@ availability.
   service directory while retaining POC labels, documented limitations, and no
   policy classification.
 - Approved formula IDs: `STRUCT-01`, `ACCESS-REAL-02`, `GAP-CANON-02`
-- Follow-up: apply the additive migration, publish the three scoring tables
-  atomically, validate owner/public contracts, grill the staged release, and
-  record the production snapshot and deployment.
+- Supabase publication: run `30406140070`; 12 `area_profile`, 108
+  `accessibility`, and 12 `gap_score` rows published atomically.
+- Service snapshot:
+  `97c29b249d986c4ffa5de6fe21400dc99dd5121f6026bda0a779116869806c1b`
+- Production release: commit
+  `39fa91b04f834827dac088030f9bdcd8a17f1729`; run `30406589519`;
+  Vercel deployment `dpl_BHUGiRk4rJdvTp24YVNtkaDLPzEM`.
+- Verification: public scoring-table contract, candidate smoke/E2E, and
+  canonical smoke/E2E passed in enforce mode.
