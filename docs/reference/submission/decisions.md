@@ -1,5 +1,8 @@
 # Decisions
 
+Rows dated 2026-06-11 record early prototype proposals. References there to
+Streamlit describe a superseded direction, not a supported implementation.
+
 ## Approved Decisions
 
 | Date | Decision | Rationale |
@@ -25,6 +28,7 @@
 | 2026-07-28 | Defer web-observed application integration after the no-publish review | The 90-day dry run produced 0 of 12 reviewable areas; structural-only fallback, `k >= 5`, and the unchanged production `gap_score` remain the approved state |
 | 2026-07-28 | Use one root README plus canonical V1, V2, and chatbot guides | Gives reviewers a short entrypoint while keeping detailed references and superseded planning material navigable |
 | 2026-07-28 | Make `main` the GitHub default while production releases continue from `dev` | Separates the stable submission snapshot from the tested integration and deployment path |
+| 2026-07-28 | Treat React/Vite as the only supported application UI and keep the guided chatbot Planner-only | Matches the implemented and deployed product; earlier Streamlit proposals are historical only |
 
 ## Pending Decisions For Real Data Version
 

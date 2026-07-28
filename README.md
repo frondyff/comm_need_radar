@@ -14,7 +14,7 @@ or complete inventory of community need.
 | --- | --- | --- |
 | **V1 Community View** | Frontline staff, volunteers, and residents | Search and filter services, view them on a map, and download a printable referral flyer. |
 | **V2 Planner View** | Community organizations, funders, and planners | Compare Census-based vulnerability, service accessibility, gap scores, rankings, and area details. |
-| **Guided chatbot** | Either audience | Choose a supported question and receive a deterministic answer from the same Supabase tables used by the dashboard. |
+| **Planner guided chatbot** | Planner View users | Choose a supported planning question and receive a deterministic answer from the same Supabase tables used by the Planner dashboard. |
 
 Try the deployed application at
 [comm-need-radar.vercel.app](https://comm-need-radar.vercel.app).
@@ -51,7 +51,7 @@ flowchart LR
     A["Public sources<br/>Statistics Canada · Montréal boundaries<br/>211 PDF + open service sources"]
     B["Python processing<br/>clean · classify · geocode · spatial join<br/>score · validate"]
     C["Supabase<br/>app-ready tables"]
-    D["React / Vite<br/>V1 · V2 · guided chatbot"]
+    D["React / Vite<br/>V1 Community View<br/>V2 Planner View + guided chatbot"]
     E["Vercel<br/>production web app"]
     F["Anonymous web events<br/>page_events · flyer_downloads"]
     G["Private no-publish review<br/>experimental digital demand"]
@@ -82,7 +82,7 @@ scores in the browser:
 | --- | --- | --- |
 | Structural vulnerability | Statistics Canada 2021 Census indicators | Used in `area_profile` and `gap_score` |
 | Area boundaries | Ville de Montréal open boundary data, including the documented A001/A002 partition | Used by the Planner map and spatial processing |
-| Service directory | `services_master`, 3,664 deduplicated rows assembled from the public 211 Greater Montréal PDF and other public/open sources | Used by V1, maps, and chatbot service lookup |
+| Service directory | `services_master`, 3,664 deduplicated rows assembled from the public 211 Greater Montréal PDF and other public/open sources | Used by V1, Planner maps, and Planner chatbot service lookup |
 | Accessibility | Current service-centre layer, 2.5 km straight-line threshold, and service counts | Used in production `gap_score` |
 | Web behavior | Anonymous version-2 events in `page_events` and `flyer_downloads`, privacy-gated at `k >= 5` | Experimental digital-demand candidate; not published into `gap_score` |
 | Demonstration inputs | Synthetic area/service fallbacks and committed synthetic visitor-tag examples | Development and explanation only; labelled and excluded from production scoring |
@@ -102,8 +102,8 @@ not population-level demand, partner encounters, or 211 call volume.
   waitlists, service quality, or language availability.
 - Service listings can become stale and should be confirmed with the provider
   before referral.
-- The guided chatbot only answers predefined, data-grounded questions. It does
-  not provide professional advice or determine eligibility.
+- The Planner guided chatbot only answers predefined, data-grounded questions.
+  It does not provide professional advice or determine eligibility.
 - Analytics are anonymous and insert-only from the browser. No client name,
   contact information, free-text case note, or precise home location should be
   collected.
@@ -125,8 +125,8 @@ docs/                     Canonical product guides, reference docs, and archive
 .github/workflows/        CI, production grill, release, and dry-run automation
 ```
 
-The React application is the canonical product UI. `streamlit_app.py` remains
-an analytical reference and is not the production web entrypoint.
+The React/Vite application is the only supported application UI and the only
+documented local and production entrypoint.
 
 ## Validate a change
 
@@ -155,7 +155,7 @@ rollback checks are documented in
 
 - [V1 Community View](docs/v1-frontline.md)
 - [V2 Planner View and scoring](docs/v2-planner.md)
-- [Guided chatbot](docs/chatbot.md)
+- [Planner guided chatbot](docs/chatbot.md)
 - [Data inventory](docs/reference/data/DATA_INVENTORY.md)
 - [Interfaces and table contracts](docs/reference/data/interfaces.md)
 - [Scoring and metrics guide](docs/reference/scoring/scoring-metrics-guide.md)
