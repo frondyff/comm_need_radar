@@ -7,13 +7,13 @@ on:
     types:
       - completed
     branches:
-      - integration/production-web
+      - dev
   workflow_dispatch:
     inputs:
       ref:
         description: Git ref to release
         required: true
-        default: integration/production-web
+        default: dev
       mode:
         description: New grill checks either report or enforce promotion safety
         required: true
@@ -51,7 +51,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.workflow_run.head_sha || inputs.ref || 'integration/production-web' }}
+          ref: ${{ github.event.workflow_run.head_sha || inputs.ref || 'dev' }}
           fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
