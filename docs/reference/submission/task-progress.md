@@ -35,6 +35,7 @@ team can monitor work through owners, outputs, blockers, and handoffs.
 | 2026-07-27 | Frondy | Scoring reviewer | Quantified center coverage, visit imbalance, structural/observed correlation, rank shifts, and the privacy floor | `scripts/validate_scoring_bias.py`, `docs/reference/scoring/scoring-validation-2026-07-27.md` | V2 observed inputs remain synthetic; technical recommendation is to defer integration | Chloe records approve/defer/reject and reviewers validate weights |
 | 2026-07-27 | Frondy | Web-observed scoring lead | Added versioned anonymous analytics, service-exposure normalization, k-anonymized visitor-tag snapshots, and the original 60% structural / 40% observed V2 integration | `frontend/src/lib/analytics.js`, `scripts/build_web_observed_demand.py`, `supabase/migrations/202607270001_web_observed_demand.sql` | Web behavior measures observed service interest; all-area coverage is required and production gap remains unchanged | Apply the migration, run the private pilot, review the quality artifact, then record the final application-integration decision |
 | 2026-07-27 | Frondy | Final handoff editor | Reconciled the submission checklist and prepared the technical report, presentation outline, and structured user-test protocol | `docs/reference/submission/submission-checklist.md`, `docs/reference/submission/final-report.md`, `docs/reference/submission/presentation-outline.md`, `docs/reference/submission/user-testing-plan.md` | Participant results and workstream approvals cannot be fabricated | Collect user results and owner approvals |
+| 2026-07-28 | Frondy | Submission and scoring reviewer | Rewrote the repository entrypoint, separated canonical/reference/archive docs, and reran web-observed demand without publication | `README.md`, `docs/v1-frontline.md`, `docs/v2-planner.md`, `docs/chatbot.md`, Actions run `30379195442` | 0 of 12 areas passed all coverage gates; production gap remains unchanged and structural-only fallback remains active | Complete representative user testing and record the owner decision before any observed-demand integration |
 
 ## Monitoring Rule
 
@@ -42,5 +43,5 @@ Every future implementation task should add a row with owner, role, activity,
 output, blocker, and next step. Shared schema changes must also update
 `docs/reference/data/interfaces.md`.
 
-The activity log is maintained here and in
-`data/processed/role_activity_log.csv`; it is not displayed as a dashboard view.
+This document is the current handoff log. `data/processed/role_activity_log.csv`
+is an earlier generated demonstration extract and is not the source of truth.

@@ -18,9 +18,9 @@ Closes #
 ## Documentation
 
 - [ ] README updated if setup or usage changed
-- [ ] `docs/interfaces.md` updated if shared outputs changed
-- [ ] `docs/decisions.md` updated if a project decision changed
-- [ ] `docs/task-progress.md` updated with handoff notes
+- [ ] `docs/reference/data/interfaces.md` updated if shared outputs changed
+- [ ] `docs/reference/submission/decisions.md` updated if a project decision changed
+- [ ] `docs/reference/submission/task-progress.md` updated with handoff notes
 
 ## Validation
 
