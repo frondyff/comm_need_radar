@@ -87,10 +87,11 @@ python scripts/data_pipeline/build_database.py   # -> data/community_radar.sqlit
 
 ## SQLite database
 
-`build_database.py` loads every table into `data/community_radar.sqlite` (free,
-file-based, no server) with primary keys, foreign keys, indexes, and views that
-match `docs/archive/mvp-system-erd.md`. It is **regenerable** (gitignored) — the CSVs are
-the source of truth. Query it with any SQLite client, or:
+`build_database.py` loads its declared core and auxiliary project tables into
+`data/community_radar.sqlite` (free, file-based, no server), adding the primary
+keys, foreign keys, indexes, and views defined by the builder. It is
+**regenerable** (gitignored) — the CSVs are the source of truth. Query it with
+any SQLite client, or:
 
 ```python
 import sqlite3, pandas as pd
@@ -112,7 +113,8 @@ value-for-value (verified) so any teammate can regenerate them from public sourc
 - **1,004** Montreal CMA census tracts (986 with Indigenous identity; 18 suppressed).
 - **3,664** organizations in `services_master`, the canonical directory used by the
   app, maps, and chatbot: the licensed 211 Grand Montréal directory merged and
-  de-duplicated with the open-data services below.
+  de-duplicated with the open-data services below. Of these, 3,200 are mappable
+  and 1,676 currently fall within one of the 12 review areas.
 - **4,255** service centers (the earlier open-data centre layer, retained for the
   current accessibility and gap scoring): 3,476 recreation · 100 cultural ·
   **653 community/social** (MSSS facilities, OpenStreetMap, curated

@@ -82,7 +82,8 @@ and de-duplicates into `service_directory_211.csv`.
 **E. Unified services.** `build_services_master.py` merges the 211 directory with
 the open-data services into `services_master` (3,664 unique organizations): it
 de-duplicates cross-source overlaps, drops park amenities and empty stubs, and
-assigns each located organization to its MVP area.
+assigns an `area_id` when a located organization falls within the reviewed
+geography. Locations outside the 12 review areas retain a blank `area_id`.
 
 **F. Structural vulnerability.** `build_statcan_vulnerability_index.py` scales the
 census indicators to 0–100 and combines them; `aggregate_ct_to_areas.py` rolls the
@@ -432,14 +433,16 @@ Team activity/collaboration log (project management, not project data). Columns:
 ## 5. Notes on provenance and honesty
 
 - The **211 directory data is licensed** (© 211 Grand Montreal / Centraide,
-  academic use). The raw PDF and raw extracts are kept out of the public repo
-  (gitignored); only the processed `services_master` derives from it.
+  academic use). The raw PDF is kept out of the public repo (gitignored);
+  `service_directory_211.csv` and the derived `services_master.csv` are committed
+  processed artifacts.
 - The committed **visit / usage fixture is synthetic**. A reviewed web-observed
   publication replaces the observed materializations with
   `source_type=web_behavior` aggregates; synthetic and web records are explicitly
   labelled and never blended.
-- **Accessibility and gap** currently run on MVP inputs; migrating them onto
-  `services_master` (each row already carries `area_id`) is the planned step that
-  makes them fully real.
+- **Accessibility and gap** currently run on the earlier `database_center`
+  inputs. Migrating them onto the reviewed, normalized `services_master`
+  contract is a separate future decision; `area_id` is present only when a
+  service falls within the current review geography.
 - Coordinates for the 211 organizations were geocoded free with OpenStreetMap and
   quality-filtered; `geocode_precision` distinguishes exact from approximate.
