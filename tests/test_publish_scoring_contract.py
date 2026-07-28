@@ -44,6 +44,18 @@ class PublishScoringContractTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "GAP-CANON-02"):
             publisher.validate(self.areas, self.accessibility, invalid)
 
+    def test_atomic_replacement_is_compatible_with_safe_updates(self) -> None:
+        migration = (
+            ROOT
+            / "supabase"
+            / "migrations"
+            / "202607280001_scoring_contract_consistency.sql"
+        ).read_text(encoding="utf-8")
+        self.assertIn("delete from public.accessibility\n    where true;", migration)
+        self.assertIn("delete from public.gap_score\n    where true;", migration)
+        self.assertNotIn("delete from public.accessibility;", migration)
+        self.assertNotIn("delete from public.gap_score;", migration)
+
 
 if __name__ == "__main__":
     unittest.main()

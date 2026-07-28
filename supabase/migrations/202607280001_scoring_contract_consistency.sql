@@ -440,7 +440,10 @@ begin
             affected_rows;
     end if;
 
-    delete from public.accessibility;
+    -- Supabase enables a safe-update guard in production. Keep the explicit
+    -- predicate even though this intentionally replaces the complete table.
+    delete from public.accessibility
+    where true;
     insert into public.accessibility (
         area_id,
         service_category,
@@ -480,7 +483,8 @@ begin
         service_snapshot_mappable_rows
     from scoring_candidate_accessibility;
 
-    delete from public.gap_score;
+    delete from public.gap_score
+    where true;
     insert into public.gap_score (
         area_id,
         area_name,
