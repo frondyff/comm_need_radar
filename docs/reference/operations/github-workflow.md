@@ -3,12 +3,14 @@
 ## Repository Setup
 
 - Repository: `comm_need_radar`
-- Visibility: private
-- Stable branch: `main`
-- Integration branch: `dev`
+- Visibility: public
+- Default and stable submission branch: `main`
+- Integration and production-release branch: `dev`
 
 `main` is reserved for stable milestone snapshots. Implementation work targets
-`dev` through pull requests.
+`dev` through pull requests. The guarded Vercel workflow releases successful
+`dev` commits; changing GitHub's default branch does not change that release
+source.
 
 ## Branch Rules
 
@@ -57,7 +59,7 @@ in `.git-local/` and commands must pass the Git directory explicitly:
 
 ```bash
 gh auth login
-gh repo create OWNER/comm_need_radar --private
+gh repo create OWNER/comm_need_radar --public
 git --git-dir=.git-local --work-tree=. status
 git --git-dir=.git-local --work-tree=. remote add origin git@github.com:OWNER/comm_need_radar.git
 git --git-dir=.git-local --work-tree=. push -u origin main
