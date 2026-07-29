@@ -103,8 +103,15 @@ def validate() -> list[str]:
     elif contract_path.is_file():
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         contract = contract_path.read_text(encoding="utf-8")
-        if manifest.get("document_status") != "official_production":
-            errors.append("formula manifest must identify the deployed contract")
+        document_status = manifest.get("document_status")
+        if document_status not in {
+            "official_production",
+            "approved_release_candidate",
+        }:
+            errors.append(
+                "formula manifest must identify an approved candidate or "
+                "deployed contract"
+            )
         for formula_id in manifest.get("formulas", {}):
             if formula_id not in contract:
                 errors.append(
@@ -119,12 +126,14 @@ def validate() -> list[str]:
             errors.append(
                 "formula manifest must retain GAP-PROD-01 as historical lineage"
             )
-        for field in (
+        release_fields = [
             "implementation_commit",
             "production_effective_date",
             "service_snapshot_id",
-            "vercel_deployment_id",
-        ):
+        ]
+        if document_status == "official_production":
+            release_fields.append("vercel_deployment_id")
+        for field in release_fields:
             value = manifest.get(field)
             if not value or str(value) not in contract:
                 errors.append(

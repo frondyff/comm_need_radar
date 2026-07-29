@@ -31,7 +31,7 @@ Production cards, map colours, and priority rankings currently use
 The detail bars are real Census-derived fields. They are not the older
 synthetic demonstration indicators.
 
-## Production scoring — `scoring-contract-02`
+## Production scoring — `scoring-contract-03`
 
 ### `STRUCT-01` — structural vulnerability
 
@@ -88,9 +88,20 @@ gap_score =
 ```
 
 The calculation runs in the data pipeline, not in the browser. The production
-label is **POC relative service-gap index**. The interface displays score and
-rank out of 12 only; `classification_status = unvalidated_poc` prohibits the
-historical High/Watch/Lower labels.
+score label is **POC relative service-gap index**.
+
+### `CLASS-TOP5-02`
+
+The interface labels exactly ranks 1–5 of the fixed 12-area comparison set as
+**High-priority candidate (POC)**. Ranks 6–12 show their score and rank without
+a priority label. This classification is relative: it is not an eligibility,
+funding, service-allocation, or validated policy threshold. The historical
+High/Watch/Lower thresholds remain retired.
+
+The Planner KPI and right-side panel both report exactly five candidates.
+Candidate badges also appear in the area cards, map tooltips, and selected Area
+Profile. The guided Planner chatbot uses the same stored classification fields
+and includes the relative-POC limitation.
 
 The full formula, category crosswalk, limitations, and release evidence are in
 the

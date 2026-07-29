@@ -70,6 +70,13 @@ try {
   ) {
     failures.push("Grounded chatbot ranking label does not match income-pressure semantics");
   }
+  if (
+    !widgetSource.includes("High-priority candidates (POC)")
+    || !groundedSource.includes("relative top 5 of")
+    || !groundedSource.includes("not a policy or funding decision")
+  ) {
+    failures.push("Grounded chatbot lost the CLASS-TOP5-02 relative POC disclaimer");
+  }
 } finally {
   globalThis.fetch = originalFetch;
 }

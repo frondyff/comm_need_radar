@@ -69,8 +69,12 @@ const requiredColumns = {
     "overall_accessibility_score",
     "gap_score",
     "gap_rank",
+    "priority_band",
     "priority_flag",
+    "classification_formula_id",
     "classification_status",
+    "priority_cutoff_rank",
+    "comparison_set_size",
     "gap_drivers",
     "summary_en",
     "summary_fr",
@@ -322,11 +326,27 @@ for (const row of tableRows.gap_score ?? []) {
     row.structural_formula_id !== "STRUCT-01"
     || row.accessibility_formula_id !== "ACCESS-REAL-02"
     || row.gap_formula_id !== "GAP-CANON-02"
-    || row.formula_set_version !== "scoring-contract-02"
-    || row.classification_status !== "unvalidated_poc"
-    || String(row.priority_flag ?? "").trim() !== ""
+    || row.formula_set_version !== "scoring-contract-03"
+    || row.classification_formula_id !== "CLASS-TOP5-02"
+    || row.classification_status !== "poc_relative_candidate"
+    || Number(row.priority_cutoff_rank) !== 5
+    || Number(row.comparison_set_size) !== 12
+    || (
+      Number(row.gap_rank) <= 5
+      && (
+        row.priority_band !== "high_candidate"
+        || row.priority_flag !== "High-priority candidate (POC)"
+      )
+    )
+    || (
+      Number(row.gap_rank) > 5
+      && (
+        String(row.priority_band ?? "").trim() !== ""
+        || String(row.priority_flag ?? "").trim() !== ""
+      )
+    )
   ) {
-    scoringErrors.push(`${row.area_id} formula metadata is not candidate contract 02`);
+    scoringErrors.push(`${row.area_id} formula metadata is not scoring-contract-03`);
   }
 }
 if (scoringErrors.length > 0) {
@@ -342,7 +362,7 @@ for (const row of tableRows.accessibility ?? []) {
   accessibilityCategoriesByArea.set(row.area_id, categories);
   if (
     row.accessibility_formula_id !== "ACCESS-REAL-02"
-    || row.formula_set_version !== "scoring-contract-02"
+    || row.formula_set_version !== "scoring-contract-03"
     || row.taxonomy_version !== "planning-needs-9-v1"
     || Number(row.distance_component) < 0
     || Number(row.distance_component) > 100

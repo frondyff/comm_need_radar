@@ -58,12 +58,16 @@ test("area scoring retains real indicators and candidate formula lineage", () =>
       vulnerability_score: 62.87,
       service_accessibility_score: 58.18,
       gap_rank: 1,
-      priority_flag: "",
-      classification_status: "unvalidated_poc",
+      priority_band: "high_candidate",
+      priority_flag: "High-priority candidate (POC)",
+      classification_formula_id: "CLASS-TOP5-02",
+      classification_status: "poc_relative_candidate",
+      priority_cutoff_rank: 5,
+      comparison_set_size: 12,
       structural_formula_id: "STRUCT-01",
       accessibility_formula_id: "ACCESS-REAL-02",
       gap_formula_id: "GAP-CANON-02",
-      formula_set_version: "scoring-contract-02",
+      formula_set_version: "scoring-contract-03",
       gap_drivers: "Low income; comparatively weaker access: Legal Aid",
     }],
     [{
@@ -87,11 +91,15 @@ test("area scoring retains real indicators and candidate formula lineage", () =>
     }]
   );
 
-  assert.equal(area.gapScore, 0.26);
-  assert.equal(area.vulnerability, 0.63);
-  assert.equal(area.accessibility, 0.58);
-  assert.equal(area.priorityFlag, "");
-  assert.equal(area.classificationStatus, "unvalidated_poc");
+  assert.equal(area.gapScore, 0.2629);
+  assert.equal(area.vulnerability, 0.6287);
+  assert.equal(area.accessibility, 0.5818);
+  assert.equal(area.priorityBand, "high_candidate");
+  assert.equal(area.priorityFlag, "High-priority candidate (POC)");
+  assert.equal(area.classificationFormulaId, "CLASS-TOP5-02");
+  assert.equal(area.classificationStatus, "poc_relative_candidate");
+  assert.equal(area.priorityCutoffRank, 5);
+  assert.equal(area.comparisonSetSize, 12);
   assert.equal(area.structuralFormulaId, "STRUCT-01");
   assert.equal(area.accessibilityFormulaId, "ACCESS-REAL-02");
   assert.equal(area.gapFormulaId, "GAP-CANON-02");
@@ -144,19 +152,24 @@ test("candidate scoring contract accepts a complete reconciled snapshot", () => 
     vulnerability_rank: index + 1,
     structural_formula_id: "STRUCT-01",
   }));
-  const gap = areas.map(area => ({
+  const gap = areas.map((area, index) => ({
     area_id: area.area_id,
     structural_vulnerability_score: 60,
     vulnerability_score: 60,
     service_accessibility_score: 50,
     overall_accessibility_score: 50,
     gap_score: 30,
-    priority_flag: "",
-    classification_status: "unvalidated_poc",
+    gap_rank: index + 1,
+    priority_band: index < 5 ? "high_candidate" : "",
+    priority_flag: index < 5 ? "High-priority candidate (POC)" : "",
+    classification_formula_id: "CLASS-TOP5-02",
+    classification_status: "poc_relative_candidate",
+    priority_cutoff_rank: 5,
+    comparison_set_size: 12,
     structural_formula_id: "STRUCT-01",
     accessibility_formula_id: "ACCESS-REAL-02",
     gap_formula_id: "GAP-CANON-02",
-    formula_set_version: "scoring-contract-02",
+    formula_set_version: "scoring-contract-03",
   }));
   const accessibility = areas.flatMap(area =>
     Array.from({ length: 9 }, (_, categoryIndex) => ({
@@ -166,7 +179,7 @@ test("candidate scoring contract accepts a complete reconciled snapshot", () => 
       availability_component: 60,
       accessibility_score: 50,
       accessibility_formula_id: "ACCESS-REAL-02",
-      formula_set_version: "scoring-contract-02",
+      formula_set_version: "scoring-contract-03",
       taxonomy_version: "planning-needs-9-v1",
       service_snapshot_total_rows: 3664,
       service_snapshot_mappable_rows: 3200,
@@ -192,6 +205,6 @@ test("candidate scoring contract rejects a mixed legacy snapshot", () => {
         accessibility_formula_id: "ACCESS-LEGACY-01",
       }),
     }),
-    /scoring-contract-02|complete candidate matrix/
+    /scoring-contract-03|complete candidate matrix/
   );
 });

@@ -38,12 +38,16 @@ const gapRows = collection.features.map((feature, index) => ({
   service_accessibility_score: 50 - index,
   overall_accessibility_score: 50 - index,
   gap_rank: index + 1,
-  priority_flag: "",
-  classification_status: "unvalidated_poc",
+  priority_band: index < 5 ? "high_candidate" : "",
+  priority_flag: index < 5 ? "High-priority candidate (POC)" : "",
+  classification_formula_id: "CLASS-TOP5-02",
+  classification_status: "poc_relative_candidate",
+  priority_cutoff_rank: 5,
+  comparison_set_size: 12,
   structural_formula_id: "STRUCT-01",
   accessibility_formula_id: "ACCESS-REAL-02",
   gap_formula_id: "GAP-CANON-02",
-  formula_set_version: "scoring-contract-02",
+  formula_set_version: "scoring-contract-03",
 }));
 const scores = mapAreaRowsToBoroughScores(gapRows, areaRows, vulnerabilityRows);
 const failures = [];
@@ -61,7 +65,7 @@ const sharedBorough = scores["Villeray-Saint-Michel-Parc-Extension"];
 if (sharedBorough?.sourceAreaIds.join(",") !== "A001,A002") {
   failures.push("A001/A002 did not aggregate under their shared Supabase borough key");
 }
-if (sharedBorough?.income !== 0.2 || sharedBorough?.incomePct !== 10.5) {
+if (sharedBorough?.income !== 0.205 || sharedBorough?.incomePct !== 10.5) {
   failures.push("Borough income did not use the real scaled/raw census fields");
 }
 
@@ -86,8 +90,13 @@ if (
 ) {
   failures.push("Area did not retain candidate scoring formula lineage");
 }
-if (firstArea?.priorityFlag !== "" || firstArea?.classificationStatus !== "unvalidated_poc") {
-  failures.push("Area exposed a retired priority label or lost its POC classification status");
+if (
+  firstArea?.priorityBand !== "high_candidate"
+  || firstArea?.priorityFlag !== "High-priority candidate (POC)"
+  || firstArea?.classificationFormulaId !== "CLASS-TOP5-02"
+  || firstArea?.classificationStatus !== "poc_relative_candidate"
+) {
+  failures.push("Area lost its CLASS-TOP5-02 POC candidate classification");
 }
 
 const services = mapServiceRowsToDashboardServices([{

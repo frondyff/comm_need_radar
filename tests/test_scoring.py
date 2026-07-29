@@ -15,6 +15,7 @@ from comm_need_radar.scoring.metrics import (
     observed_focus_need_score,
     priority_flag,
     relative_accessibility_score,
+    top_priority_candidate,
     v1_demand_score,
     v2_observed_need_score,
 )
@@ -37,6 +38,20 @@ class ScoringTests(unittest.TestCase):
         self.assertEqual(priority_flag(50), "High priority")
         self.assertEqual(priority_flag(30), "Watch")
         self.assertEqual(priority_flag(10), "Lower priority")
+
+    def test_top_priority_candidate_is_relative_and_bounded(self):
+        self.assertEqual(
+            top_priority_candidate(1),
+            ("high_candidate", "High-priority candidate (POC)"),
+        )
+        self.assertEqual(
+            top_priority_candidate(5),
+            ("high_candidate", "High-priority candidate (POC)"),
+        )
+        self.assertEqual(top_priority_candidate(6), ("", ""))
+        self.assertEqual(top_priority_candidate(12), ("", ""))
+        with self.assertRaises(ValueError):
+            top_priority_candidate(13)
 
     def test_relative_accessibility_components_reconcile(self):
         score, distance, availability = relative_accessibility_score(

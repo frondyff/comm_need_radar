@@ -346,6 +346,7 @@ function ChoroplethMap({ selectedBorough, selectedAreaId, onSelect, boroughScore
     const label = feature.properties?.area_name || feature.properties?.borough_name || "";
     const boroughLabel = feature.properties?.borough_name || "";
     const areaId = feature.properties?.area_id || "";
+    const areaMatch = areaId ? areaById.get(areaId) : null;
     const score = scoreForFeature(feature);
     const isSelected = selectedAreaId ? areaId === selectedAreaId : name === selectedBorough;
     layer.setStyle({
@@ -363,7 +364,7 @@ function ChoroplethMap({ selectedBorough, selectedAreaId, onSelect, boroughScore
     });
     if (label) {
       layer.bindTooltip(
-        `<b>${label}</b><br/>${boroughLabel}${areaId ? ` · ${areaId}` : ""}${score != null ? `<br/>POC service-gap index: <b>${(score*100).toFixed(2)}</b>` : ""}`,
+        `<b>${label}</b><br/>${boroughLabel}${areaId ? ` · ${areaId}` : ""}${score != null ? `<br/>POC service-gap index: <b>${(score*100).toFixed(2)}</b>` : ""}${areaMatch?.priorityBand === "high_candidate" ? `<br/><b>${isEN ? "High-priority candidate (POC)" : "Candidat à haute priorité (PDC)"}</b>` : ""}`,
         { sticky: true }
       );
     }
@@ -476,6 +477,9 @@ function PlannerView({ lang, setLang, onSwitch, onExit, location, onChangeLocati
   // static placeholders only if no real area rows have loaded yet)
   const validGapScores = areas.map(a=>a.gapScore).filter(s=>s!=null);
   const avgGapScore = validGapScores.length ? (validGapScores.reduce((a,b)=>a+b,0)/validGapScores.length) : null;
+  const highPriorityCandidateCount = areas.length > 0
+    ? areas.filter(area => area.priorityBand === "high_candidate").length
+    : 5;
 
   // Only show the selected area's own services on the street map, instead
   // of all of them at once (with real data that's 1000+ overlapping pins).
@@ -517,7 +521,7 @@ function PlannerView({ lang, setLang, onSwitch, onExit, location, onChangeLocati
           {[
             { label: isEN?"Tracts analyzed":"Zones analysées", val: areas.length>0 ? String(areas.length) : "512", sub: areas.length>0 ? (isEN?`${boroughEntries.length} boroughs`:`${boroughEntries.length} arrondissements`) : (isEN?"of 512 citywide":"sur 512 dans la ville"), icon:Layers, color:"#2563EB", bg:"#EEF2FF" },
             { label: isEN?"Average POC gap":"Écart moyen (PDC)", val: avgGapScore!=null ? (avgGapScore*100).toFixed(2) : "—", sub: avgGapScore!=null ? (isEN?`relative index across ${areas.length} areas`:`indice relatif sur ${areas.length} zones`) : (isEN?"candidate scoring unavailable":"notation candidate indisponible"), icon:Activity, color:"#E11D48", bg:"#FFF1F2" },
-            { label: isEN?"Ranked areas":"Zones classées", val: areas.length>0 ? String(areas.length) : "12", sub: isEN?"no validated priority bands":"aucun seuil de priorité validé", icon:AlertTriangle, color:"#D97706", bg:"#FFFBEB" },
+            { label: isEN?"High-priority candidates (POC)":"Candidats à haute priorité (PDC)", val: String(highPriorityCandidateCount), sub: isEN?"relative top 5 of 12":"5 premiers relatifs sur 12", icon:AlertTriangle, color:"#D97706", bg:"#FFFBEB" },
           ].map((k,i)=>(
             <div key={k.label} style={{flex:"1 1 220px",minWidth:220,padding:"14px 20px",display:"flex",gap:12,alignItems:"flex-start",borderLeft:i>0?"1px solid #E2E8F0":"none"}}>
               <div style={{width:34,height:34,borderRadius:8,background:k.bg,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
@@ -589,9 +593,10 @@ function PlannerView({ lang, setLang, onSwitch, onExit, location, onChangeLocati
             </div>
           </div>
 
-          {/* Highest relative-gap ranks — clickable */}
+          {/* CLASS-TOP5-02 relative candidates — clickable */}
           <div style={{background:"#fff",border:"1px solid #E2E8F0",borderRadius:8,padding:"16px",display:"flex",flexDirection:"column"}}>
-            <div style={{fontWeight:600,fontSize:15,marginBottom:12}}>{isEN?"Highest relative service-gap ranks":"Rangs les plus élevés de l'écart relatif"}</div>
+            <div style={{fontWeight:600,fontSize:15,marginBottom:4}}>{isEN?"High-priority candidates (POC)":"Candidats à haute priorité (PDC)"}</div>
+            <div style={{fontSize:11,color:"#64748B",marginBottom:12}}>{isEN?"Relative top 5 of 12; not a policy threshold":"5 premiers relatifs sur 12; aucun seuil de politique"}</div>
             <div style={{display:"flex",flexDirection:"column",gap:8,flex:1}}>
               {priorities.map((p)=>{
                 const isSelected = areas.length>0 ? selectedAreaId===p.id : selectedBorough===p.borough;
@@ -604,6 +609,9 @@ function PlannerView({ lang, setLang, onSwitch, onExit, location, onChangeLocati
                     <div style={{minWidth:0}}>
                       <div style={{fontSize:13,fontWeight:isSelected?600:400,color:isSelected?"#2563EB":"#0F172A",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{p.name}</div>
                       {p.borough && p.borough!==p.name && <div style={{fontSize:11,color:"#475569",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{p.borough}</div>}
+                      <div data-testid="priority-candidate-badge" style={{fontSize:10,color:"#92400E",fontWeight:700,marginTop:3}}>
+                        {isEN?"High-priority candidate (POC)":"Candidat à haute priorité (PDC)"}
+                      </div>
                     </div>
                     <span style={{fontSize:13,fontWeight:700,color:"#2563EB",background:"#EEF2FF",padding:"3px 8px",borderRadius:4,fontFamily:MONO_FONT,flexShrink:0,marginLeft:8}}>{p.gapScore!=null?(p.gapScore*100).toFixed(2):"—"}</span>
                   </button>
@@ -623,6 +631,11 @@ function PlannerView({ lang, setLang, onSwitch, onExit, location, onChangeLocati
             {selectedAreaData?.rank!=null && (
               <span style={{fontSize:12,color:"#475569"}}>{isEN?`Rank #${selectedAreaData.rank} of ${areas.length} areas`:`Rang n°${selectedAreaData.rank} sur ${areas.length} zones`}</span>
             )}
+            {selectedAreaData?.priorityBand === "high_candidate" && (
+              <span data-testid="area-profile-priority-candidate" style={{fontSize:11,color:"#92400E",background:"#FFFBEB",border:"1px solid #FDE68A",borderRadius:999,padding:"3px 8px",fontWeight:700}}>
+                {isEN?"High-priority candidate (POC)":"Candidat à haute priorité (PDC)"}
+              </span>
+            )}
             {selectedAreaData && (
               <>
                 <span style={{fontSize:12,color:"#475569"}}>{isEN?"Structural vulnerability":"Vulnérabilité structurelle"}: <b>{(selectedAreaData.vulnerability*100).toFixed(2)}</b></span>
@@ -639,7 +652,7 @@ function PlannerView({ lang, setLang, onSwitch, onExit, location, onChangeLocati
             </div>
           )}
 
-          <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:20,marginBottom:selectedAreaData?.summaryEn||selectedAreaData?.summaryFr||selectedAreaData?.drivers?.length>0?16:0}}>
+          <div data-testid="area-profile-indicators" style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(min(100%,160px),1fr))",gap:20,marginBottom:selectedAreaData?.summaryEn||selectedAreaData?.summaryFr||selectedAreaData?.drivers?.length>0?16:0}}>
             {[
               {key:"income",label:isEN?"Low income":"Faible revenu",barValue:selectedAreaData?.income ?? areaData.income,rawPct:selectedAreaData?.incomePct ?? areaData.incomePct},
               {key:"housing",label:isEN?"Housing burden":"Charge logement",barValue:selectedAreaData?.housing ?? areaData.housing,rawPct:selectedAreaData?.housingPct ?? areaData.housingPct},

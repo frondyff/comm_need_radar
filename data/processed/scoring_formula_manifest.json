@@ -1,6 +1,6 @@
 {
-  "document_status": "official_production",
-  "formula_set_version": "scoring-contract-02",
+  "document_status": "approved_release_candidate",
+  "formula_set_version": "scoring-contract-03",
   "formulas": {
     "ACCESS-LEGACY-01": {
       "name": "Synthetic distance-plus-count accessibility",
@@ -16,6 +16,11 @@
       "name": "Unvalidated High/Watch/Lower thresholds",
       "production_use": "none; public classifications are retired",
       "status": "historical"
+    },
+    "CLASS-TOP5-02": {
+      "name": "Relative top-five POC priority candidates",
+      "production_use": "labels ranks 1-5 of the fixed 12-area comparison set; not a policy threshold or allocation decision",
+      "status": "production_poc"
     },
     "FOCUS-EXP-01": {
       "name": "Immigrant and language Census concern",
@@ -68,8 +73,9 @@
       "status": "experimental"
     }
   },
-  "implementation_commit": "39fa91b04f834827dac088030f9bdcd8a17f1729",
+  "implementation_commit": "44a66de0039d0ec91be130ef671ecf28b00d83e4",
   "previous_production_formula_set": "GAP-PROD-01",
+  "production_classification_formula": "CLASS-TOP5-02",
   "production_effective_date": "2026-07-28",
   "production_formula_set": "GAP-CANON-02",
   "service_category_crosswalk": {
@@ -97,5 +103,5 @@
   "service_snapshot_date": "2026-07-28",
   "service_snapshot_id": "97c29b249d986c4ffa5de6fe21400dc99dd5121f6026bda0a779116869806c1b",
   "taxonomy_version": "planning-needs-9-v1",
-  "vercel_deployment_id": "dpl_BHUGiRk4rJdvTp24YVNtkaDLPzEM"
+  "vercel_deployment_id": "pending-controlled-release"
 }

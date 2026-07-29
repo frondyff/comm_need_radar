@@ -117,11 +117,40 @@ def gap_score(vulnerability: float, accessibility: float) -> float:
 
 
 def priority_flag(score: float) -> str:
+    """Return the historical CLASS-LEGACY-01 threshold label."""
     if score >= 45:
         return "High priority"
     if score >= 28:
         return "Watch"
     return "Lower priority"
+
+
+TOP_PRIORITY_CUTOFF_RANK = 5
+TOP_PRIORITY_COMPARISON_SET_SIZE = 12
+TOP_PRIORITY_BAND = "high_candidate"
+TOP_PRIORITY_LABEL = "High-priority candidate (POC)"
+TOP_PRIORITY_CLASSIFICATION_STATUS = "poc_relative_candidate"
+
+
+def top_priority_candidate(
+    rank: int,
+    *,
+    cutoff_rank: int = TOP_PRIORITY_CUTOFF_RANK,
+    comparison_set_size: int = TOP_PRIORITY_COMPARISON_SET_SIZE,
+) -> tuple[str, str]:
+    """Classify only the relative top ranks in the fixed POC comparison set.
+
+    This is CLASS-TOP5-02, not the retired absolute High/Watch/Lower
+    classification. Rows outside the cutoff deliberately receive no band or
+    public priority label.
+    """
+    if not 1 <= rank <= comparison_set_size:
+        raise ValueError("rank must be within the comparison set")
+    if not 1 <= cutoff_rank <= comparison_set_size:
+        raise ValueError("cutoff_rank must be within the comparison set")
+    if rank <= cutoff_rank:
+        return TOP_PRIORITY_BAND, TOP_PRIORITY_LABEL
+    return "", ""
 
 
 def require_columns(columns: Iterable[str], required: Iterable[str], table_name: str) -> None:

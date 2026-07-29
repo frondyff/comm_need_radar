@@ -1,27 +1,29 @@
 # Production Scoring Contract
 
-Status: **official POC production**
+Status: **approved POC release candidate; controlled rollout pending**
 
 | Metadata | Value |
 | --- | --- |
-| Current production formula set | `GAP-CANON-02` |
-| Formula-set version | `scoring-contract-02` |
+| Numeric formula set | `GAP-CANON-02` (unchanged from production) |
+| Approved candidate version | `scoring-contract-03` |
+| Approved candidate classification | `CLASS-TOP5-02` |
 | Production taxonomy | `planning-needs-9-v1` |
 | Approval owner and date | Repository maintainer; approved 2026-07-28 in the implementation thread |
 | Effective production date | 2026-07-28 |
-| Implementation commit | `39fa91b04f834827dac088030f9bdcd8a17f1729` |
+| Implementation commit | `44a66de0039d0ec91be130ef671ecf28b00d83e4` |
 | Supabase snapshot | `97c29b249d986c4ffa5de6fe21400dc99dd5121f6026bda0a779116869806c1b` |
 | Supabase publication | Run `30406140070`; 12 / 108 / 12 rows |
-| Vercel deployment | `dpl_BHUGiRk4rJdvTp24YVNtkaDLPzEM` |
-| Production release | Run `30406589519`; https://comm-need-radar.vercel.app |
+| Vercel deployment | Pending controlled release |
+| Production release | Pending migration, atomic publication, candidate grill, and promotion |
 
 This is the authoritative entry point for scoring status, formulas, lineage,
 allowed interpretation, and the initial controlled release evidence.
 
-## What Production Uses Today
+## What The Approved Candidate Uses
 
-The deployed application uses one consistent structural and service-gap
-contract:
+The approved candidate uses one consistent structural, service-gap, and
+relative-classification contract. Production remains on contract 02 until the
+release gates below complete:
 
 | Surface | Formula | Current input basis |
 | --- | --- | --- |
@@ -29,7 +31,7 @@ contract:
 | Planner gap vulnerability | `STRUCT-01` | Statistics Canada 2021 equal-weight structural index |
 | Planner accessibility | `ACCESS-REAL-02` | 3,200 mappable rows from the 3,664-row `services_master` snapshot |
 | Planner gap | `GAP-CANON-02` | `STRUCT-01` plus `ACCESS-REAL-02` |
-| Planner interpretation | `unvalidated_poc` | Score and rank only; no policy-priority classification |
+| Planner interpretation | `CLASS-TOP5-02` | Ranks 1–5 are relative **High-priority candidates (POC)**; ranks 6–12 have no priority label |
 | Stored V2 | `V2-COMP-EXP-01` | Experimental; does not feed the production gap |
 | Web-observed demand | `WEB-DEMAND-EXP-01` | Experimental; does not feed the production gap |
 
@@ -46,6 +48,7 @@ to the formula below.
 | `ACCESS-LEGACY-01` | Synthetic distance plus capped count | Historical; no production use |
 | `GAP-PROD-01` | `STRUCT-01 × (100 − ACCESS-LEGACY-01) / 100` | Historical; superseded |
 | `CLASS-LEGACY-01` | High ≥45; Watch ≥28; otherwise Lower | Historical, unvalidated, and retired |
+| `CLASS-TOP5-02` | Ranks 1–5 of the fixed 12-area set | Production POC interpretation; relative candidate, not a policy threshold |
 | `FOCUS-EXP-01` | Immigrant and language Census concern | Experimental |
 | `FOCUS-EXP-02` | Immigrant/Indigenous focus composite | Experimental |
 | `V1-DEMAND-EXP-01` | 70% volume plus 30% top-category pressure | Experimental |
@@ -135,10 +138,26 @@ gap_score =
   / 100
 ```
 
-The public label is **POC relative service-gap index**. Display the score and
-rank out of 12 only. While `classification_status = unvalidated_poc`, the UI,
-chatbot, exports, and API narratives must not assign High, Watch, Lower, or an
-equivalent policy priority.
+The score remains the **POC relative service-gap index**. `CLASS-TOP5-02`
+adds a separate interpretation layer:
+
+```text
+comparison_set_size = 12
+priority_cutoff_rank = 5
+
+if gap_rank <= 5:
+  priority_band = high_candidate
+  priority_flag = High-priority candidate (POC)
+else:
+  priority_band = null
+  priority_flag = null
+```
+
+This is a relative top-five label, not an absolute threshold. It does not mean
+that an area is eligible for funding, has been approved for intervention, or
+has crossed a validated policy boundary. Ranks are deterministic: descending
+gap score, descending structural vulnerability, ascending accessibility, then
+ascending `area_id`.
 
 The experimental focus score, V1, V2, `page_events`, and `flyer_downloads` do
 not enter this calculation.
@@ -176,6 +195,10 @@ The first safe-update attempt failed before any row changed, and the first
 candidate grill caught a stale legacy expectation before promotion. Both
 failures were corrected and rerun. The successful release evidence is recorded
 in the metadata table above.
+
+`GAP-CANON-02` and all numeric values remain unchanged in contract 03. The
+version change records the new classification semantics and prevents a
+contract-02 client from silently interpreting the new fields.
 
 `GAP-PROD-01`, `ACCESS-LEGACY-01`, and `CLASS-LEGACY-01` are historical.
 Formula IDs themselves never change. Any future formula, taxonomy, source

@@ -34,6 +34,7 @@ runtime was removed after React/Vite became the sole application interface.
 | 2026-07-28 | Number every legacy, canonical, and experimental scoring formula | Prevents two different measures from sharing the ambiguous `vulnerability_score` name and makes stored lineage auditable |
 | 2026-07-28 | Approve `scoring-contract-02` for the POC production interface | Resolves the displayed/calculated structural-score mismatch and replaces synthetic accessibility with the reviewed real service snapshot while retaining POC labels, documented limitations, and no policy-priority classification |
 | 2026-07-28 | Promote `STRUCT-01` + `ACCESS-REAL-02` → `GAP-CANON-02` as the official POC production scoring contract | Atomic Supabase publication, public access validation, staged/canonical smoke tests, and desktop/mobile E2E checks passed; `GAP-PROD-01` and its synthetic accessibility/classification inputs are now historical |
+| 2026-07-28 | Approve `CLASS-TOP5-02` as the POC interpretation layer | Keep `GAP-CANON-02` scores and ranks unchanged; label exactly ranks 1–5 of the fixed 12-area set as **High-priority candidate (POC)**, leave ranks 6–12 unlabelled, and state that this is relative planning guidance rather than a policy, eligibility, funding, or allocation threshold |
 
 ## Pending Decisions For Real Data Version
 

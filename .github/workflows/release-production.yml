@@ -18,7 +18,7 @@ on:
         description: New grill checks either report or enforce promotion safety
         required: true
         type: choice
-        default: report
+        default: enforce
         options:
           - report
           - enforce
@@ -43,7 +43,7 @@ env:
   VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
   VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
   SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
-  GRILL_MODE: ${{ inputs.mode || vars.PROD_GRILL_MODE || 'report' }}
+  GRILL_MODE: ${{ inputs.mode || vars.PROD_GRILL_MODE || 'enforce' }}
 
 jobs:
   release:
@@ -89,6 +89,7 @@ jobs:
           echo "Releasing ${release_sha}" >> "$GITHUB_STEP_SUMMARY"
           if git diff --quiet "${release_sha}^" "$release_sha" -- \
             supabase/migrations/202607280001_scoring_contract_consistency.sql \
+            supabase/migrations/202607280002_top5_priority_candidates.sql \
             data/processed/scoring_formula_manifest.json \
             scripts/publish_scoring_contract.py; then
             echo "scoring_publish_required=false" >> "$GITHUB_OUTPUT"

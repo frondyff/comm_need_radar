@@ -57,7 +57,11 @@ type GapRow = {
   service_accessibility_score: number;
   gap_score: number;
   gap_rank: number;
+  priority_band: string;
+  priority_flag: string;
   classification_status: string;
+  classification_formula_id: string;
+  comparison_set_size: number;
   structural_formula_id: string;
   accessibility_formula_id: string;
   gap_formula_id: string;
@@ -92,10 +96,15 @@ function json(res: any, status: number, payload: unknown) {
 
 function deterministicAnswer(area: GapRow, services: ServiceRow[], serviceCategory: string, language: "en" | "fr") {
   const topServices = services.slice(0, 3).map((service) => `${service.service_name} (${service.service_category}, ${service.distance_km?.toFixed(1)} km)`);
+  const candidateSentence = area.priority_band === "high_candidate"
+    ? (language === "fr"
+      ? ` Elle est un candidat a haute priorite (PDC) selon ${area.classification_formula_id}, soit les 5 premiers relatifs sur ${area.comparison_set_size}; ce n'est pas une decision de politique ou de financement.`
+      : ` It is a High-priority candidate (POC) under ${area.classification_formula_id}, the relative top 5 of ${area.comparison_set_size}; this is not a policy or funding decision.`)
+    : "";
   if (language === "fr") {
-    return `${area.area_name} a un indice PDC d'ecart relatif de services de ${area.gap_score.toFixed(2)} et un rang ${area.gap_rank} sur 12. Aucun seuil de priorite Haut/Surveillance/Bas n'est valide. Services verifies proches: ${topServices.join("; ") || "aucun service dans le contexte limite"}. Confirmez les details directement avec le fournisseur avant reference.`;
+    return `${area.area_name} a un indice PDC d'ecart relatif de services de ${area.gap_score.toFixed(2)} et un rang ${area.gap_rank} sur ${area.comparison_set_size}.${candidateSentence} Services verifies proches: ${topServices.join("; ") || "aucun service dans le contexte limite"}. Confirmez les details directement avec le fournisseur avant reference.`;
   }
-  return `${area.area_name} has a POC relative service-gap index of ${area.gap_score.toFixed(2)} and ranks #${area.gap_rank} of 12. No High/Watch/Lower threshold is validated. Verified nearby services${serviceCategory !== "All" ? ` for ${serviceCategory}` : ""}: ${topServices.join("; ") || "none in the bounded context"}. Confirm details with the provider before referral.`;
+  return `${area.area_name} has a POC relative service-gap index of ${area.gap_score.toFixed(2)} and ranks #${area.gap_rank} of ${area.comparison_set_size}.${candidateSentence} Verified nearby services${serviceCategory !== "All" ? ` for ${serviceCategory}` : ""}: ${topServices.join("; ") || "none in the bounded context"}. Confirm details with the provider before referral.`;
 }
 
 async function loadPagedServices(client: any): Promise<ServiceRow[]> {
@@ -236,7 +245,10 @@ export default async function handler(req: any, res: any) {
       service_accessibility_score: areaRow.service_accessibility_score,
       gap_score: areaRow.gap_score,
       gap_rank: areaRow.gap_rank,
+      priority_flag: areaRow.priority_flag,
       classification_status: areaRow.classification_status,
+      classification_formula_id: areaRow.classification_formula_id,
+      comparison_set_size: areaRow.comparison_set_size,
       structural_formula_id: areaRow.structural_formula_id,
       accessibility_formula_id: areaRow.accessibility_formula_id,
       gap_formula_id: areaRow.gap_formula_id,

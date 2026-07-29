@@ -11,23 +11,24 @@ import json
 from pathlib import Path
 
 
-FORMULA_SET_VERSION = "scoring-contract-02"
+FORMULA_SET_VERSION = "scoring-contract-03"
 TAXONOMY_VERSION = "planning-needs-9-v1"
 SERVICE_SNAPSHOT_DATE = "2026-07-28"
 PRODUCTION_EFFECTIVE_DATE = "2026-07-28"
 PRODUCTION_IMPLEMENTATION_COMMIT = (
-    "39fa91b04f834827dac088030f9bdcd8a17f1729"
+    "44a66de0039d0ec91be130ef671ecf28b00d83e4"
 )
 PRODUCTION_SERVICE_SNAPSHOT_ID = (
     "97c29b249d986c4ffa5de6fe21400dc99dd5121f6026bda0a779116869806c1b"
 )
-PRODUCTION_VERCEL_DEPLOYMENT_ID = "dpl_BHUGiRk4rJdvTp24YVNtkaDLPzEM"
+PRODUCTION_VERCEL_DEPLOYMENT_ID = "pending-controlled-release"
 
 PROFILE_LEGACY_FORMULA_ID = "PROFILE-LEGACY-01"
 STRUCTURAL_FORMULA_ID = "STRUCT-01"
 ACCESSIBILITY_LEGACY_FORMULA_ID = "ACCESS-LEGACY-01"
 GAP_LEGACY_FORMULA_ID = "GAP-PROD-01"
 CLASSIFICATION_LEGACY_FORMULA_ID = "CLASS-LEGACY-01"
+CLASSIFICATION_FORMULA_ID = "CLASS-TOP5-02"
 FOCUS_IMMIGRANT_FORMULA_ID = "FOCUS-EXP-01"
 FOCUS_COMPOSITE_FORMULA_ID = "FOCUS-EXP-02"
 V1_DEMAND_FORMULA_ID = "V1-DEMAND-EXP-01"
@@ -62,6 +63,14 @@ SCORING_FORMULAS = {
         "name": "Unvalidated High/Watch/Lower thresholds",
         "status": "historical",
         "production_use": "none; public classifications are retired",
+    },
+    CLASSIFICATION_FORMULA_ID: {
+        "name": "Relative top-five POC priority candidates",
+        "status": "production_poc",
+        "production_use": (
+            "labels ranks 1-5 of the fixed 12-area comparison set; "
+            "not a policy threshold or allocation decision"
+        ),
     },
     FOCUS_IMMIGRANT_FORMULA_ID: {
         "name": "Immigrant and language Census concern",
@@ -136,8 +145,9 @@ PLANNING_SERVICE_CATEGORIES = tuple(sorted(set(SERVICE_CATEGORY_CROSSWALK.values
 
 def formula_manifest() -> dict[str, object]:
     return {
-        "document_status": "official_production",
+        "document_status": "approved_release_candidate",
         "production_formula_set": GAP_FORMULA_ID,
+        "production_classification_formula": CLASSIFICATION_FORMULA_ID,
         "previous_production_formula_set": GAP_LEGACY_FORMULA_ID,
         "formula_set_version": FORMULA_SET_VERSION,
         "taxonomy_version": TAXONOMY_VERSION,

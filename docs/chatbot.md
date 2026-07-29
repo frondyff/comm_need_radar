@@ -25,9 +25,12 @@ Implementation:
 | About an area | Structural vulnerability, relative service accessibility, POC gap, source geography, and aggregate demand | `area_profile`, `gap_score`, `observed_need_index` |
 | City-wide rankings | Highest structural vulnerability, relative gap rank, immigration pressure, or income pressure | `area_profile`, `gap_score` |
 
-Candidate scoring responses name `STRUCT-01` and `GAP-CANON-02`, omit the
-synthetic population claim, and never assign High/Watch/Lower while
-`classification_status = unvalidated_poc`. The authoritative formula status is
+Scoring responses name `STRUCT-01`, `GAP-CANON-02`, and `CLASS-TOP5-02`, and
+omit the synthetic population claim. The Planner chatbot calls ranks 1–5
+**High-priority candidates (POC)** and states that this is a relative planning
+label, not a policy or funding decision. Ranks 6–12 receive no priority label;
+the historical High/Watch/Lower thresholds remain retired. The authoritative
+formula status is
 the [production scoring contract](reference/scoring/production-scoring-contract.md).
 
 The chatbot offers all 12 areas and can also use the area selected on the

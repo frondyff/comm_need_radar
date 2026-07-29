@@ -160,8 +160,10 @@ export function mapServiceRowsToDashboardServices(
 function normalizeMetric(value, maxValue) {
   const number = Number(value);
   if (!Number.isFinite(number) || !Number.isFinite(maxValue) || maxValue <= 0) return 0;
-  if (number <= 1 && maxValue <= 1) return Number(number.toFixed(2));
-  return Number(Math.min(1, number / maxValue).toFixed(2));
+  if (number <= 1 && maxValue <= 1) return Number(number.toFixed(4));
+  // Keep hundredth-point source precision after normalization. Rounding this
+  // ratio to two decimals made 26.29 render as 26.00 in the Planner.
+  return Number(Math.min(1, number / maxValue).toFixed(4));
 }
 
 export function mapAreaRowsToBoroughScores(gapRows, _areaRows, vulnerabilityRows = []) {
@@ -270,8 +272,14 @@ export function mapAreaRowsToAreas(
           100
         ),
         rank: row.gap_rank != null ? Number(row.gap_rank) : null,
+        priorityBand: normalizeText(row.priority_band),
         priorityFlag: normalizeText(row.priority_flag),
+        classificationFormulaId: normalizeText(row.classification_formula_id),
         classificationStatus: normalizeText(row.classification_status),
+        priorityCutoffRank: row.priority_cutoff_rank != null
+          ? Number(row.priority_cutoff_rank) : null,
+        comparisonSetSize: row.comparison_set_size != null
+          ? Number(row.comparison_set_size) : null,
         structuralFormulaId: normalizeText(row.structural_formula_id),
         accessibilityFormulaId: normalizeText(row.accessibility_formula_id),
         gapFormulaId: normalizeText(row.gap_formula_id),

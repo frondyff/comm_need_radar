@@ -24,6 +24,7 @@ from comm_need_radar.monitoring.quality import write_monitoring_summary
 from comm_need_radar.rag.summaries import area_summary_en, area_summary_fr
 from comm_need_radar.scoring.formula_registry import (
     ACCESSIBILITY_FORMULA_ID,
+    CLASSIFICATION_FORMULA_ID,
     FORMULA_SET_VERSION,
     GAP_FORMULA_ID,
     PLANNING_SERVICE_CATEGORIES,
@@ -35,10 +36,14 @@ from comm_need_radar.scoring.formula_registry import (
 )
 from comm_need_radar.scoring.metrics import (
     ACCESS_THRESHOLD_KM,
+    TOP_PRIORITY_CLASSIFICATION_STATUS,
+    TOP_PRIORITY_COMPARISON_SET_SIZE,
+    TOP_PRIORITY_CUTOFF_RANK,
     gap_score,
     haversine_km,
     relative_accessibility_score,
     require_columns,
+    top_priority_candidate,
 )
 
 AREA_REGISTRY_REQUIRED = [
@@ -343,11 +348,26 @@ def build_gap_scores(
         ),
         axis=1,
     )
-    gap["gap_rank"] = gap["gap_score"].rank(
-        ascending=False, method="first"
-    ).astype(int)
-    gap["priority_flag"] = ""
-    gap["classification_status"] = "unvalidated_poc"
+    # CLASS-TOP5-02 depends on a stable relative rank. The documented
+    # secondary keys make equal gap scores deterministic across rebuilds.
+    gap = gap.sort_values(
+        [
+            "gap_score",
+            "structural_vulnerability_score",
+            "service_accessibility_score",
+            "area_id",
+        ],
+        ascending=[False, False, True, True],
+        kind="stable",
+    ).reset_index(drop=True)
+    gap["gap_rank"] = range(1, len(gap) + 1)
+    classifications = gap["gap_rank"].map(top_priority_candidate)
+    gap["priority_band"] = classifications.map(lambda value: value[0])
+    gap["priority_flag"] = classifications.map(lambda value: value[1])
+    gap["classification_formula_id"] = CLASSIFICATION_FORMULA_ID
+    gap["classification_status"] = TOP_PRIORITY_CLASSIFICATION_STATUS
+    gap["priority_cutoff_rank"] = TOP_PRIORITY_CUTOFF_RANK
+    gap["comparison_set_size"] = TOP_PRIORITY_COMPARISON_SET_SIZE
     gap["structural_formula_id"] = STRUCTURAL_FORMULA_ID
     gap["accessibility_formula_id"] = ACCESSIBILITY_FORMULA_ID
     gap["gap_formula_id"] = GAP_FORMULA_ID
@@ -404,8 +424,12 @@ def build_gap_scores(
         "overall_accessibility_score",
         "gap_score",
         "gap_rank",
+        "priority_band",
         "priority_flag",
+        "classification_formula_id",
         "classification_status",
+        "priority_cutoff_rank",
+        "comparison_set_size",
         "gap_drivers",
         "summary_en",
         "summary_fr",
@@ -522,9 +546,22 @@ def build_monitoring(
         },
         {
             "check_name": "classification_status",
-            "status": "watch",
-            "value": 0,
-            "details": "No High/Watch/Lower bands until product validation",
+            "status": (
+                "pass"
+                if (
+                    (gap["priority_band"] == "high_candidate").sum() == 5
+                    and gap.loc[gap["gap_rank"] <= 5, "priority_flag"]
+                    .eq("High-priority candidate (POC)")
+                    .all()
+                    and gap.loc[gap["gap_rank"] > 5, "priority_flag"].eq("").all()
+                )
+                else "fail"
+            ),
+            "value": int((gap["priority_band"] == "high_candidate").sum()),
+            "details": (
+                "CLASS-TOP5-02 labels exactly ranks 1-5 of 12 as relative "
+                "POC candidates; no policy threshold"
+            ),
         },
     ]
 

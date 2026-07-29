@@ -1,4 +1,4 @@
-"""Validate and atomically publish the approved scoring-contract-02 snapshot.
+"""Validate and atomically publish the approved scoring-contract-03 snapshot.
 
 The Supabase migration owns the private transaction function. This client reads
 the committed candidate CSVs, validates them again, captures a rollback
@@ -38,6 +38,8 @@ INTEGER_FIELDS = {
     "service_snapshot_total_rows",
     "service_snapshot_mappable_rows",
     "gap_rank",
+    "priority_cutoff_rank",
+    "comparison_set_size",
 }
 FLOAT_FIELDS = {
     "latitude",
@@ -125,7 +127,7 @@ def validate(
         if (
             area_id not in profiles
             or row["accessibility_formula_id"] != "ACCESS-REAL-02"
-            or row["formula_set_version"] != "scoring-contract-02"
+            or row["formula_set_version"] != "scoring-contract-03"
             or row["taxonomy_version"] != "planning-needs-9-v1"
             or row["service_snapshot_total_rows"] != 3664
             or row["service_snapshot_mappable_rows"] != 3200
@@ -145,9 +147,14 @@ def validate(
 
     if len(gaps) != 12 or len({row["area_id"] for row in gaps}) != 12:
         raise ValueError("gap_score must contain 12 unique area IDs")
+    ranks = {int(row["gap_rank"]) for row in gaps}
+    if ranks != set(range(1, 13)):
+        raise ValueError("gap_score must contain each rank from 1 through 12")
     for row in gaps:
         area_id = str(row["area_id"])
         profile = profiles.get(area_id)
+        rank = int(row["gap_rank"])
+        is_candidate = rank <= 5
         expected = (
             float(row["structural_vulnerability_score"])
             * (100.0 - float(row["service_accessibility_score"]))
@@ -158,9 +165,28 @@ def validate(
             or row["structural_formula_id"] != "STRUCT-01"
             or row["accessibility_formula_id"] != "ACCESS-REAL-02"
             or row["gap_formula_id"] != "GAP-CANON-02"
-            or row["formula_set_version"] != "scoring-contract-02"
-            or row["classification_status"] != "unvalidated_poc"
-            or str(row["priority_flag"]).strip()
+            or row["formula_set_version"] != "scoring-contract-03"
+            or row["classification_formula_id"] != "CLASS-TOP5-02"
+            or row["classification_status"] != "poc_relative_candidate"
+            or row["priority_cutoff_rank"] != 5
+            or row["comparison_set_size"] != 12
+            or (
+                is_candidate
+                and row["priority_band"] != "high_candidate"
+            )
+            or (
+                is_candidate
+                and str(row["priority_flag"]).strip()
+                != "High-priority candidate (POC)"
+            )
+            or (
+                not is_candidate
+                and str(row["priority_band"]).strip()
+            )
+            or (
+                not is_candidate
+                and str(row["priority_flag"]).strip()
+            )
             or row["service_snapshot_id"] != snapshot_id
             or not close_enough(
                 row["structural_vulnerability_score"],
@@ -231,7 +257,7 @@ def capture_rollback_snapshot(base_url: str, secret_key: str) -> Path:
         )
     ROLLBACK_DIR.mkdir(parents=True, exist_ok=True)
     timestamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
-    path = ROLLBACK_DIR / f"pre-scoring-contract-02-{timestamp}.json"
+    path = ROLLBACK_DIR / f"pre-scoring-contract-03-{timestamp}.json"
     path.write_text(
         json.dumps(snapshot, indent=2, sort_keys=True) + "\n",
         encoding="utf-8",
@@ -253,7 +279,7 @@ def main() -> int:
     gaps = read_rows(GAP_PATH)
     snapshot_id = validate(areas, accessibility, gaps)
     print(
-        "PASS local scoring-contract-02 payload: "
+        "PASS local scoring-contract-03 payload: "
         f"areas={len(areas)}, accessibility={len(accessibility)}, "
         f"gaps={len(gaps)}, snapshot={snapshot_id}"
     )
@@ -277,7 +303,7 @@ def main() -> int:
     rollback_path = capture_rollback_snapshot(base_url, secret_key)
     print(f"Captured rollback snapshot: {rollback_path}")
     result = request_json(
-        f"{base_url}/rest/v1/rpc/publish_scoring_contract_02",
+        f"{base_url}/rest/v1/rpc/publish_scoring_contract_03",
         secret_key,
         method="POST",
         payload={

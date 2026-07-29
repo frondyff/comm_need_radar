@@ -18,6 +18,7 @@ test("dashboard falls back to demo data instead of rendering a blank screen", as
   await expect(page.getByTestId("data-source-status")).toHaveText("Demo data");
   await expect(page.getByTestId("data-source-notice")).toBeVisible();
   await expect(page.getByTestId("retry-live-data")).toBeVisible();
-  await expect(page.getByText("Highest relative service-gap ranks")).toBeVisible();
+  await expect(page.getByText("High-priority candidates (POC)", { exact: true }).first()).toBeVisible();
+  await expect(page.getByTestId("priority-area")).toHaveCount(5);
   await expect(page.getByTestId("area-profile")).toBeVisible();
 });

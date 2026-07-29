@@ -5,4 +5,4 @@ mappable_service_rows,pass,3200,Rows eligible for ACCESS-REAL-02
 accessibility_rows,pass,108,12 areas x 9 planning service categories
 gap_score_rows,pass,12,Candidate GAP-CANON-02 rows
 formula_alias_reconciliation,pass,12,Compatibility aliases equal STRUCT-01
-classification_status,watch,0,No High/Watch/Lower bands until product validation
+classification_status,pass,5,CLASS-TOP5-02 labels exactly ranks 1-5 of 12 as relative POC candidates; no policy threshold
