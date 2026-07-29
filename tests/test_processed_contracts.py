@@ -197,10 +197,7 @@ class ProcessedContractTests(unittest.TestCase):
         import json
 
         manifest = json.loads(SCORING_FORMULA_MANIFEST_PATH.read_text(encoding="utf-8"))
-        self.assertEqual(
-            manifest["document_status"],
-            "approved_release_candidate",
-        )
+        self.assertEqual(manifest["document_status"], "official_production")
         self.assertEqual(manifest["production_formula_set"], "GAP-CANON-02")
         self.assertEqual(
             manifest["previous_production_formula_set"],

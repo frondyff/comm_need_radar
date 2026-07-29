@@ -368,7 +368,7 @@ web publication atomically replaces it with variable-count, k-anonymized
 | `weighted_demand_share_pct` | REAL | Category share of accumulated web demand |
 | `source_type` | TEXT | `web_behavior` for real published website aggregates |
 
-### 4.5 Accessibility and gap (approved POC release candidate)
+### 4.5 Accessibility and gap (production POC contract)
 
 #### `accessibility` — 108 rows (12 areas x 9 categories). Source: processing pipeline.
 Relative service accessibility per area and category. The candidate uses 3,200
