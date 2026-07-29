@@ -20,8 +20,8 @@ const SOURCE = {
   demandCat: "observed_need_category_summary (source-labelled aggregate)",
   demandArea: "observed_need_index (source-labelled aggregate)",
   profile: "area_profile (STRUCT-01, Statistics Canada 2021)",
-  gap: "gap_score (GAP-CANON-02 candidate POC)",
-  areaFull: "area_profile + gap_score (candidate scoring contract 02)",
+  gap: "gap_score (GAP-CANON-02 + CLASS-TOP5-02 POC)",
+  areaFull: "area_profile + gap_score (scoring-contract-03)",
 };
 
 const client = () => getSupabaseClient();
@@ -141,7 +141,7 @@ export async function explainArea({ areaId, areaLabel }) {
       .select("structural_vulnerability_score, structural_vulnerability_rank, top_vulnerability_drivers, structural_formula_id, source_year, source_geography_level, source_geography_name")
       .eq("area_id", areaId).maybeSingle(),
     c.from("gap_score")
-      .select("gap_score, gap_rank, service_accessibility_score, gap_formula_id, classification_status")
+      .select("gap_score, gap_rank, service_accessibility_score, gap_formula_id, priority_flag, classification_formula_id, comparison_set_size")
       .eq("area_id", areaId).maybeSingle(),
   ]);
   const parts = [`${areaLabel}:`];
@@ -162,7 +162,11 @@ export async function explainArea({ areaId, areaLabel }) {
     parts.push(
       `• POC service-gap index ${Number(g.gap_score).toFixed(2)} `
       + `(rank ${g.gap_rank} of 12; ${g.gap_formula_id}). `
-      + "No validated High/Watch/Lower classification is assigned."
+      + (
+        g.priority_flag
+          ? `${g.priority_flag} under ${g.classification_formula_id}; this is a relative planning candidate, not a policy or funding decision.`
+          : `Outside the relative top-five candidate set under ${g.classification_formula_id}.`
+      )
     );
   }
   return { answer: parts.join("\n"), source: SOURCE.areaFull };
@@ -203,7 +207,7 @@ export async function highestGap() {
   const c = client();
   if (!c) return notConfigured();
   const { data, error } = await c.from("gap_score")
-    .select("area_name, gap_score, gap_rank, gap_formula_id")
+    .select("area_name, gap_score, gap_rank, gap_formula_id, priority_flag, classification_formula_id, comparison_set_size")
     .order("gap_rank")
     .limit(5);
   if (error) return failed(error);
@@ -211,7 +215,7 @@ export async function highestGap() {
     .map((r, i) => `${i + 1}. ${r.area_name} (POC gap ${Number(r.gap_score).toFixed(2)}, rank ${r.gap_rank})`)
     .join("\n");
   return {
-    answer: `Highest relative service-gap ranks (${data[0]?.gap_formula_id ?? "candidate"}; no validated priority bands):\n${lines}`,
+    answer: `High-priority candidates (POC) (${data[0]?.classification_formula_id ?? "CLASS-TOP5-02"}; relative top 5 of ${data[0]?.comparison_set_size ?? 12}, not a policy or funding decision):\n${lines}`,
     source: SOURCE.gap,
   };
 }

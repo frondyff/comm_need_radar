@@ -17,6 +17,19 @@ All scores are in the range **0–100** unless noted.
 
 ---
 
+## Current Production Interpretation
+
+`scoring-contract-03` retains the unchanged `GAP-CANON-02` score and adds
+`CLASS-TOP5-02`: ranks 1–5 of the fixed 12-area comparison set are labelled
+**High-priority candidate (POC)**; ranks 6–12 have no priority label. This is a
+relative POC planning label, not the absolute thresholds shown in the
+historical examples below and not a funding or policy decision.
+
+The current top five are Saint-Michel, Montréal-Nord, Lachine, Verdun, and
+Westmount. See the production contract for the current real-service scores.
+
+---
+
 ## 1. Overall Pipeline
 
 ```mermaid

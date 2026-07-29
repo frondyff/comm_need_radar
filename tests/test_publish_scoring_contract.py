@@ -44,17 +44,24 @@ class PublishScoringContractTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "GAP-CANON-02"):
             publisher.validate(self.areas, self.accessibility, invalid)
 
+    def test_sixth_candidate_label_is_rejected(self) -> None:
+        invalid = deepcopy(self.gaps)
+        sixth = next(row for row in invalid if row["gap_rank"] == 6)
+        sixth["priority_band"] = "high_candidate"
+        sixth["priority_flag"] = "High-priority candidate (POC)"
+        with self.assertRaisesRegex(ValueError, "GAP-CANON-02"):
+            publisher.validate(self.areas, self.accessibility, invalid)
+
     def test_atomic_replacement_is_compatible_with_safe_updates(self) -> None:
         migration = (
             ROOT
             / "supabase"
             / "migrations"
-            / "202607280001_scoring_contract_consistency.sql"
+            / "202607280002_top5_priority_candidates.sql"
         ).read_text(encoding="utf-8")
-        self.assertIn("delete from public.accessibility\n    where true;", migration)
-        self.assertIn("delete from public.gap_score\n    where true;", migration)
-        self.assertNotIn("delete from public.accessibility;", migration)
-        self.assertNotIn("delete from public.gap_score;", migration)
+        self.assertIn("public.publish_scoring_contract_02(", migration)
+        self.assertIn("update public.accessibility", migration)
+        self.assertIn("update public.gap_score live", migration)
 
 
 if __name__ == "__main__":

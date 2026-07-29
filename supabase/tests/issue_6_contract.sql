@@ -233,7 +233,7 @@ begin
         raise exception 'Web visitor-tag columns missing: %', missing_objects;
     end if;
 
-    -- Candidate scoring-contract-02 columns. This owner-level test is expected
+    -- Production scoring-contract-03 columns. This owner-level test is expected
     -- to pass only after the additive migration and approved atomic data
     -- refresh; it is not a command to publish the candidate.
     select string_agg(spec.table_name || '.' || spec.column_name, ', ' order by 1)
@@ -263,6 +263,10 @@ begin
             ('gap_score', 'structural_vulnerability_score'),
             ('gap_score', 'service_accessibility_score'),
             ('gap_score', 'classification_status'),
+            ('gap_score', 'priority_band'),
+            ('gap_score', 'classification_formula_id'),
+            ('gap_score', 'priority_cutoff_rank'),
+            ('gap_score', 'comparison_set_size'),
             ('gap_score', 'structural_formula_id'),
             ('gap_score', 'accessibility_formula_id'),
             ('gap_score', 'gap_formula_id'),
@@ -357,7 +361,7 @@ begin
         select 1
         from public.accessibility
         where accessibility_formula_id is distinct from 'ACCESS-REAL-02'
-           or formula_set_version is distinct from 'scoring-contract-02'
+           or formula_set_version is distinct from 'scoring-contract-03'
            or taxonomy_version is distinct from 'planning-needs-9-v1'
            or distance_component not between 0 and 100
            or availability_component not between 0 and 100
@@ -368,7 +372,7 @@ begin
            ) > 0.011
            or service_snapshot_total_rows <> 3664
            or service_snapshot_mappable_rows <> 3200
-    ) then raise exception 'accessibility rows violate scoring-contract-02'; end if;
+    ) then raise exception 'accessibility rows violate scoring-contract-03'; end if;
     select count(distinct service_category) into actual_count
     from public.accessibility;
     if actual_count <> 9 then
@@ -380,11 +384,28 @@ begin
         where structural_formula_id is distinct from 'STRUCT-01'
            or accessibility_formula_id is distinct from 'ACCESS-REAL-02'
            or gap_formula_id is distinct from 'GAP-CANON-02'
-           or formula_set_version is distinct from 'scoring-contract-02'
-           or classification_status is distinct from 'unvalidated_poc'
+           or formula_set_version is distinct from 'scoring-contract-03'
+           or classification_formula_id is distinct from 'CLASS-TOP5-02'
+           or classification_status is distinct from 'poc_relative_candidate'
+           or priority_cutoff_rank is distinct from 5
+           or comparison_set_size is distinct from 12
            or structural_vulnerability_score is null
            or service_accessibility_score is null
-           or nullif(btrim(priority_flag), '') is not null
+           or (
+               gap_rank <= 5
+               and (
+                   priority_band is distinct from 'high_candidate'
+                   or priority_flag is distinct from
+                      'High-priority candidate (POC)'
+               )
+           )
+           or (
+               gap_rank > 5
+               and (
+                   nullif(btrim(priority_band), '') is not null
+                   or nullif(btrim(priority_flag), '') is not null
+               )
+           )
            or abs(vulnerability_score - structural_vulnerability_score) > 0.01
            or abs(overall_accessibility_score - service_accessibility_score) > 0.01
            or abs(
@@ -393,7 +414,7 @@ begin
                   * (100.0 - service_accessibility_score)
                   / 100.0
            ) > 0.011
-    ) then raise exception 'gap_score rows violate scoring-contract-02'; end if;
+    ) then raise exception 'gap_score rows violate scoring-contract-03'; end if;
     if exists (
         select 1 from public.vulnerability_index_v2
         where abs((structural_weight + observed_weight) - 1.0) > 0.000001

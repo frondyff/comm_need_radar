@@ -368,7 +368,7 @@ web publication atomically replaces it with variable-count, k-anonymized
 | `weighted_demand_share_pct` | REAL | Category share of accumulated web demand |
 | `source_type` | TEXT | `web_behavior` for real published website aggregates |
 
-### 4.5 Accessibility and gap (candidate contract; not yet deployed)
+### 4.5 Accessibility and gap (production POC contract)
 
 #### `accessibility` — 108 rows (12 areas x 9 categories). Source: processing pipeline.
 Relative service accessibility per area and category. The candidate uses 3,200
@@ -387,7 +387,7 @@ legacy production table still uses `ACCESS-LEGACY-01` until approval and refresh
 | `accessibility_method` | TEXT | Human-readable method note |
 | `accessibility_basis`, `accessibility_version` | TEXT | Machine-readable lineage |
 | `accessibility_formula_id` | TEXT | `ACCESS-REAL-02` |
-| `formula_set_version` | TEXT | `scoring-contract-02` |
+| `formula_set_version` | TEXT | `scoring-contract-03` |
 | `taxonomy_version` | TEXT | `planning-needs-9-v1` |
 | `service_snapshot_id`, `service_snapshot_date` | TEXT/DATE | Input snapshot lineage |
 | `service_snapshot_total_rows`, `service_snapshot_mappable_rows` | INT | Full and eligible source counts |
@@ -406,12 +406,16 @@ automatic priority decision.
 | `overall_accessibility_score` | REAL | Compatibility alias; exactly equals service accessibility |
 | `gap_score` | REAL | `structural × (100 - access) / 100` |
 | `gap_rank` | INT | Relative rank (1 = largest gap) |
-| `priority_flag` | TEXT | Empty compatibility field; public classification retired |
-| `classification_status` | TEXT | `unvalidated_poc` |
+| `priority_band` | TEXT | `high_candidate` for ranks 1–5; empty otherwise |
+| `priority_flag` | TEXT | `High-priority candidate (POC)` for ranks 1–5; empty otherwise |
+| `classification_formula_id` | TEXT | `CLASS-TOP5-02` |
+| `classification_status` | TEXT | `poc_relative_candidate` |
+| `priority_cutoff_rank` | INT | Inclusive cutoff, fixed at 5 |
+| `comparison_set_size` | INT | Fixed 12-area relative comparison set |
 | `gap_drivers` | TEXT | Main drivers of the gap |
 | `summary_en` / `summary_fr` | TEXT | Plain-language summary (English / French) |
 | `structural_formula_id`, `accessibility_formula_id`, `gap_formula_id` | TEXT | `STRUCT-01`, `ACCESS-REAL-02`, `GAP-CANON-02` |
-| `formula_set_version`, `gap_basis`, `gap_version` | TEXT | Formula lineage |
+| `formula_set_version`, `gap_basis`, `gap_version` | TEXT | `scoring-contract-03` and formula lineage |
 | `taxonomy_version`, `service_snapshot_id` | TEXT | Taxonomy and service-input lineage |
 
 ### 4.6 Reference data (REAL, not used by the app yet)

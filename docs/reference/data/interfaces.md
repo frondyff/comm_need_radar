@@ -1,6 +1,6 @@
 # Shared Interfaces
 
-Status: `scoring-contract-02` production interface as of 2026-07-28.
+Status: `scoring-contract-03` production interface as of 2026-07-28.
 
 The generated CSVs and production Supabase tables implement the official POC
 contract. The authoritative formula definitions and deployment state are in
@@ -81,7 +81,7 @@ Required fields:
 | `accessibility_method` | Human-readable production POC method |
 | `accessibility_basis` / `accessibility_version` | Machine-readable lineage |
 | `accessibility_formula_id` | `ACCESS-REAL-02` |
-| `formula_set_version` | `scoring-contract-02` |
+| `formula_set_version` | `scoring-contract-03` |
 | `taxonomy_version` | Version of the 20-to-9 service-category crosswalk |
 | `service_snapshot_id` / `service_snapshot_date` | Immutable source snapshot lineage |
 | `service_snapshot_total_rows` | All canonical `services_master` rows |
@@ -108,13 +108,17 @@ Required fields:
 | `overall_accessibility_score` | Compatibility alias; must equal service accessibility |
 | `gap_score` | `GAP-CANON-02` relative POC score |
 | `gap_rank` | Rank, 1 is the largest relative gap |
-| `priority_flag` | Empty; legacy public classifications are retired |
-| `classification_status` | `unvalidated_poc` until policy thresholds are approved |
+| `priority_band` | `high_candidate` for ranks 1–5; empty for ranks 6–12 |
+| `priority_flag` | `High-priority candidate (POC)` for ranks 1–5; empty for ranks 6–12 |
+| `classification_formula_id` | `CLASS-TOP5-02` |
+| `classification_status` | `poc_relative_candidate` |
+| `priority_cutoff_rank` | `5` |
+| `comparison_set_size` | `12` |
 | `gap_drivers` | Plain-language gap explanation |
 | `structural_formula_id` | `STRUCT-01` |
 | `accessibility_formula_id` | `ACCESS-REAL-02` |
 | `gap_formula_id` | `GAP-CANON-02` |
-| `formula_set_version` | `scoring-contract-02` |
+| `formula_set_version` | `scoring-contract-03` |
 | `gap_basis` / `gap_version` | Machine-readable lineage |
 | `taxonomy_version` / `service_snapshot_id` | Taxonomy and input snapshot lineage |
 

@@ -164,7 +164,7 @@ never alters schema; it only loads rows.
 | --- | --- |
 | `services_master` | The 3,664 deduplicated organizations, with category, audience tags, coordinates, geocode precision, area, and source |
 | `area_profile` | Per-area score, rank, source geography, basis, and formula lineage; compatibility aliases equal production `STRUCT-01` |
-| `gap_score` | Per-area structural score, accessibility, POC gap, rank, formula IDs, and classification status |
+| `gap_score` | Per-area structural score, accessibility, unchanged `GAP-CANON-02` gap/rank, and `CLASS-TOP5-02` relative top-five POC candidate fields |
 | `accessibility` | Per-area, per-category distance and availability components, service snapshot, taxonomy, and formula ID |
 | `observed_need_index` | Per-area observed-demand aggregate and top needs, source-labelled |
 | `observed_need_category_summary` | Observed demand by need category and area, source-labelled |

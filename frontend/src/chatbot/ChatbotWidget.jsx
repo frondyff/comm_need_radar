@@ -249,7 +249,7 @@ export function ChatbotWidget({ isEN, selectedAreaId, selectedAreaLabel }) {
     if (screen === "rank") {
       return <Menu title="Rank the 12 areas by:" options={[
         ["Highest structural vulnerability", () => run("Ranking: highest structural vulnerability", mostVulnerable())],
-        ["Highest relative service-gap rank", () => run("Ranking: highest relative service-gap rank", highestGap())],
+        ["High-priority candidates (POC)", () => run("Ranking: high-priority candidates (POC)", highestGap())],
         ["Most immigrants", () => run("Ranking: most immigrants",
           rankBy({ column: "immigration_indicator", label: "immigrant concentration" }))],
         ["Highest income pressure", () => run("Ranking: highest income pressure",

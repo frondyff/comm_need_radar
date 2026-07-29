@@ -18,6 +18,8 @@ const NUMERIC_FIELDS = new Set([
   "overall_accessibility_score",
   "gap_score",
   "gap_rank",
+  "priority_cutoff_rank",
+  "comparison_set_size",
   "nearest_service_distance_km",
   "service_count_within_threshold",
   "accessibility_score",
@@ -145,19 +147,32 @@ export function validateCandidateScoringContract({
     )
     || Number(row.structural_vulnerability_rank) !== Number(row.vulnerability_rank)
   );
+  const ranks = new Set(gap.map(row => Number(row.gap_rank)));
   const invalidGap = gap.some(row => {
     const profile = profiles.get(row.area_id);
     const expectedGap = Number(row.structural_vulnerability_score)
       * (100 - Number(row.service_accessibility_score))
       / 100;
+    const rank = Number(row.gap_rank);
+    const isCandidate = rank <= 5;
     return (
       !profile
       || row.structural_formula_id !== "STRUCT-01"
       || row.accessibility_formula_id !== "ACCESS-REAL-02"
       || row.gap_formula_id !== "GAP-CANON-02"
-      || row.formula_set_version !== "scoring-contract-02"
-      || row.classification_status !== "unvalidated_poc"
-      || String(row.priority_flag ?? "").trim() !== ""
+      || row.formula_set_version !== "scoring-contract-03"
+      || row.classification_formula_id !== "CLASS-TOP5-02"
+      || row.classification_status !== "poc_relative_candidate"
+      || Number(row.priority_cutoff_rank) !== 5
+      || Number(row.comparison_set_size) !== 12
+      || (isCandidate && row.priority_band !== "high_candidate")
+      || (
+        isCandidate
+        && String(row.priority_flag ?? "").trim()
+          !== "High-priority candidate (POC)"
+      )
+      || (!isCandidate && String(row.priority_band ?? "").trim() !== "")
+      || (!isCandidate && String(row.priority_flag ?? "").trim() !== "")
       || !closeEnough(
         row.structural_vulnerability_score,
         row.vulnerability_score,
@@ -187,7 +202,7 @@ export function validateCandidateScoringContract({
     return (
       !profiles.has(row.area_id)
       || row.accessibility_formula_id !== "ACCESS-REAL-02"
-      || row.formula_set_version !== "scoring-contract-02"
+      || row.formula_set_version !== "scoring-contract-03"
       || row.taxonomy_version !== "planning-needs-9-v1"
       || Number(row.service_snapshot_total_rows) !== 3664
       || Number(row.service_snapshot_mappable_rows) !== 3200
@@ -203,9 +218,11 @@ export function validateCandidateScoringContract({
     || invalidGap
     || invalidAccessibility
     || incompleteCategories
+    || ranks.size !== 12
+    || [...Array(12)].some((_, index) => !ranks.has(index + 1))
   ) {
     throw new Error(
-      "Supabase scoring snapshot does not satisfy scoring-contract-02"
+      "Supabase scoring snapshot does not satisfy scoring-contract-03"
     );
   }
   return { areas, gap, accessibility };

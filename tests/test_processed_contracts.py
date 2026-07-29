@@ -41,8 +41,12 @@ class ProcessedContractTests(unittest.TestCase):
             "overall_accessibility_score",
             "gap_score",
             "gap_rank",
+            "priority_band",
             "priority_flag",
+            "classification_formula_id",
             "classification_status",
+            "priority_cutoff_rank",
+            "comparison_set_size",
             "structural_formula_id",
             "accessibility_formula_id",
             "gap_formula_id",
@@ -52,12 +56,30 @@ class ProcessedContractTests(unittest.TestCase):
         self.assertEqual(gap["area_id"].nunique(), len(gap))
         self.assertTrue(gap["gap_score"].between(0, 100).all())
         self.assertEqual(gap["gap_rank"].nunique(), len(gap))
-        self.assertTrue(gap["priority_flag"].isna().all())
-        self.assertEqual(set(gap["classification_status"]), {"unvalidated_poc"})
+        candidates = gap[gap["gap_rank"] <= 5]
+        remaining = gap[gap["gap_rank"] > 5]
+        self.assertEqual(len(candidates), 5)
+        self.assertEqual(set(candidates["priority_band"]), {"high_candidate"})
+        self.assertEqual(
+            set(candidates["priority_flag"]),
+            {"High-priority candidate (POC)"},
+        )
+        self.assertTrue(remaining["priority_band"].isna().all())
+        self.assertTrue(remaining["priority_flag"].isna().all())
+        self.assertEqual(
+            set(gap["classification_formula_id"]),
+            {"CLASS-TOP5-02"},
+        )
+        self.assertEqual(
+            set(gap["classification_status"]),
+            {"poc_relative_candidate"},
+        )
+        self.assertEqual(set(gap["priority_cutoff_rank"]), {5})
+        self.assertEqual(set(gap["comparison_set_size"]), {12})
         self.assertEqual(set(gap["structural_formula_id"]), {"STRUCT-01"})
         self.assertEqual(set(gap["accessibility_formula_id"]), {"ACCESS-REAL-02"})
         self.assertEqual(set(gap["gap_formula_id"]), {"GAP-CANON-02"})
-        self.assertEqual(set(gap["formula_set_version"]), {"scoring-contract-02"})
+        self.assertEqual(set(gap["formula_set_version"]), {"scoring-contract-03"})
         self.assertTrue(
             (
                 profile["structural_vulnerability_rank"]
@@ -100,6 +122,28 @@ class ProcessedContractTests(unittest.TestCase):
             / 100
         )
         self.assertTrue((joined["gap_score"] - expected_gap).abs().le(0.011).all())
+
+        # Contract 03 changes interpretation only. These contract-02
+        # GAP-CANON-02 values and ranks must not move when CLASS-TOP5-02 is
+        # rebuilt.
+        expected_score_rank = {
+            "A002": (26.29, 1),
+            "A004": (22.14, 2),
+            "A008": (20.11, 3),
+            "A006": (18.08, 4),
+            "A009": (14.08, 5),
+            "A007": (13.77, 6),
+            "A005": (11.38, 7),
+            "A003": (10.34, 8),
+            "A001": (8.85, 9),
+            "A011": (8.62, 10),
+            "A012": (6.71, 11),
+            "A010": (3.75, 12),
+        }
+        indexed_gap = gap.set_index("area_id")
+        for area_id, (score, rank) in expected_score_rank.items():
+            self.assertAlmostEqual(indexed_gap.loc[area_id, "gap_score"], score, 2)
+            self.assertEqual(indexed_gap.loc[area_id, "gap_rank"], rank)
 
     def test_real_service_accessibility_contract(self):
         accessibility = pd.read_csv(ACCESSIBILITY_TABLE_PATH)
@@ -166,6 +210,14 @@ class ProcessedContractTests(unittest.TestCase):
         self.assertEqual(
             manifest["formulas"]["GAP-CANON-02"]["status"],
             "production",
+        )
+        self.assertEqual(
+            manifest["production_classification_formula"],
+            "CLASS-TOP5-02",
+        )
+        self.assertEqual(
+            manifest["formulas"]["CLASS-TOP5-02"]["status"],
+            "production_poc",
         )
         self.assertEqual(
             manifest["formulas"]["GAP-PROD-01"]["status"],

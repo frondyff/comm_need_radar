@@ -11,7 +11,7 @@ import json
 from pathlib import Path
 
 
-FORMULA_SET_VERSION = "scoring-contract-02"
+FORMULA_SET_VERSION = "scoring-contract-03"
 TAXONOMY_VERSION = "planning-needs-9-v1"
 SERVICE_SNAPSHOT_DATE = "2026-07-28"
 PRODUCTION_EFFECTIVE_DATE = "2026-07-28"
@@ -28,6 +28,7 @@ STRUCTURAL_FORMULA_ID = "STRUCT-01"
 ACCESSIBILITY_LEGACY_FORMULA_ID = "ACCESS-LEGACY-01"
 GAP_LEGACY_FORMULA_ID = "GAP-PROD-01"
 CLASSIFICATION_LEGACY_FORMULA_ID = "CLASS-LEGACY-01"
+CLASSIFICATION_FORMULA_ID = "CLASS-TOP5-02"
 FOCUS_IMMIGRANT_FORMULA_ID = "FOCUS-EXP-01"
 FOCUS_COMPOSITE_FORMULA_ID = "FOCUS-EXP-02"
 V1_DEMAND_FORMULA_ID = "V1-DEMAND-EXP-01"
@@ -62,6 +63,14 @@ SCORING_FORMULAS = {
         "name": "Unvalidated High/Watch/Lower thresholds",
         "status": "historical",
         "production_use": "none; public classifications are retired",
+    },
+    CLASSIFICATION_FORMULA_ID: {
+        "name": "Relative top-five POC priority candidates",
+        "status": "production_poc",
+        "production_use": (
+            "labels ranks 1-5 of the fixed 12-area comparison set; "
+            "not a policy threshold or allocation decision"
+        ),
     },
     FOCUS_IMMIGRANT_FORMULA_ID: {
         "name": "Immigrant and language Census concern",
@@ -138,6 +147,7 @@ def formula_manifest() -> dict[str, object]:
     return {
         "document_status": "official_production",
         "production_formula_set": GAP_FORMULA_ID,
+        "production_classification_formula": CLASSIFICATION_FORMULA_ID,
         "previous_production_formula_set": GAP_LEGACY_FORMULA_ID,
         "formula_set_version": FORMULA_SET_VERSION,
         "taxonomy_version": TAXONOMY_VERSION,
