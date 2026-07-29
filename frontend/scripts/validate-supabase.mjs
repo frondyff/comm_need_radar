@@ -413,18 +413,23 @@ for (const objectName of privateObjects) {
   }
 }
 
-const { error: scoringPublishError } = await client.rpc(
+for (const functionName of [
   "publish_scoring_contract_02",
-  {
-    p_area_profiles: [],
-    p_accessibility: [],
-    p_gap_scores: [],
+  "publish_scoring_contract_03",
+]) {
+  const { error: scoringPublishError } = await client.rpc(
+    functionName,
+    {
+      p_area_profiles: [],
+      p_accessibility: [],
+      p_gap_scores: [],
+    }
+  );
+  if (!scoringPublishError) {
+    fail(`anonymous browser role can execute ${functionName}`);
+  } else {
+    pass(`anonymous browser role cannot execute ${functionName}`);
   }
-);
-if (!scoringPublishError) {
-  fail("anonymous browser role can execute publish_scoring_contract_02");
-} else {
-  pass("anonymous browser role cannot execute publish_scoring_contract_02");
 }
 
 if (failures.length > 0) {

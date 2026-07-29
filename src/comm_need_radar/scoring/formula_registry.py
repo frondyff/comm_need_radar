@@ -16,12 +16,12 @@ TAXONOMY_VERSION = "planning-needs-9-v1"
 SERVICE_SNAPSHOT_DATE = "2026-07-28"
 PRODUCTION_EFFECTIVE_DATE = "2026-07-28"
 PRODUCTION_IMPLEMENTATION_COMMIT = (
-    "44a66de0039d0ec91be130ef671ecf28b00d83e4"
+    "cc050f6a5e662b02723e885180e961db7b0f32ea"
 )
 PRODUCTION_SERVICE_SNAPSHOT_ID = (
     "97c29b249d986c4ffa5de6fe21400dc99dd5121f6026bda0a779116869806c1b"
 )
-PRODUCTION_VERCEL_DEPLOYMENT_ID = "pending-controlled-release"
+PRODUCTION_VERCEL_DEPLOYMENT_ID = "dpl_9qNZZxNYpKFyLFkePzR3BXdAFd69"
 
 PROFILE_LEGACY_FORMULA_ID = "PROFILE-LEGACY-01"
 STRUCTURAL_FORMULA_ID = "STRUCT-01"
@@ -145,7 +145,7 @@ PLANNING_SERVICE_CATEGORIES = tuple(sorted(set(SERVICE_CATEGORY_CROSSWALK.values
 
 def formula_manifest() -> dict[str, object]:
     return {
-        "document_status": "approved_release_candidate",
+        "document_status": "official_production",
         "production_formula_set": GAP_FORMULA_ID,
         "production_classification_formula": CLASSIFICATION_FORMULA_ID,
         "previous_production_formula_set": GAP_LEGACY_FORMULA_ID,
