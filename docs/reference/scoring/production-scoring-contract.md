@@ -1,28 +1,29 @@
 # Production Scoring Contract
 
-Status: **official POC production**
+Status: **approved POC release candidate; controlled rollout pending**
 
 | Metadata | Value |
 | --- | --- |
-| Current production formula set | `GAP-CANON-02` |
-| Formula-set version | `scoring-contract-03` |
-| Production classification | `CLASS-TOP5-02` |
+| Numeric formula set | `GAP-CANON-02` (unchanged from production) |
+| Approved candidate version | `scoring-contract-03` |
+| Approved candidate classification | `CLASS-TOP5-02` |
 | Production taxonomy | `planning-needs-9-v1` |
 | Approval owner and date | Repository maintainer; approved 2026-07-28 in the implementation thread |
 | Effective production date | 2026-07-28 |
-| Implementation commit | `39fa91b04f834827dac088030f9bdcd8a17f1729` |
+| Implementation commit | `44a66de0039d0ec91be130ef671ecf28b00d83e4` |
 | Supabase snapshot | `97c29b249d986c4ffa5de6fe21400dc99dd5121f6026bda0a779116869806c1b` |
 | Supabase publication | Run `30406140070`; 12 / 108 / 12 rows |
-| Vercel deployment | `dpl_BHUGiRk4rJdvTp24YVNtkaDLPzEM` |
-| Production release | Run `30406589519`; https://comm-need-radar.vercel.app |
+| Vercel deployment | Pending controlled release |
+| Production release | Pending migration, atomic publication, candidate grill, and promotion |
 
 This is the authoritative entry point for scoring status, formulas, lineage,
 allowed interpretation, and the initial controlled release evidence.
 
-## What Production Uses Today
+## What The Approved Candidate Uses
 
-The deployed application uses one consistent structural and service-gap
-contract:
+The approved candidate uses one consistent structural, service-gap, and
+relative-classification contract. Production remains on contract 02 until the
+release gates below complete:
 
 | Surface | Formula | Current input basis |
 | --- | --- | --- |

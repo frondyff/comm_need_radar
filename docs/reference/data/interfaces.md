@@ -1,6 +1,7 @@
 # Shared Interfaces
 
-Status: `scoring-contract-03` production interface as of 2026-07-28.
+Status: approved `scoring-contract-03` release-candidate interface as of
+2026-07-28; controlled production rollout pending.
 
 The generated CSVs and production Supabase tables implement the official POC
 contract. The authoritative formula definitions and deployment state are in
