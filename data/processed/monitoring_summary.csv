@@ -1,12 +1,8 @@
 check_name,status,value,details
-raw_area_rows,pass,12,Synthetic area profiles loaded
-raw_service_rows,pass,14,Synthetic service records loaded
-area_unique_ids,pass,12,Unique area IDs
-service_unique_ids,pass,14,Unique service IDs
-missing_area_coordinates,pass,0,No missing synthetic area coordinates
-missing_service_coordinates,pass,0,No missing synthetic service coordinates
-accessibility_rows,pass,108,One row per area and service category
-gap_score_rows,pass,12,One row per area
-priority_area_count,pass,5,High-priority areas by gap score
-real_census_vulnerability_merged,pass,12,12/12 areas matched to real census vulnerability index
-open_blockers,watch,1,Indigenous census variable and observed visitor data pending from Laura
+canonical_area_rows,pass,12,12 stable area IDs joined to official Census index
+services_master_rows,pass,3664,Deduplicated public service-directory records
+mappable_service_rows,pass,3200,Rows eligible for ACCESS-REAL-02
+accessibility_rows,pass,108,12 areas x 9 planning service categories
+gap_score_rows,pass,12,Candidate GAP-CANON-02 rows
+formula_alias_reconciliation,pass,12,Compatibility aliases equal STRUCT-01
+classification_status,pass,5,CLASS-TOP5-02 labels exactly ranks 1-5 of 12 as relative POC candidates; no policy threshold

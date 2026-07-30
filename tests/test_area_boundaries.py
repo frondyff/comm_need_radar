@@ -18,7 +18,9 @@ from comm_need_radar.geospatial.boundaries import (
 )
 
 
-AREA_PATH = PROJECT_ROOT / "data" / "processed" / "area_profile.csv"
+# Boundary partitions are a geography contract, so their seed registry must not
+# depend on a regenerated scoring output such as area_profile.csv.
+AREA_PATH = PROJECT_ROOT / "data" / "raw" / "synthetic_area_profiles.csv"
 BOROUGH_PATH = PROJECT_ROOT / "data" / "raw" / "boundaries" / "montreal_boroughs.geojson"
 CENTER_PATH = PROJECT_ROOT / "data" / "raw" / "database_centers.csv"
 CENTER_LOOKUP_PATH = PROJECT_ROOT / "data" / "processed" / "center_area_lookup.csv"

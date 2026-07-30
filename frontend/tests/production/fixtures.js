@@ -4,6 +4,7 @@ import { readFile } from "node:fs/promises";
 const analyticsWriteLog = new WeakMap();
 const analyticsRoute = /\/rest\/v1\/(page_events|flyer_downloads)(?:\?|$)/;
 const useLocalIndicatorFixture = process.env.AREA_VULNERABILITY_FIXTURE === "true";
+const useLocalScoringFixture = process.env.SCORING_CONTRACT_FIXTURE === "true";
 const expectedDataSource = process.env.ALLOW_DEMO_DATA === "true"
   ? /^(Supabase|Demo data)$/
   : "Supabase";
@@ -23,6 +24,7 @@ async function realIndicatorFixture() {
     "shelter_cost_burden_pct_scaled",
     "recent_immigrant_pct",
     "recent_immigrant_pct_scaled",
+    "vulnerability_index",
   ];
   return {
     source: "statistics_canada_2021_census_test_fixture",
@@ -36,6 +38,39 @@ async function realIndicatorFixture() {
       };
     }),
   };
+}
+
+async function csvRows(relativePath) {
+  const csv = await readFile(new URL(relativePath, import.meta.url), "utf8");
+  const [headerLine, ...lines] = csv.trim().split(/\r?\n/);
+  const headers = headerLine.split(",");
+  return lines.map(line =>
+    Object.fromEntries(headers.map((header, index) => [header, line.split(",")[index] ?? ""]))
+  );
+}
+
+async function scoringContractFixture() {
+  const [area_profile, gap_score, accessibility] = await Promise.all([
+    csvRows("../../../data/processed/area_profile.csv"),
+    csvRows("../../../data/processed/gap_score_table.csv"),
+    csvRows("../../../data/processed/accessibility_table.csv"),
+  ]);
+  const services_master = area_profile.map((area, index) => ({
+    service_id: `FIXTURE-${String(index + 1).padStart(3, "0")}`,
+    name: `${area.area_name} fixture service`,
+    primary_category: "Food",
+    service_categories: "Food",
+    latitude: area.latitude,
+    longitude: area.longitude,
+    mappable: true,
+    area_id: area.area_id,
+    borough_name: area.borough_name,
+    age_groups: "Under 25; 25-44; 45-64; 65+",
+    gender_focus: "all",
+    serves_immigrant: false,
+    serves_indigenous: false,
+  }));
+  return { area_profile, gap_score, accessibility, services_master };
 }
 
 export const test = base.extend({
@@ -52,6 +87,42 @@ export const test = base.extend({
             contentType: "application/json",
             body: JSON.stringify(payload),
           })
+        );
+      }
+
+      if (useLocalScoringFixture) {
+        const tables = await scoringContractFixture();
+        await page.route(
+          /\/rest\/v1\/(area_profile|gap_score|accessibility|services_master)(?:\?|$)/,
+          route => {
+            const request = route.request();
+            if (request.method() !== "GET") {
+              route.continue();
+              return;
+            }
+            const url = new URL(request.url());
+            const table = url.pathname.split("/").at(-1);
+            let rows = tables[table] ?? [];
+            const areaFilter = url.searchParams.get("area_id");
+            if (areaFilter?.startsWith("eq.")) {
+              rows = rows.filter(row => row.area_id === areaFilter.slice(3));
+            }
+            const limit = Number(url.searchParams.get("limit"));
+            if (Number.isFinite(limit) && limit > 0) rows = rows.slice(0, limit);
+            const wantsObject = request.headers().accept?.includes(
+              "application/vnd.pgrst.object+json"
+            );
+            route.fulfill({
+              status: 200,
+              contentType: "application/json",
+              headers: {
+                "access-control-allow-origin": "*",
+                "access-control-expose-headers": "content-range",
+                "content-range": `0-${Math.max(0, rows.length - 1)}/${rows.length}`,
+              },
+              body: JSON.stringify(wantsObject ? (rows[0] ?? null) : rows),
+            });
+          }
         );
       }
 

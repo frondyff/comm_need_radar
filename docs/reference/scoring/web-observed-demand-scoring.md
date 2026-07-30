@@ -1,5 +1,12 @@
 # Web-Observed Demand Scoring
 
+Formula ID: `WEB-DEMAND-EXP-01`
+
+> Experimental digital-demand signal only. It cannot modify `STRUCT-01` or
+> production `GAP-CANON-02` without a separate approved
+> application-integration decision. See the
+> [production scoring contract](production-scoring-contract.md).
+
 Status: experimental observed-needs input. It uses real anonymous website
 behavior, replaces the synthetic observed materialization when published, and
 does not modify the production `gap_score` or Census structural index.

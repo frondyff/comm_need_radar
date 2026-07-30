@@ -99,11 +99,47 @@ isolation, application-table write denial, and private visitor-tag denial:
 
 ```bash
 cd frontend
-npm run validate:supabase
+npm run validate:supabase-contract
 ```
 
 Both commands must pass after each cloud refresh. Save their non-secret output in
 the implementation PR or issue comment.
+
+## Approved Scoring-Contract Release
+
+`scoring-contract-03` has a narrow atomic publisher so the approved scoring
+surfaces can be released without replacing unrelated service, analytics, V1,
+or experimental V2 data.
+
+1. Apply `supabase/migrations/202607280001_scoring_contract_consistency.sql`
+   and then
+   `supabase/migrations/202607280002_top5_priority_candidates.sql` in the SQL
+   editor. They add lineage and classification columns, reconciliation
+   constraints, and the private `publish_scoring_contract_03` function.
+   Browser roles cannot execute either publisher.
+2. Run the local no-write validation:
+
+   ```bash
+   python3 scripts/publish_scoring_contract.py
+   ```
+
+3. Merge the approved PR into `dev`. For the release commit that changes this
+   migration/manifest/publisher, the `Release Production` workflow uses GitHub
+   production secrets, captures the previous three public tables as a rollback
+   artifact, publishes the complete 12/108/12 snapshot in one transaction, and
+   runs the public contract validator before staging Vercel.
+4. Run the owner SQL contract when a direct database connection is available:
+
+   ```bash
+   psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 \
+     -f supabase/tests/issue_6_contract.sql
+   ```
+
+5. Merge and deploy only after publication and public validation pass. The
+   frontend runtime rejects a mixed or partial scoring snapshot.
+
+Do not call the private RPC with hand-edited JSON. The committed CSVs and
+publisher validation are the release source of truth.
 
 ## Key Relationships
 

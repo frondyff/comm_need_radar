@@ -1,5 +1,11 @@
 # Scoring And Metrics Guide
 
+> **Legacy and historical reference.** The authoritative production contract
+> is in
+> [`production-scoring-contract.md`](production-scoring-contract.md). Examples
+> below document the superseded mixed formula and experimental layers;
+> they do not mean every formula is approved for production.
+
 Owner: Frondy (geospatial / analytics lead)
 Last updated: 2026-07-02
 Source of truth: `src/comm_need_radar/scoring/metrics.py`
@@ -8,6 +14,19 @@ Example area used throughout: **Parc Extension (A001)** — V2 rank 1 and gap ra
 3. All example values come from the demonstration pipeline run on 2026-07-02.
 
 All scores are in the range **0–100** unless noted.
+
+---
+
+## Current Production Interpretation
+
+`scoring-contract-03` retains the unchanged `GAP-CANON-02` score and adds
+`CLASS-TOP5-02`: ranks 1–5 of the fixed 12-area comparison set are labelled
+**High-priority candidate (POC)**; ranks 6–12 have no priority label. This is a
+relative POC planning label, not the absolute thresholds shown in the
+historical examples below and not a funding or policy decision.
+
+The current top five are Saint-Michel, Montréal-Nord, Lachine, Verdun, and
+Westmount. See the production contract for the current real-service scores.
 
 ---
 
@@ -93,7 +112,7 @@ flowchart TD
 
 ---
 
-## 2. Synthetic Vulnerability Score
+## 2. `PROFILE-LEGACY-01` — Synthetic Vulnerability Score
 
 Used in `area_profile.csv`. Replaced by the real census index in
 `gap_score_table.csv` when `area_vulnerability_index_real.csv` is present.
@@ -135,7 +154,7 @@ top_drivers         = top 3 indicator labels sorted descending
 
 ---
 
-## 3. Haversine Distance And Accessibility Score
+## 3. `ACCESS-LEGACY-01` — Haversine Distance And Accessibility Score
 
 ```mermaid
 flowchart LR
@@ -185,7 +204,7 @@ accessibility_score = min(100, distance_component + count_component)
 
 ---
 
-## 4. Gap Score And Priority Flag
+## 4. `GAP-PROD-01` And `CLASS-LEGACY-01` — Gap And Priority
 
 ```mermaid
 flowchart LR
@@ -227,7 +246,7 @@ The gap score is highest when an area is both **highly vulnerable** and has
 
 ---
 
-## 5. Real Census Vulnerability Index (Structural Layer)
+## 5. `STRUCT-01`, `FOCUS-EXP-01`, And `FOCUS-EXP-02`
 
 Built by `build_statcan_vulnerability_index.py` and `aggregate_ct_to_areas.py`.
 Replaces the synthetic `vulnerability_score` in `gap_score_table.csv`.
@@ -303,7 +322,7 @@ boundaries are needed to differentiate them.
 
 ---
 
-## 6. Observed Needs Layer
+## 6. `V1-DEMAND-EXP-01` And `V2-OBS-EXP-01` — Observed Needs
 
 Built by `map_centers_to_areas.py` + `build_observed_need_index.py`.
 Requires `database_centers.csv` and `database_visitor_tags.csv`.
@@ -383,7 +402,7 @@ service encounters, not deduplicated people.
 
 ---
 
-## 7. Vulnerability Index V2 (Composite)
+## 7. `V2-COMP-EXP-01` — Vulnerability Index V2
 
 Built by `build_vulnerability_index_v2.py`.
 

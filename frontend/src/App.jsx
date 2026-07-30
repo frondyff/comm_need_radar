@@ -279,14 +279,6 @@ function scoreToColor(score) {
   return "#FFE4E6";
 }
 
-function priorityFlagStyle(flag) {
-  const f = (flag || "").toLowerCase();
-  if (f.includes("high")) return { color:"#9F1239", background:"#FFF1F2", border:"1px solid #FECDD3" };
-  if (f.includes("med")) return { color:"#B45309", background:"#FFFBEB", border:"1px solid #FDE68A" };
-  if (f.includes("low")) return { color:"#065F46", background:"#ECFDF5", border:"1px solid #A7F3D0" };
-  return { color:"#334155", background:"#F1F5F9", border:"1px solid #E2E8F0" };
-}
-
 const BOUNDARY_SCORE_ALIASES = {
   "Montreal-Nord": "Montréal-Nord",
   "Cote-des-Neiges-Notre-Dame-de-Grace": "Côte-des-Neiges--Notre-Dame-de-Grâce",
@@ -306,6 +298,13 @@ function ChoroplethMap({ selectedBorough, selectedAreaId, onSelect, boroughScore
   const [mapStatus, setMapStatus] = useState("loading");
   const mapRef = useRef(null);
   const areaById = new Map(areas.map(a => [a.id, a]));
+  const maximumGapScore = Math.max(
+    0,
+    ...areas.map(area => Number(area.gapScore) || 0)
+  );
+  const relativeColor = score => scoreToColor(
+    maximumGapScore > 0 ? score / maximumGapScore : score
+  );
 
   useEffect(() => {
     const controller = new AbortController();
@@ -347,10 +346,11 @@ function ChoroplethMap({ selectedBorough, selectedAreaId, onSelect, boroughScore
     const label = feature.properties?.area_name || feature.properties?.borough_name || "";
     const boroughLabel = feature.properties?.borough_name || "";
     const areaId = feature.properties?.area_id || "";
+    const areaMatch = areaId ? areaById.get(areaId) : null;
     const score = scoreForFeature(feature);
     const isSelected = selectedAreaId ? areaId === selectedAreaId : name === selectedBorough;
     layer.setStyle({
-      fillColor: scoreToColor(score),
+      fillColor: relativeColor(score),
       fillOpacity: 0.8,
       color: isSelected ? "#0F172A" : "#fff",
       weight: isSelected ? 2.5 : 1,
@@ -364,7 +364,7 @@ function ChoroplethMap({ selectedBorough, selectedAreaId, onSelect, boroughScore
     });
     if (label) {
       layer.bindTooltip(
-        `<b>${label}</b><br/>${boroughLabel}${areaId ? ` · ${areaId}` : ""}${score != null ? `<br/>Gap Score: <b>${score.toFixed(2)}</b>` : ""}`,
+        `<b>${label}</b><br/>${boroughLabel}${areaId ? ` · ${areaId}` : ""}${score != null ? `<br/>POC service-gap index: <b>${(score*100).toFixed(2)}</b>` : ""}${areaMatch?.priorityBand === "high_candidate" ? `<br/><b>${isEN ? "High-priority candidate (POC)" : "Candidat à haute priorité (PDC)"}</b>` : ""}`,
         { sticky: true }
       );
     }
@@ -375,7 +375,7 @@ function ChoroplethMap({ selectedBorough, selectedAreaId, onSelect, boroughScore
     const areaId = feature.properties?.area_id || "";
     const isSelected = selectedAreaId ? areaId === selectedAreaId : name === selectedBorough;
     return {
-      fillColor: scoreToColor(scoreForFeature(feature)),
+      fillColor: relativeColor(scoreForFeature(feature)),
       fillOpacity: 0.8,
       color: isSelected ? "#0F172A" : "#fff",
       weight: isSelected ? 2.5 : 1,
@@ -450,7 +450,7 @@ function PlannerView({ lang, setLang, onSwitch, onExit, location, onChangeLocati
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [areas]);
 
-  // Area-level richness (rank, priority flag, bilingual summary, key
+  // Area-level richness (rank, formula lineage, bilingual summary, key
   // drivers) for whichever area is currently selected — falls back to just
   // the borough-level 3-metric breakdown below if no matching area row.
   const selectedAreaData = areas.find(a => a.id === selectedAreaId) || null;
@@ -477,7 +477,9 @@ function PlannerView({ lang, setLang, onSwitch, onExit, location, onChangeLocati
   // static placeholders only if no real area rows have loaded yet)
   const validGapScores = areas.map(a=>a.gapScore).filter(s=>s!=null);
   const avgGapScore = validGapScores.length ? (validGapScores.reduce((a,b)=>a+b,0)/validGapScores.length) : null;
-  const highPriorityCount = areas.filter(a=>(a.priorityFlag||"").toLowerCase().includes("high") || (a.gapScore!=null && a.gapScore>=0.6)).length;
+  const highPriorityCandidateCount = areas.length > 0
+    ? areas.filter(area => area.priorityBand === "high_candidate").length
+    : 5;
 
   // Only show the selected area's own services on the street map, instead
   // of all of them at once (with real data that's 1000+ overlapping pins).
@@ -518,8 +520,8 @@ function PlannerView({ lang, setLang, onSwitch, onExit, location, onChangeLocati
         <div style={{display:"flex",flexWrap:"wrap",background:"#fff",border:"1px solid #E2E8F0",borderRadius:8,marginBottom:16,overflow:"hidden"}}>
           {[
             { label: isEN?"Tracts analyzed":"Zones analysées", val: areas.length>0 ? String(areas.length) : "512", sub: areas.length>0 ? (isEN?`${boroughEntries.length} boroughs`:`${boroughEntries.length} arrondissements`) : (isEN?"of 512 citywide":"sur 512 dans la ville"), icon:Layers, color:"#2563EB", bg:"#EEF2FF" },
-            { label: isEN?"Average gap score":"Score d'écart moyen", val: avgGapScore!=null ? avgGapScore.toFixed(2) : "0.42", sub: avgGapScore!=null ? (isEN?`across ${areas.length} areas`:`sur ${areas.length} zones`) : (isEN?"0.03 vs last quarter":"0,03 par rapport au dernier trimestre"), icon:Activity, color:"#E11D48", bg:"#FFF1F2" },
-            { label: isEN?"High-priority areas":"Zones haute priorité", val: areas.length>0 ? String(highPriorityCount) : "23", sub: areas.length>0 ? (isEN?"top-ranked by gap score citywide":"les mieux classées selon le score d'écart") : (isEN?"6 newly flagged":"6 nouvellement signalées"), icon:AlertTriangle, color:"#D97706", bg:"#FFFBEB" },
+            { label: isEN?"Average POC gap":"Écart moyen (PDC)", val: avgGapScore!=null ? (avgGapScore*100).toFixed(2) : "—", sub: avgGapScore!=null ? (isEN?`relative index across ${areas.length} areas`:`indice relatif sur ${areas.length} zones`) : (isEN?"candidate scoring unavailable":"notation candidate indisponible"), icon:Activity, color:"#E11D48", bg:"#FFF1F2" },
+            { label: isEN?"High-priority candidates (POC)":"Candidats à haute priorité (PDC)", val: String(highPriorityCandidateCount), sub: isEN?"relative top 5 of 12":"5 premiers relatifs sur 12", icon:AlertTriangle, color:"#D97706", bg:"#FFFBEB" },
           ].map((k,i)=>(
             <div key={k.label} style={{flex:"1 1 220px",minWidth:220,padding:"14px 20px",display:"flex",gap:12,alignItems:"flex-start",borderLeft:i>0?"1px solid #E2E8F0":"none"}}>
               <div style={{width:34,height:34,borderRadius:8,background:k.bg,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
@@ -542,8 +544,8 @@ function PlannerView({ lang, setLang, onSwitch, onExit, location, onChangeLocati
           {/* Real choropleth */}
           <div style={{background:"#fff",border:"1px solid #E2E8F0",borderRadius:8,overflow:"hidden",display:"flex",flexDirection:"column"}}>
             <div style={{padding:"12px 16px",borderBottom:"1px solid #E2E8F0",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-              <span style={{fontWeight:600,fontSize:15}}>{isEN?"Gap Score heatmap — click a borough":"Carte de chaleur du Gap Score — cliquez un arrondissement"}</span>
-              <span style={{fontSize:13,color:"#475569"}}>{isEN?"by Gap Score":"par Score d'écart"}</span>
+              <span style={{fontWeight:600,fontSize:15}}>{isEN?"POC relative service-gap map — click an area":"Carte PDC de l'écart relatif de services — cliquez une zone"}</span>
+              <span style={{fontSize:13,color:"#475569"}}>{isEN?"relative rank only":"classement relatif seulement"}</span>
             </div>
             <div style={{flex:1,minHeight:460}}>
               <ChoroplethMap selectedBorough={selectedBorough} selectedAreaId={selectedAreaId} onSelect={selectMapArea} boroughScores={boroughScores} areas={areas} isEN={isEN}/>
@@ -591,9 +593,10 @@ function PlannerView({ lang, setLang, onSwitch, onExit, location, onChangeLocati
             </div>
           </div>
 
-          {/* Top priority areas — clickable */}
+          {/* CLASS-TOP5-02 relative candidates — clickable */}
           <div style={{background:"#fff",border:"1px solid #E2E8F0",borderRadius:8,padding:"16px",display:"flex",flexDirection:"column"}}>
-            <div style={{fontWeight:600,fontSize:15,marginBottom:12}}>{isEN?"Top priority areas (by Gap Score)":"Zones prioritaires (par Score d'écart)"}</div>
+            <div style={{fontWeight:600,fontSize:15,marginBottom:4}}>{isEN?"High-priority candidates (POC)":"Candidats à haute priorité (PDC)"}</div>
+            <div style={{fontSize:11,color:"#64748B",marginBottom:12}}>{isEN?"Relative top 5 of 12; not a policy threshold":"5 premiers relatifs sur 12; aucun seuil de politique"}</div>
             <div style={{display:"flex",flexDirection:"column",gap:8,flex:1}}>
               {priorities.map((p)=>{
                 const isSelected = areas.length>0 ? selectedAreaId===p.id : selectedBorough===p.borough;
@@ -606,8 +609,11 @@ function PlannerView({ lang, setLang, onSwitch, onExit, location, onChangeLocati
                     <div style={{minWidth:0}}>
                       <div style={{fontSize:13,fontWeight:isSelected?600:400,color:isSelected?"#2563EB":"#0F172A",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{p.name}</div>
                       {p.borough && p.borough!==p.name && <div style={{fontSize:11,color:"#475569",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{p.borough}</div>}
+                      <div data-testid="priority-candidate-badge" style={{fontSize:10,color:"#92400E",fontWeight:700,marginTop:3}}>
+                        {isEN?"High-priority candidate (POC)":"Candidat à haute priorité (PDC)"}
+                      </div>
                     </div>
-                    <span style={{fontSize:13,fontWeight:700,color:"#2563EB",background:"#EEF2FF",padding:"3px 8px",borderRadius:4,fontFamily:MONO_FONT,flexShrink:0,marginLeft:8}}>{p.gapScore!=null?p.gapScore.toFixed(2):"—"}</span>
+                    <span style={{fontSize:13,fontWeight:700,color:"#2563EB",background:"#EEF2FF",padding:"3px 8px",borderRadius:4,fontFamily:MONO_FONT,flexShrink:0,marginLeft:8}}>{p.gapScore!=null?(p.gapScore*100).toFixed(2):"—"}</span>
                   </button>
                 );
               })}
@@ -621,16 +627,32 @@ function PlannerView({ lang, setLang, onSwitch, onExit, location, onChangeLocati
             <div style={{fontWeight:600,fontSize:15}}>
               {isEN?"Area profile":"Profil de la zone"} — <span style={{color:"#2563EB"}}>{selectedAreaLabel}</span>
             </div>
-            <span style={{fontSize:13,color:"#475569"}}>Gap Score: <b style={{fontFamily:MONO_FONT,color:"#0F172A"}}>{(selectedAreaData?.gapScore ?? areaData.score).toFixed(2)}</b></span>
-            {selectedAreaData?.priorityFlag && (
-              <span style={{fontSize:11,fontWeight:600,padding:"3px 10px",borderRadius:20,...priorityFlagStyle(selectedAreaData.priorityFlag)}}>{selectedAreaData.priorityFlag}</span>
-            )}
+            <span style={{fontSize:13,color:"#475569"}}>{isEN?"POC service-gap index":"Indice PDC d'écart de services"}: <b style={{fontFamily:MONO_FONT,color:"#0F172A"}}>{((selectedAreaData?.gapScore ?? areaData.score)*100).toFixed(2)}</b></span>
             {selectedAreaData?.rank!=null && (
               <span style={{fontSize:12,color:"#475569"}}>{isEN?`Rank #${selectedAreaData.rank} of ${areas.length} areas`:`Rang n°${selectedAreaData.rank} sur ${areas.length} zones`}</span>
             )}
+            {selectedAreaData?.priorityBand === "high_candidate" && (
+              <span data-testid="area-profile-priority-candidate" style={{fontSize:11,color:"#92400E",background:"#FFFBEB",border:"1px solid #FDE68A",borderRadius:999,padding:"3px 8px",fontWeight:700}}>
+                {isEN?"High-priority candidate (POC)":"Candidat à haute priorité (PDC)"}
+              </span>
+            )}
+            {selectedAreaData && (
+              <>
+                <span style={{fontSize:12,color:"#475569"}}>{isEN?"Structural vulnerability":"Vulnérabilité structurelle"}: <b>{(selectedAreaData.vulnerability*100).toFixed(2)}</b></span>
+                <span style={{fontSize:12,color:"#475569"}}>{isEN?"Relative service accessibility":"Accessibilité relative aux services"}: <b>{(selectedAreaData.accessibility*100).toFixed(2)}</b></span>
+              </>
+            )}
           </div>
 
-          <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:20,marginBottom:selectedAreaData?.summaryEn||selectedAreaData?.summaryFr||selectedAreaData?.drivers?.length>0?16:0}}>
+          {selectedAreaData?.gapFormulaId && (
+            <div style={{fontSize:12,color:"#475569",background:"#F8FAFC",border:"1px solid #E2E8F0",borderRadius:6,padding:"9px 11px",marginBottom:14}}>
+              {isEN
+                ? `Approved POC methodology: ${selectedAreaData.structuralFormulaId} + ${selectedAreaData.accessibilityFormulaId} → ${selectedAreaData.gapFormulaId}. Census source: ${selectedAreaData.sourceYear || "2021"} ${selectedAreaData.sourceGeographyLevel || "borough"} level.`
+                : `Méthode PDC approuvée : ${selectedAreaData.structuralFormulaId} + ${selectedAreaData.accessibilityFormulaId} → ${selectedAreaData.gapFormulaId}. Source du recensement : niveau ${selectedAreaData.sourceGeographyLevel || "arrondissement"}, ${selectedAreaData.sourceYear || "2021"}.`}
+            </div>
+          )}
+
+          <div data-testid="area-profile-indicators" style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(min(100%,160px),1fr))",gap:20,marginBottom:selectedAreaData?.summaryEn||selectedAreaData?.summaryFr||selectedAreaData?.drivers?.length>0?16:0}}>
             {[
               {key:"income",label:isEN?"Low income":"Faible revenu",barValue:selectedAreaData?.income ?? areaData.income,rawPct:selectedAreaData?.incomePct ?? areaData.incomePct},
               {key:"housing",label:isEN?"Housing burden":"Charge logement",barValue:selectedAreaData?.housing ?? areaData.housing,rawPct:selectedAreaData?.housingPct ?? areaData.housingPct},

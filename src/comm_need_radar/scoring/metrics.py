@@ -62,9 +62,53 @@ def haversine_km(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
 
 
 def accessibility_score(nearest_distance_km: float, service_count: int) -> float:
+    """Return the ACCESS-LEGACY-01 synthetic-data accessibility score."""
     distance_component = max(0.0, 100.0 - (nearest_distance_km / ACCESS_THRESHOLD_KM * 70.0))
     count_component = min(service_count, 5) * 6.0
     return round(min(100.0, distance_component + count_component), 2)
+
+
+def relative_accessibility_score(
+    nearest_distance_km: float,
+    service_count: int,
+    max_category_count: int,
+    *,
+    threshold_km: float = ACCESS_THRESHOLD_KM,
+    distance_weight: float = 0.5,
+    availability_weight: float = 0.5,
+) -> tuple[float, float, float]:
+    """Return ACCESS-REAL-02 and its auditable distance/count components."""
+    if threshold_km <= 0:
+        raise ValueError("threshold_km must be positive")
+    if service_count < 0 or max_category_count < 0:
+        raise ValueError("service counts cannot be negative")
+    if service_count > max_category_count:
+        raise ValueError("service_count cannot exceed max_category_count")
+    if not math.isclose(distance_weight + availability_weight, 1.0):
+        raise ValueError("accessibility weights must sum to 1")
+
+    capped_distance = min(max(float(nearest_distance_km), 0.0), threshold_km)
+    distance_component = 100.0 * max(0.0, 1.0 - capped_distance / threshold_km)
+    availability_component = (
+        0.0
+        if max_category_count == 0
+        else 100.0
+        * math.log1p(service_count)
+        / math.log1p(max_category_count)
+    )
+    # Round the stored components first so a reviewer can reconcile the stored
+    # score from the exposed values within the documented 0.01 tolerance.
+    distance_component = round(distance_component, 2)
+    availability_component = round(availability_component, 2)
+    score = (
+        distance_weight * distance_component
+        + availability_weight * availability_component
+    )
+    return (
+        round(min(100.0, max(0.0, score)), 2),
+        distance_component,
+        availability_component,
+    )
 
 
 def gap_score(vulnerability: float, accessibility: float) -> float:
@@ -73,11 +117,40 @@ def gap_score(vulnerability: float, accessibility: float) -> float:
 
 
 def priority_flag(score: float) -> str:
+    """Return the historical CLASS-LEGACY-01 threshold label."""
     if score >= 45:
         return "High priority"
     if score >= 28:
         return "Watch"
     return "Lower priority"
+
+
+TOP_PRIORITY_CUTOFF_RANK = 5
+TOP_PRIORITY_COMPARISON_SET_SIZE = 12
+TOP_PRIORITY_BAND = "high_candidate"
+TOP_PRIORITY_LABEL = "High-priority candidate (POC)"
+TOP_PRIORITY_CLASSIFICATION_STATUS = "poc_relative_candidate"
+
+
+def top_priority_candidate(
+    rank: int,
+    *,
+    cutoff_rank: int = TOP_PRIORITY_CUTOFF_RANK,
+    comparison_set_size: int = TOP_PRIORITY_COMPARISON_SET_SIZE,
+) -> tuple[str, str]:
+    """Classify only the relative top ranks in the fixed POC comparison set.
+
+    This is CLASS-TOP5-02, not the retired absolute High/Watch/Lower
+    classification. Rows outside the cutoff deliberately receive no band or
+    public priority label.
+    """
+    if not 1 <= rank <= comparison_set_size:
+        raise ValueError("rank must be within the comparison set")
+    if not 1 <= cutoff_rank <= comparison_set_size:
+        raise ValueError("cutoff_rank must be within the comparison set")
+    if rank <= cutoff_rank:
+        return TOP_PRIORITY_BAND, TOP_PRIORITY_LABEL
+    return "", ""
 
 
 def require_columns(columns: Iterable[str], required: Iterable[str], table_name: str) -> None:

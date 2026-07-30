@@ -1,5 +1,10 @@
 # V2 Planner View and scoring
 
+Scoring status and formula IDs are governed by the
+[production scoring contract](reference/scoring/production-scoring-contract.md).
+That contract distinguishes production `GAP-CANON-02` from historical and
+experimental formulas.
+
 ## Purpose
 
 The Planner View compares structural vulnerability with nearby service access
@@ -17,7 +22,7 @@ Production cards, map colours, and priority rankings currently use
 | Interface element | Runtime source |
 | --- | --- |
 | Area profile and structural score | `area_profile` |
-| Gap score, gap rank, priority, and explanation | `gap_score` |
+| Gap score, gap rank, classification status, formula IDs, and explanation | `gap_score` |
 | Service-access details | `accessibility` |
 | Service locations | `services_master` |
 | Low-income, housing-cost-burden, and recent-immigration detail bars | `/api/area-vulnerability`, backed by `area_vulnerability_index_real` |
@@ -26,9 +31,9 @@ Production cards, map colours, and priority rankings currently use
 The detail bars are real Census-derived fields. They are not the older
 synthetic demonstration indicators.
 
-## Production scoring
+## Production scoring — `scoring-contract-03`
 
-### Structural vulnerability
+### `STRUCT-01` — structural vulnerability
 
 Five area-level 2021 Census dimensions are normalized to 0–100 across the
 comparison areas and averaged with equal weight:
@@ -47,45 +52,67 @@ vulnerability_score =
 Equal weights keep the proof-of-concept method explainable and avoid implying
 empirical precision that has not been established.
 
-### Accessibility
+### `ACCESS-REAL-02` — relative service accessibility
 
 For each service category:
 
 ```text
+radius_km = 2.5
+
 distance_component =
-  max(0, 100 - (nearest_service_km / 2.5) × 70)
+  100 × max(0, 1 − min(nearest_service_km, radius_km) / radius_km)
 
-count_component =
-  min(service_count_within_2.5_km, 5) × 6
+availability_component =
+  100 × log1p(service_count_within_2.5_km)
+      / log1p(max_category_count_across_12_areas)
 
-accessibility_score =
-  min(100, distance_component + count_component)
+category_accessibility =
+  0.50 × distance_component + 0.50 × availability_component
+
+service_accessibility_score =
+  equal-weight mean of the nine category scores
 ```
 
-The production area accessibility value is the average across service
-categories.
+The production snapshot contains 3,664 deduplicated `services_master` rows;
+3,200 records with usable coordinates contribute to the nine-category relative
+score. This measures directory proximity and relative presence—not travel
+time, capacity, eligibility, service quality, or successful receipt.
 
-### Gap and priority
+### `GAP-CANON-02`
 
 ```text
 gap_score =
-  vulnerability_score × (100 - overall_accessibility_score) / 100
+  structural_vulnerability_score
+  × (100 − service_accessibility_score)
+  / 100
 ```
 
-| Gap score | Label |
-| ---: | --- |
-| 45 or greater | High priority |
-| 28 to less than 45 | Watch |
-| Less than 28 | Lower priority |
+The calculation runs in the data pipeline, not in the browser. The production
+score label is **POC relative service-gap index**.
 
-This makes the gap high only when structural pressure is high and the
-accessibility proxy is low. The calculation runs in the data pipeline, not in
-the browser.
+### `CLASS-TOP5-02`
+
+The interface labels exactly ranks 1–5 of the fixed 12-area comparison set as
+**High-priority candidate (POC)**. Ranks 6–12 show their score and rank without
+a priority label. This classification is relative: it is not an eligibility,
+funding, service-allocation, or validated policy threshold. The historical
+High/Watch/Lower thresholds remain retired.
+
+The Planner KPI and right-side panel both report exactly five candidates.
+Candidate badges also appear in the area cards, map tooltips, and selected Area
+Profile. The guided Planner chatbot uses the same stored classification fields
+and includes the relative-POC limitation.
+
+The full formula, category crosswalk, limitations, and release evidence are in
+the
+[production scoring contract](reference/scoring/production-scoring-contract.md).
+The [comparison report](reference/scoring/scoring-candidate-comparison-2026-07-28.md)
+records all 12 score and rank changes from historical `GAP-PROD-01`.
 
 ## Scoring decision memo
 
-Decision as of 2026-07-28: keep the production gap score unchanged and keep
-the experimental observed-demand composite in structural-only fallback.
+Decision as of 2026-07-28: keep experimental observed demand outside production
+`GAP-CANON-02` and keep the experimental composite in structural-only fallback.
 
 | Candidate | Inputs | Current status | Appropriate use |
 | --- | --- | --- | --- |

@@ -14,6 +14,8 @@ from comm_need_radar.scoring.metrics import (
     haversine_km,
     observed_focus_need_score,
     priority_flag,
+    relative_accessibility_score,
+    top_priority_candidate,
     v1_demand_score,
     v2_observed_need_score,
 )
@@ -32,9 +34,45 @@ class ScoringTests(unittest.TestCase):
         self.assertGreater(gap_score(80, 20), gap_score(80, 80))
 
     def test_priority_flag(self):
+        # CLASS-LEGACY-01 remains tested for historical reproducibility only.
         self.assertEqual(priority_flag(50), "High priority")
         self.assertEqual(priority_flag(30), "Watch")
         self.assertEqual(priority_flag(10), "Lower priority")
+
+    def test_top_priority_candidate_is_relative_and_bounded(self):
+        self.assertEqual(
+            top_priority_candidate(1),
+            ("high_candidate", "High-priority candidate (POC)"),
+        )
+        self.assertEqual(
+            top_priority_candidate(5),
+            ("high_candidate", "High-priority candidate (POC)"),
+        )
+        self.assertEqual(top_priority_candidate(6), ("", ""))
+        self.assertEqual(top_priority_candidate(12), ("", ""))
+        with self.assertRaises(ValueError):
+            top_priority_candidate(13)
+
+    def test_relative_accessibility_components_reconcile(self):
+        score, distance, availability = relative_accessibility_score(
+            1.25, 4, 16
+        )
+        self.assertEqual(distance, 50.0)
+        self.assertAlmostEqual(score, round((distance + availability) / 2, 2))
+        self.assertGreater(availability, 0)
+        self.assertLessEqual(availability, 100)
+
+    def test_relative_accessibility_rejects_invalid_contract(self):
+        with self.assertRaises(ValueError):
+            relative_accessibility_score(1, 6, 5)
+        with self.assertRaises(ValueError):
+            relative_accessibility_score(
+                1,
+                1,
+                5,
+                distance_weight=0.6,
+                availability_weight=0.5,
+            )
 
 
 class KAnonFloorTests(unittest.TestCase):

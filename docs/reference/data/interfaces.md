@@ -1,12 +1,16 @@
 # Shared Interfaces
 
-Status: implemented for the synthetic/demonstration MVP as of 2026-07-02.
+Status: `scoring-contract-03` production interface as of 2026-07-28.
+
+The generated CSVs and production Supabase tables implement the official POC
+contract. The authoritative formula definitions and deployment state are in
+[`production-scoring-contract.md`](../scoring/production-scoring-contract.md).
 
 ## Area Profile Table
 
 File: `data/processed/area_profile.csv`
 
-Grain: one row per synthetic area.
+Grain: one row per reviewed area.
 
 Required fields:
 
@@ -14,20 +18,25 @@ Required fields:
 | --- | --- |
 | `area_id` | Stable area identifier |
 | `area_name` | Area label |
-| `borough_name` | Synthetic borough label |
-| `latitude` | Area centroid latitude |
-| `longitude` | Area centroid longitude |
-| `population` | Synthetic population |
-| `income_indicator` | Higher means more income vulnerability |
-| `age_indicator` | Higher means more age-related vulnerability |
-| `language_indicator` | Higher means more language-access vulnerability |
-| `immigration_indicator` | Higher means more newcomer-support need |
-| `housing_indicator` | Higher means more housing vulnerability |
-| `vulnerability_score` | 0-100 normalized score |
-| `vulnerability_rank` | Rank, 1 is highest vulnerability |
+| `borough_name` | Administrative borough label |
+| `latitude` | Representative point latitude from the reviewed GeoJSON |
+| `longitude` | Representative point longitude from the reviewed GeoJSON |
+| `population` | Legacy synthetic display value; never used in scoring |
+| `population_basis` | Explicitly identifies the population field as non-scoring demo data |
+| `income_indicator` | StatCan low-income indicator scaled 0-100 |
+| `age_indicator` | StatCan seniors indicator scaled 0-100 |
+| `language_indicator` | StatCan no-official-language indicator scaled 0-100 |
+| `immigration_indicator` | StatCan recent-immigrant indicator scaled 0-100 |
+| `housing_indicator` | StatCan shelter-cost-burden indicator scaled 0-100 |
+| `structural_vulnerability_score` | Canonical `STRUCT-01` score, 0-100 |
+| `vulnerability_score` | Compatibility alias; must equal `structural_vulnerability_score` |
+| `structural_vulnerability_rank` | Rank by canonical score, 1 is highest |
+| `vulnerability_rank` | Compatibility alias; must equal the structural rank |
 | `top_vulnerability_drivers` | Semicolon-separated top drivers |
-| `summary_en` | English area summary |
-| `summary_fr` | French area summary |
+| `structural_formula_id` | `STRUCT-01` |
+| `score_basis` / `score_version` | Machine-readable lineage |
+| `source_year` | Census reference year |
+| `source_geography_level` / `source_geography_name` | Source aggregation geography |
 
 ## Service Table
 
@@ -66,8 +75,17 @@ Required fields:
 | `service_category` | Service category |
 | `nearest_service_distance_km` | Distance to nearest service |
 | `service_count_within_threshold` | Services within 2.5 km |
-| `accessibility_score` | 0-100 access score, higher is better |
-| `accessibility_method` | MVP method label |
+| `distance_component` | Linear nearest-distance component, 0-100 |
+| `availability_component` | Log-normalized within-radius availability component, 0-100 |
+| `accessibility_score` | Equal-weight component average, 0-100; higher is relatively better |
+| `accessibility_method` | Human-readable production POC method |
+| `accessibility_basis` / `accessibility_version` | Machine-readable lineage |
+| `accessibility_formula_id` | `ACCESS-REAL-02` |
+| `formula_set_version` | `scoring-contract-03` |
+| `taxonomy_version` | Version of the 20-to-9 service-category crosswalk |
+| `service_snapshot_id` / `service_snapshot_date` | Immutable source snapshot lineage |
+| `service_snapshot_total_rows` | All canonical `services_master` rows |
+| `service_snapshot_mappable_rows` | Rows with valid coordinates used by this formula |
 
 ## Gap Score Table
 
@@ -81,15 +99,28 @@ Required fields:
 | --- | --- |
 | `area_id` | Area identifier |
 | `area_name` | Area label |
-| `borough_name` | Synthetic borough label |
+| `borough_name` | Administrative borough label |
 | `latitude` | Area latitude |
 | `longitude` | Area longitude |
-| `vulnerability_score` | 0-100 vulnerability score |
-| `overall_accessibility_score` | Average service access score |
-| `gap_score` | Higher means higher priority |
-| `gap_rank` | Rank, 1 is highest priority |
-| `priority_flag` | High priority, watch, or lower priority |
+| `structural_vulnerability_score` | Canonical `STRUCT-01` score |
+| `vulnerability_score` | Compatibility alias; must equal the structural score |
+| `service_accessibility_score` | Mean of the nine `ACCESS-REAL-02` category scores |
+| `overall_accessibility_score` | Compatibility alias; must equal service accessibility |
+| `gap_score` | `GAP-CANON-02` relative POC score |
+| `gap_rank` | Rank, 1 is the largest relative gap |
+| `priority_band` | `high_candidate` for ranks 1–5; empty for ranks 6–12 |
+| `priority_flag` | `High-priority candidate (POC)` for ranks 1–5; empty for ranks 6–12 |
+| `classification_formula_id` | `CLASS-TOP5-02` |
+| `classification_status` | `poc_relative_candidate` |
+| `priority_cutoff_rank` | `5` |
+| `comparison_set_size` | `12` |
 | `gap_drivers` | Plain-language gap explanation |
+| `structural_formula_id` | `STRUCT-01` |
+| `accessibility_formula_id` | `ACCESS-REAL-02` |
+| `gap_formula_id` | `GAP-CANON-02` |
+| `formula_set_version` | `scoring-contract-03` |
+| `gap_basis` / `gap_version` | Machine-readable lineage |
+| `taxonomy_version` / `service_snapshot_id` | Taxonomy and input snapshot lineage |
 
 ## Census Vulnerability Index Tables
 
