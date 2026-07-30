@@ -10,10 +10,10 @@ test("nextFlyerMapZoom moves one level and never exceeds its bounds", () => {
 
 test("getVisibleFlyerLegendItems retains only location and shown service categories", () => {
   const legendItems = [
-    { label: "You are here", kind: "location" },
-    { label: "Shelter", kind: "service" },
-    { label: "Food", kind: "service" },
-    { label: "Medical", kind: "service" },
+    { category: null, label: { en: "You are here", fr: "Vous êtes ici" }, kind: "location" },
+    { category: "Shelter", label: { en: "Shelter", fr: "Hébergement" }, kind: "service" },
+    { category: "Food", label: { en: "Food", fr: "Alimentation" }, kind: "service" },
+    { category: "Medical", label: { en: "Medical", fr: "Médical" }, kind: "service" },
   ];
 
   assert.deepEqual(
@@ -22,10 +22,17 @@ test("getVisibleFlyerLegendItems retains only location and shown service categor
   );
 });
 
-test("getFlyerServiceLabelPlacement keeps a long selected-service label inside the map", () => {
+test("getFlyerServiceLabelPlacement flips a long label left when the right side is constrained", () => {
   assert.deepEqual(
     getFlyerServiceLabelPlacement({ point: { x: 400, y: 30 }, mapSize: { x: 420, y: 245 }, labelWidth: 180 }),
-    { left: 232, top: 18 },
+    { left: 202, top: 18 },
+  );
+});
+
+test("getFlyerServiceLabelPlacement keeps a label right of the marker when space permits", () => {
+  assert.deepEqual(
+    getFlyerServiceLabelPlacement({ point: { x: 100, y: 30 }, mapSize: { x: 420, y: 245 }, labelWidth: 180 }),
+    { left: 118, top: 18 },
   );
 });
 
