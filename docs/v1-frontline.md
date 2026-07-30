@@ -15,7 +15,7 @@ Production: [comm-need-radar.vercel.app](https://comm-need-radar.vercel.app)
 3. Filter services by category, population group, gender, age or distance.
 4. Review the matching list and Montréal map.
 5. Open a service card and confirm its contact details.
-6. Generate a English flyer.
+6. Generate an English or French flyer.
 7. Download the PDF, which includes the selected service, the distribution
    location, a map, and nearby alternatives.
 
