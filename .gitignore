@@ -37,6 +37,7 @@ data/raw/boundaries/ct_national_shp/
 data/raw/service_sources/_211/
 data/community_radar.sqlite
 data/derived/web_observed_demand/
+data/derived/scoring_release/
 *.sqlite-journal
 *.parquet
 *.sqlite

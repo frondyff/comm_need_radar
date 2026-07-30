@@ -17,7 +17,10 @@ from comm_need_radar.geospatial.boundaries import (  # noqa: E402
 )
 
 
-AREA_PATH = PROJECT_ROOT / "data" / "processed" / "area_profile.csv"
+# The stable registry owns area IDs and the A001/A002 partition seeds.
+# Scoring outputs may use representative points from the resulting polygons,
+# but must not redefine the polygons themselves.
+AREA_PATH = PROJECT_ROOT / "data" / "raw" / "synthetic_area_profiles.csv"
 BOROUGH_PATH = PROJECT_ROOT / "data" / "raw" / "boundaries" / "montreal_boroughs.geojson"
 OUTPUT_PATH = PROJECT_ROOT / "frontend" / "public" / "geo" / "areas.geojson"
 

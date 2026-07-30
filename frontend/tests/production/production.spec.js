@@ -137,10 +137,23 @@ test("planner workflow loads live areas, switches language, and completes a chat
   await choosePlannerView(page);
 
   await expect(page.getByText("Tracts analyzed")).toBeVisible();
+  await expect(page.getByText("High-priority candidates (POC)", { exact: true }).first()).toBeVisible();
+  await expect(page.getByText("relative top 5 of 12", { exact: true })).toBeVisible();
   await expect(page.getByTestId("priority-area")).toHaveCount(5);
-  await expect(page.getByTestId("area-profile-income")).toContainText("20.89%");
-  await expect(page.getByTestId("area-profile-housing")).toContainText("27.62%");
-  await expect(page.getByTestId("area-profile-immigration")).toContainText("9.33%");
+  await expect(page.getByTestId("priority-candidate-badge")).toHaveCount(5);
+  await expect(page.getByTestId("priority-area").first()).toContainText("Saint-Michel");
+  await expect(page.getByTestId("area-profile-priority-candidate")).toBeVisible();
+  await expect(page.getByTestId("area-profile")).toContainText("26.29");
+  await expect(page.getByTestId("area-profile")).toContainText("62.87");
+  await expect(page.getByTestId("area-profile")).toContainText("58.18");
+  // GAP-CANON-02 ranks Saint-Michel first. These are its source profile
+  // percentages, not the normalized STRUCT-01 indicator scores.
+  await expect(page.getByTestId("area-profile-income")).toContainText("21.23%");
+  await expect(page.getByTestId("area-profile-housing")).toContainText("22.72%");
+  await expect(page.getByTestId("area-profile-immigration")).toContainText("6.13%");
+  expect(await page.getByTestId("area-profile-indicators").evaluate(element =>
+    element.scrollWidth - element.clientWidth
+  )).toBeLessThanOrEqual(1);
   const initialProfile = await page.getByTestId("area-profile").textContent();
   const firstPolygon = page
     .getByTestId("planner-boundary-map")
@@ -151,6 +164,9 @@ test("planner workflow loads live areas, switches language, and completes a chat
   await expect
     .poll(() => page.getByTestId("area-profile").textContent())
     .not.toBe(initialProfile);
+  // The first GeoJSON area is Parc Extension (rank 9), so it must retain its
+  // score/rank without receiving the relative top-five candidate badge.
+  await expect(page.getByTestId("area-profile-priority-candidate")).toHaveCount(0);
   const polygonProfile = await page.getByTestId("area-profile").textContent();
   await page.getByTestId("priority-area").nth(1).click();
   await expect
@@ -164,8 +180,9 @@ test("planner workflow loads live areas, switches language, and completes a chat
   await page.getByTestId("open-chat").click();
   await expect(page.getByTestId("chatbot")).toBeVisible();
   await page.getByRole("button", { name: "City-wide rankings" }).click();
-  await page.getByRole("button", { name: "Highest service gap" }).click();
+  await page.getByRole("button", { name: "High-priority candidates (POC)" }).click();
   await expect(page.getByTestId("chat-result")).toBeVisible({ timeout: 30_000 });
+  await expect(page.getByTestId("chat-result")).toContainText("relative top 5 of 12");
   await expect(page.getByText(/Source \(table\):/)).toBeVisible();
 
   await page.getByRole("button", { name: "Close chat" }).click();
