@@ -7,16 +7,25 @@ export function nextFlyerMapZoom(currentZoom, direction) {
 
 export function getVisibleFlyerLegendItems({ destinations = [], legendItems = [] }) {
   const visibleCategories = new Set(destinations.map((destination) => destination.category).filter(Boolean));
-  return legendItems.filter((item) => item.kind === "location" || visibleCategories.has(item.label));
+  return legendItems.filter((item) => item.kind === "location" || visibleCategories.has(item.category));
 }
 
 export function getFlyerServiceLabelPlacement({ point, mapSize, labelWidth }) {
   const margin = 8;
-  const preferredLeft = point.x + 18;
-  const preferredTop = point.y - 12;
+  const gap = 18;
+  const top = Math.max(point.y - 12, margin);
+
+  // Prefer placing the label to the right of the marker. If there isn't
+  // enough room before the map edge, flip it to the left instead — simply
+  // clamping the "right" position back toward the edge would slide the
+  // label box backward over the marker/cluster it's meant to describe.
+  const spaceRight = mapSize.x - margin - (point.x + gap);
+  const fitsRight = spaceRight >= labelWidth;
+  const preferredLeft = fitsRight ? point.x + gap : point.x - gap - labelWidth;
+
   return {
     left: Math.min(Math.max(preferredLeft, margin), mapSize.x - labelWidth - margin),
-    top: Math.max(preferredTop, margin),
+    top,
   };
 }
 
