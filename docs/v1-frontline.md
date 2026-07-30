@@ -12,7 +12,7 @@ Production: [comm-need-radar.vercel.app](https://comm-need-radar.vercel.app)
 
 1. Open **Community View**.
 2. Choose one of the nine curated distribution locations.
-3. Filter services by category, population group, gender, or age.
+3. Filter services by category, population group, gender, age or distance.
 4. Review the matching list and Montréal map.
 5. Open a service card and confirm its contact details.
 6. Generate an English or French flyer.
