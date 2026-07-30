@@ -27,7 +27,7 @@ const MONO_FONT = "ui-monospace,SFMono-Regular,'JetBrains Mono',Menlo,Consolas,m
 // PDF exporter grabs is still captured at its original, unscaled
 // dimensions. The outer wrapper is sized to the *scaled* height so it
 // still reserves the right amount of space in the flex layout below it.
-function ScaledFlyerPreview({ flyer, scale = 1.16 }) {
+function ScaledFlyerPreview({ flyer, isEN, scale = 1.16 }) {
   const outerRef = useRef(null);
   const innerRef = useRef(null);
   const [size, setSize] = useState(null); // natural (unscaled) size of the flyer
@@ -64,7 +64,7 @@ function ScaledFlyerPreview({ flyer, scale = 1.16 }) {
   return (
     <div data-testid="flyer-preview-shell" ref={outerRef} style={{ width:"100%", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"flex-start", height: size ? size.h*effectiveScale : "auto", overflow:"hidden" }}>
       <div ref={innerRef} style={{ transform:`scale(${effectiveScale})`, transformOrigin:"top center", width: size ? size.w : "auto", flexShrink:0 }}>
-        <FlyerPreview flyer={flyer}/>
+        <FlyerPreview flyer={flyer} isEN={isEN}/>
       </div>
     </div>
   );
@@ -830,7 +830,12 @@ export default function CommunityRadar() {
   // "Other" isn't one bucket — it's whatever real primary_category values
   // don't match Shelter/Food/Medical/Legal/Translation. Computed live from
   // the loaded data, so it adapts automatically as new values show up.
-  const otherCategoryOptions = [...new Set(services.filter(s=>s.category==="Other").map(s=>s.type).filter(Boolean))].sort();
+  // "Indigenous" is a Group/audience tag, not a service type — it shouldn't
+  // surface here even though a services_master row has it in `type`. This
+  // is a front-end guard, not a fix for the underlying data labeling.
+  const otherCategoryOptions = [...new Set(services.filter(s=>s.category==="Other").map(s=>s.type).filter(Boolean))]
+    .filter(type=>type!=="Indigenous")
+    .sort();
 
   // Upper bound for the distance slider — rounds up to the nearest 0.5 km
   // past the farthest *reasonable* service currently loaded. A handful of
@@ -1186,7 +1191,7 @@ export default function CommunityRadar() {
                   ))}
                 </MapContainer>
                 <div aria-label="Leaflet map legend" style={{position:"absolute",bottom:10,left:10,zIndex:1000,background:"rgba(255,255,255,0.95)",borderRadius:6,padding:"4px 8px",border:"1px solid #E2E8F0",display:"flex",flexDirection:"column",gap:3}}>
-                  {MAP_LEGEND_ITEMS.map(item=><div key={item.label} style={{display:"flex",alignItems:"center",gap:4,fontSize:11}}><div style={{width:8,height:8,borderRadius:"50%",background:item.color}}/>{item.kind==="location"?(isEN?"You are here":"Vous êtes ici"):item.label}</div>)}
+                  {MAP_LEGEND_ITEMS.map(item=><div key={item.category || "location"} style={{display:"flex",alignItems:"center",gap:4,fontSize:11}}><div style={{width:8,height:8,borderRadius:"50%",background:item.color}}/>{isEN ? item.label.en : item.label.fr}</div>)}
                 </div>
               </div>
             ) : (
@@ -1355,7 +1360,7 @@ export default function CommunityRadar() {
                 {/* Flyer preview tab */}
                 {rightTab==="flyer" && (
                   <div style={{flex:1,overflowY:"auto",background:"#fff",padding:"16px",display:"flex",flexDirection:"column",justifyContent:"flex-start",gap:12}}>
-                    <ScaledFlyerPreview flyer={flyer}/>
+                    <ScaledFlyerPreview flyer={flyer} isEN={isEN}/>
 
                     <div style={{width:"100%",margin:"0 auto"}}>
                       {flyerDone && <div style={{marginBottom:8,padding:"7px 10px",background:"#ECFDF5",borderRadius:6,color:"#047857",fontSize:12}}>✓ {isEN?"PDF downloaded successfully":"PDF téléchargé avec succès"}</div>}

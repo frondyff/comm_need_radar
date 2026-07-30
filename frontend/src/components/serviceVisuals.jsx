@@ -13,11 +13,28 @@ export const CATEGORY_COLORS = Object.freeze({
 
 export const USER_LOCATION_COLOR = "#0F172A";
 
+// French display names for each category — the `category` field below stays
+// the original English key (matched against `service.category` values
+// stored in the DB), while `label` carries the bilingual display text.
+const CATEGORY_LABELS_FR = Object.freeze({
+  Shelter: "Hébergement",
+  Food: "Alimentation",
+  Medical: "Médical",
+  Legal: "Juridique",
+  Translation: "Traduction",
+  Other: "Autre",
+});
+
 // This is the sole visual contract for category colors on every Leaflet map,
 // map legend, marker, and flyer service-centre detail.
 export const MAP_LEGEND_ITEMS = Object.freeze([
-  Object.freeze({ label: "You are here", color: USER_LOCATION_COLOR, kind: "location" }),
-  ...Object.entries(CATEGORY_COLORS).map(([label, color]) => Object.freeze({ label, color, kind: "service" })),
+  Object.freeze({ category: null, label: { en: "You are here", fr: "Vous êtes ici" }, color: USER_LOCATION_COLOR, kind: "location" }),
+  ...Object.entries(CATEGORY_COLORS).map(([category, color]) => Object.freeze({
+    category,
+    label: { en: category, fr: CATEGORY_LABELS_FR[category] || category },
+    color,
+    kind: "service",
+  })),
 ]);
 
 const CATEGORY_ICONS = Object.freeze({
